@@ -26,7 +26,7 @@ class GenerateCommand extends Command
 
     protected function configure(): void
     {
-        $this->setName('reinfi:openapi-models');
+        $this->setName('generate');
 
         $this->addOption(
             'config',
