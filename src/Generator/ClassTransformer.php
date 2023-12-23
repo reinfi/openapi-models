@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Generator;
 
 use cebe\openapi\spec\OpenApi;
+use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
@@ -48,6 +49,12 @@ readonly class ClassTransformer
 
             if ($parameter->getType() === 'array' && $property instanceof Schema) {
                 $this->resolveArrayType($openApi, $name, $propertyName, $property, $namespace, $parameter);
+            }
+
+            if ($parameter->getType() === 'oneOf' && $property instanceof Schema) {
+                $oneOfType = $this->transformOneOf($openApi, $name, $propertyName, $property->oneOf, $namespace);
+
+                $parameter->setType($oneOfType);
             }
         }
 
@@ -101,9 +108,48 @@ readonly class ClassTransformer
         $arrayType = $this->typeTransformer->transform($openApi, $itemsSchema, $namespace);
 
         if ($arrayType === 'object') {
-            $arrayType = $namespace->resolveName($this->transformInlineObject($openApi, $parentName, $propertyName, $schema->items, $namespace));
+            $arrayType = $namespace->resolveName(
+                $this->transformInlineObject($openApi, $parentName, $propertyName, $schema->items, $namespace)
+            );
         }
 
-        $parameter->addComment(sprintf('@var %s[] $%s', $namespace->simplifyName($arrayType), $parameter->getName()));
+        $parameter->addComment(
+            sprintf('@var %s[] $%s', $namespace->simplifyName($arrayType), $parameter->getName())
+        );
+    }
+
+    /**
+     * @param array<Schema|Reference> $oneOf
+     */
+    private function transformOneOf(
+        OpenApi $openApi,
+        string $parentName,
+        string $propertyName,
+        array $oneOf,
+        PhpNamespace $namespace
+    ): string {
+        $resolvedTypes = [];
+
+        $countInlineObjects = 0;
+
+        foreach ($oneOf as $oneOfElement) {
+            if ($oneOfElement instanceof Schema) {
+                $resolvedTypes[] = $namespace->resolveName(
+                    $this->transformInlineObject(
+                        $openApi,
+                        $parentName,
+                        $propertyName . ++$countInlineObjects,
+                        $oneOfElement,
+                        $namespace
+                    )
+                );
+            }
+
+            if ($oneOfElement instanceof Reference) {
+                $resolvedTypes[] = $this->typeTransformer->transform($openApi, $oneOfElement, $namespace);
+            }
+        }
+
+        return join('|', $resolvedTypes);
     }
 }

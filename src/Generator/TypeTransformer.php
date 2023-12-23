@@ -18,6 +18,10 @@ readonly class TypeTransformer
             return $this->resolveReference($openApi, $schema, $namespace);
         }
 
+        if (is_array($schema->oneOf)) {
+            return 'oneOf';
+        }
+
         if (is_array($schema->enum) && $this->isValidEnum($schema)) {
             return 'enum';
         }
