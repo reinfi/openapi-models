@@ -8,11 +8,13 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\PromotedParameter;
 
 readonly class ClassTransformer
 {
     public function __construct(
-        private PropertyTransformer $propertyTransformer
+        private PropertyTransformer $propertyTransformer,
+        private TypeTransformer $typeTransformer,
     ) {
     }
 
@@ -42,6 +44,10 @@ readonly class ClassTransformer
                 $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
 
                 $parameter->setType($namespace->resolveName($enumType));
+            }
+
+            if ($parameter->getType() === 'array' && $property instanceof Schema) {
+                $this->resolveArrayType($openApi, $name, $propertyName, $property, $namespace, $parameter);
             }
         }
 
@@ -81,5 +87,23 @@ readonly class ClassTransformer
         }
 
         return $enumName;
+    }
+
+    private function resolveArrayType(
+        OpenApi $openApi,
+        string $parentName,
+        string $propertyName,
+        Schema $schema,
+        PhpNamespace $namespace,
+        PromotedParameter $parameter,
+    ): void {
+        $itemsSchema = $schema->items;
+        $arrayType = $this->typeTransformer->transform($openApi, $itemsSchema, $namespace);
+
+        if ($arrayType === 'object') {
+            $arrayType = $namespace->resolveName($this->transformInlineObject($openApi, $parentName, $propertyName, $schema->items, $namespace));
+        }
+
+        $parameter->addComment(sprintf('@var %s[] $%s', $namespace->simplifyName($arrayType), $parameter->getName()));
     }
 }

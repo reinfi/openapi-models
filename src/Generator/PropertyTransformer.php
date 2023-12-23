@@ -38,22 +38,6 @@ readonly class PropertyTransformer
             $property->setDefaultValue(null)->setNullable();
         }
 
-        if ($property->getType() === 'array') {
-            $this->addArrayTypeHint($openApi, $schema, $property, $namespace);
-        }
-
         return $property;
-    }
-
-    private function addArrayTypeHint(
-        OpenApi $openApi,
-        Schema $schema,
-        PromotedParameter $property,
-        PhpNamespace $namespace
-    ): void {
-        $itemsSchema = $schema->items;
-        $arrayType = $this->typeTransformer->transform($openApi, $itemsSchema, $namespace);
-
-        $property->addComment(sprintf('@var %s[] $%s', $namespace->simplifyName($arrayType), $property->getName()));
     }
 }
