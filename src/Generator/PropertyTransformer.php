@@ -4,31 +4,25 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
-use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\Method;
-use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
 
 readonly class PropertyTransformer
 {
-    public function __construct(
-        private TypeTransformer $typeTransformer
-    ) {
-    }
-
     public function transform(
-        OpenApi $openApi,
-        PhpNamespace $namespace,
         Method $constructor,
         string $name,
         Schema|Reference $schema,
-        bool $required
+        bool $required,
+        Types|string $type,
     ): PromotedParameter {
-        $property = $constructor
-            ->addPromotedParameter($name)
-            ->setType($this->typeTransformer->transform($openApi, $schema, $namespace));
+        $property = $constructor->addPromotedParameter($name);
+
+        if (is_string($type)) {
+            $property->setType($type);
+        }
 
         if ($schema->nullable ?? false) {
             $property->setNullable();

@@ -26,32 +26,33 @@ readonly class ClassTransformer
         $constructor = $class->addMethod('__construct');
 
         foreach ($schema->properties as $propertyName => $property) {
+            $type = $this->typeTransformer->transform($openApi, $property, $namespace);
+
             $parameter = $this->propertyTransformer->transform(
-                $openApi,
-                $namespace,
                 $constructor,
                 $propertyName,
                 $property,
-                in_array($propertyName, $schema->required ?: [], true)
+                in_array($propertyName, $schema->required ?: [], true),
+                $type
             );
 
-            if ($parameter->getType() === 'object' && $property instanceof Schema) {
+            if ($type === Types::Object && $property instanceof Schema) {
                 $inlineType = $this->transformInlineObject($openApi, $name, $propertyName, $property, $namespace);
 
                 $parameter->setType($namespace->resolveName($inlineType));
             }
 
-            if ($parameter->getType() === 'enum' && $property instanceof Schema) {
+            if ($type === Types::Enum && $property instanceof Schema) {
                 $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
 
                 $parameter->setType($namespace->resolveName($enumType));
             }
 
-            if ($parameter->getType() === 'array' && $property instanceof Schema) {
+            if ($type === Types::Array && $property instanceof Schema) {
                 $this->resolveArrayType($openApi, $name, $propertyName, $property, $namespace, $parameter);
             }
 
-            if ($parameter->getType() === 'oneOf' && $property instanceof Schema) {
+            if ($type === Types::OneOf && $property instanceof Schema) {
                 $oneOfType = $this->transformOneOf($openApi, $name, $propertyName, $property->oneOf, $namespace);
 
                 $parameter->setType($oneOfType);
@@ -107,13 +108,13 @@ readonly class ClassTransformer
         $itemsSchema = $schema->items;
         $arrayType = $this->typeTransformer->transform($openApi, $itemsSchema, $namespace);
 
-        if ($arrayType === 'object') {
+        if ($arrayType === Types::Object) {
             $arrayType = $namespace->resolveName(
                 $this->transformInlineObject($openApi, $parentName, $propertyName, $schema->items, $namespace)
             );
         }
 
-        $parameter->addComment(
+        $parameter->setType('array')->addComment(
             sprintf('@var %s[] $%s', $namespace->simplifyName($arrayType), $parameter->getName())
         );
     }

@@ -12,18 +12,18 @@ use Nette\PhpGenerator\PhpNamespace;
 
 readonly class TypeTransformer
 {
-    public function transform(OpenApi $openApi, Schema|Reference $schema, PhpNamespace $namespace): string
+    public function transform(OpenApi $openApi, Schema|Reference $schema, PhpNamespace $namespace): string|Types
     {
         if ($schema instanceof Reference) {
             return $this->resolveReference($openApi, $schema, $namespace);
         }
 
         if (is_array($schema->oneOf)) {
-            return 'oneOf';
+            return Types::OneOf;
         }
 
         if (is_array($schema->enum) && $this->isValidEnum($schema)) {
-            return 'enum';
+            return Types::Enum;
         }
 
         return match ($schema->type) {
@@ -34,8 +34,8 @@ readonly class TypeTransformer
             'integer' => 'int',
             'boolean' => 'bool',
             'string' => 'string',
-            'array' => 'array',
-            'object' => 'object',
+            'array' => Types::Array,
+            'object' => Types::Object,
             default => throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type))
         };
     }
