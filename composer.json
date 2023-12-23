@@ -1,0 +1,41 @@
+{
+    "name": "reinfi/openapi-models",
+    "description": "Generate PHP models from openapi definition",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Reinfi\\OpenApiModels\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Reinfi\\OpenApiModels\\Test\\": "test/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Reinfi",
+            "email": "reinfandt@z-em.de"
+        }
+    ],
+    "require": {
+        "php": ">= 8.2",
+        "nette/php-generator": "^4.1",
+        "symfony/console": "^6.0",
+        "php-di/php-di": "^7.0",
+        "marcelthole/openapi-merge": "dev-main",
+        "cebe/php-openapi": "^1.7"
+    },
+    "require-dev": {
+        "symplify/easy-coding-standard": "^12.0",
+        "phpunit/phpunit": "^10.5"
+    },
+    "bin": [
+        "bin/openapi-models.php"
+    ],
+    "scripts": {
+        "cs-check": "ecs check",
+        "cs-fix": "ecs check --fix"
+    }
+}
