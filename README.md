@@ -36,6 +36,7 @@ return [
     'paths' => [__DIR__ . '/spec'], # array of path to check for openapi files
     'outputPath' => __DIR__ . '/output', # output directory
     'namespace' => 'Api', # namespace for generated classes, can be empty
+    'clearOutputDirectory' => true, # to remove all files in output directory, default is false
 ];
 ```
 

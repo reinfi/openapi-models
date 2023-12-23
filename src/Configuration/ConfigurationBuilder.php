@@ -32,6 +32,7 @@ class ConfigurationBuilder
             $configurationValues['paths'] ?? [],
             $configurationValues['outputPath'] ?? '',
             $configurationValues['namespace'] ?? '',
+            (bool) ($configurationValues['clearOutputDirectory'] ?? false),
         );
 
         $this->validate($configuration);

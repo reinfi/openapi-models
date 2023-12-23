@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Writer;
 
+use DirectoryIterator;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use SplFileInfo;
 
 readonly class ClassWriter
 {
@@ -17,6 +19,10 @@ readonly class ClassWriter
 
     public function write(Configuration $configuration, PhpNamespace $namespace): void
     {
+        if ($configuration->clearOutputDirectory) {
+            $this->clearOutputDirectory($configuration->outputPath);
+        }
+
         foreach ($namespace->getClasses() as $class) {
             if ($class->getName() === null) {
                 continue;
@@ -35,6 +41,22 @@ readonly class ClassWriter
                 {$this->printer->printNamespace($classOnlyNamespace)}
                 TPL
             );
+        }
+    }
+
+    private function clearOutputDirectory(string $outputDirectory): void
+    {
+        /** @var SplFileInfo $fileInfo */
+        foreach (new DirectoryIterator($outputDirectory) as $fileInfo) {
+            if ($fileInfo->isDot()) {
+                continue;
+            }
+
+            $filePath = $fileInfo->getRealPath();
+
+            if (is_string($filePath)) {
+                unlink($fileInfo->getRealPath());
+            }
         }
     }
 }
