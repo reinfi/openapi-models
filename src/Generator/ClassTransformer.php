@@ -37,6 +37,12 @@ readonly class ClassTransformer
 
                 $parameter->setType($namespace->resolveName($inlineType));
             }
+
+            if ($parameter->getType() === 'enum' && $property instanceof Schema) {
+                $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
+
+                $parameter->setType($namespace->resolveName($enumType));
+            }
         }
 
         return $class;
@@ -54,5 +60,26 @@ readonly class ClassTransformer
         $this->transform($openApi, $className, $schema, $namespace);
 
         return $className;
+    }
+
+    private function transformEnum(
+        string $parentName,
+        string $propertyName,
+        Schema $schema,
+        PhpNamespace $namespace
+    ): string {
+        $enumName = $parentName . ucfirst($propertyName);
+
+        $enum = $namespace->addEnum($enumName);
+        $enum->setType(match ($schema->type) {
+            'number' => 'int',
+            default => 'string'
+        });
+        foreach ($schema->enum as $enumValue) {
+            $enumCaseName = ucfirst($enumValue);
+            $enum->addCase($enumCaseName, $enumValue);
+        }
+
+        return $enumName;
     }
 }

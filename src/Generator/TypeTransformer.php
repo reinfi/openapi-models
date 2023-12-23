@@ -18,22 +18,21 @@ readonly class TypeTransformer
             return $this->resolveReference($openApi, $schema, $namespace);
         }
 
+        if (is_array($schema->enum) && $this->isValidEnum($schema)) {
+            return 'enum';
+        }
+
         return match ($schema->type) {
-            'number' => $this->transformNumber($schema),
+            'number' => match ($schema->format) {
+                'double', 'float' => 'float',
+                default => 'int'
+            },
             'integer' => 'int',
             'boolean' => 'bool',
             'string' => 'string',
             'array' => 'array',
             'object' => 'object',
             default => throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type))
-        };
-    }
-
-    private function transformNumber(Schema $schema): string
-    {
-        return match ($schema->format) {
-            'double', 'float' => 'float',
-            default => 'int'
         };
     }
 
@@ -56,5 +55,10 @@ readonly class TypeTransformer
         }
 
         throw new InvalidArgumentException(sprintf('Can not resolve reference "%s"', $reference->getReference()));
+    }
+
+    private function isValidEnum(Schema $schema): bool
+    {
+        return in_array($schema->type, ['string', 'number'], true);
     }
 }
