@@ -6,7 +6,6 @@ namespace Reinfi\OpenApiModels\Writer;
 
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
-use PHPUnit\TextUI\Configuration\Php;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 
 readonly class ClassWriter
