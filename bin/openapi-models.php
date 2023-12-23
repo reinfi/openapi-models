@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+use DI\ContainerBuilder;
+use Reinfi\OpenApiModels\Command\GenerateCommand;
+use Symfony\Component\Console\Application;
+
+if (is_dir($vendor = __DIR__ . '/../vendor')) {
+    require $vendor . '/autoload.php';
+} elseif (is_dir($vendor = __DIR__ . '/../../..')) {
+    require $vendor . '/autoload.php';
+} else {
+    die(
+        'You must set up the project dependencies.' . PHP_EOL .
+        'To do that, run the following commands:' . PHP_EOL . PHP_EOL .
+        '$ curl -s http://getcomposer.org/installer | php' . PHP_EOL .
+        '$ php composer.phar install' . PHP_EOL
+    );
+}
+
+if (! class_exists('Symfony\Component\Console\Application')) {
+    die(
+        'You must install the symfony/console package in order ' .
+        'to use the command-line tool.' . PHP_EOL
+    );
+}
+
+$container = (new ContainerBuilder())->addDefinitions(__DIR__ . '/../config/container.php')->build();
+$app = new Application();
+
+$app->add($container->get(GenerateCommand::class));
+$app->run();

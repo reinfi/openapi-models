@@ -30,7 +30,7 @@ readonly class PropertyTransformer
             ->addPromotedParameter($name)
             ->setType($this->typeTransformer->transform($openApi, $schema, $namespace));
 
-        if ($schema->nullable) {
+        if ($schema->nullable ?? false) {
             $property->setNullable();
         }
 
