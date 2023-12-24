@@ -10,7 +10,7 @@ use cebe\openapi\spec\Schema;
 use InvalidArgumentException;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
 
-class ReferenceResolver
+readonly class ReferenceResolver
 {
     public function resolve(OpenApi $openApi, Reference $reference): SchemaWithName
     {

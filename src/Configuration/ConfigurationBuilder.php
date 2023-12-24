@@ -6,7 +6,7 @@ namespace Reinfi\OpenApiModels\Configuration;
 
 use InvalidArgumentException;
 
-class ConfigurationBuilder
+readonly class ConfigurationBuilder
 {
     public function buildFromFile(string $configurationFile): Configuration
     {

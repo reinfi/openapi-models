@@ -36,6 +36,8 @@ readonly class ClassWriter
                 $filePath,
                 <<<TPL
                 <?php
+
+                declare(strict_types=1);
                     
                 {$this->printer->printNamespace($classOnlyNamespace)}
                 TPL
