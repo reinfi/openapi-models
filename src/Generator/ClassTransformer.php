@@ -14,8 +14,8 @@ use Nette\PhpGenerator\PromotedParameter;
 readonly class ClassTransformer
 {
     public function __construct(
-        private PropertyTransformer $propertyTransformer,
-        private TypeTransformer $typeTransformer,
+        private PropertyResolver $propertyResolver,
+        private TypeResolver $typeResolver,
         private ReferenceResolver $referenceResolver,
     ) {
     }
@@ -30,9 +30,9 @@ readonly class ClassTransformer
 
         foreach ($schemasForClass as $schema) {
             foreach ($schema->properties as $propertyName => $property) {
-                $type = $this->typeTransformer->transform($openApi, $property, $namespace);
+                $type = $this->typeResolver->resolve($openApi, $property, $namespace);
 
-                $parameter = $this->propertyTransformer->transform(
+                $parameter = $this->propertyResolver->resolve(
                     $constructor,
                     $propertyName,
                     $property,
@@ -132,7 +132,7 @@ readonly class ClassTransformer
         PromotedParameter $parameter,
     ): void {
         $itemsSchema = $schema->items;
-        $arrayType = $this->typeTransformer->transform($openApi, $itemsSchema, $namespace);
+        $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema, $namespace);
 
         if ($arrayType === Types::Object) {
             $arrayType = $namespace->resolveName(
@@ -173,7 +173,7 @@ readonly class ClassTransformer
             }
 
             if ($oneOfElement instanceof Reference) {
-                $resolvedTypes[] = $this->typeTransformer->transform($openApi, $oneOfElement, $namespace);
+                $resolvedTypes[] = $this->typeResolver->resolve($openApi, $oneOfElement, $namespace);
             }
         }
 

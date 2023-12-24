@@ -9,9 +9,9 @@ use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PromotedParameter;
 
-readonly class PropertyTransformer
+readonly class PropertyResolver
 {
-    public function transform(
+    public function resolve(
         Method $constructor,
         string $name,
         Schema|Reference $schema,

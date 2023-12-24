@@ -10,14 +10,14 @@ use cebe\openapi\spec\Schema;
 use InvalidArgumentException;
 use Nette\PhpGenerator\PhpNamespace;
 
-readonly class TypeTransformer
+readonly class TypeResolver
 {
     public function __construct(
         private ReferenceResolver $referenceResolver
     ) {
     }
 
-    public function transform(OpenApi $openApi, Schema|Reference $schema, PhpNamespace $namespace): string|Types
+    public function resolve(OpenApi $openApi, Schema|Reference $schema, PhpNamespace $namespace): string|Types
     {
         if ($schema instanceof Reference) {
             return $namespace->resolveName($this->referenceResolver->resolve($openApi, $schema)->name);
