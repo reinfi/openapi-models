@@ -24,7 +24,7 @@
         "nette/php-generator": "^4.1",
         "symfony/console": "^6.0",
         "php-di/php-di": "^7.0",
-        "marcelthole/openapi-merge": "dev-main",
+        "marcelthole/openapi-merge": "^1.6",
         "cebe/php-openapi": "^1.7",
         "michaelpetri/typed-input": "^1.3"
     },
