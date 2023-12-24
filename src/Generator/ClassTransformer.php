@@ -72,7 +72,7 @@ readonly class ClassTransformer
      */
     private function resolveSchemasForClass(OpenApi $openApi, Schema $schema): array
     {
-        if (is_array($schema->allOf)) {
+        if (is_array($schema->allOf) && count($schema->allOf) > 0) {
             return array_map(
                 function (Schema|Reference $schema) use ($openApi): Schema {
                     if ($schema instanceof Reference) {
@@ -132,12 +132,21 @@ readonly class ClassTransformer
         PromotedParameter $parameter,
     ): void {
         $itemsSchema = $schema->items;
+        if ($itemsSchema === null) {
+            $parameter->setType('array');
+            return;
+        }
+
         $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema, $namespace);
 
-        if ($arrayType === Types::Object) {
+        if ($arrayType === Types::Object && $itemsSchema instanceof Schema) {
             $arrayType = $namespace->resolveName(
-                $this->transformInlineObject($openApi, $parentName, $propertyName, $schema->items, $namespace)
+                $this->transformInlineObject($openApi, $parentName, $propertyName, $itemsSchema, $namespace)
             );
+        }
+
+        if ($arrayType instanceof Types) {
+            $arrayType = $arrayType->value;
         }
 
         $parameter->setType('array')->addComment(

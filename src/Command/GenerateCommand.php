@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Command;
 
+use MichaelPetri\TypedInput\TypedInput;
 use Reinfi\OpenApiModels\Configuration\ConfigurationBuilder;
 use Reinfi\OpenApiModels\Generator\ClassGenerator;
 use Reinfi\OpenApiModels\Parser\Parser;
@@ -39,7 +40,11 @@ class GenerateCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $configuration = $this->configurationBuilder->buildFromFile($input->getOption('config'));
+        $typedInput = TypedInput::fromInput($input);
+
+        $configuration = $this->configurationBuilder->buildFromFile(
+            $typedInput->getOption('config')->asNonEmptyString()
+        );
 
         $openApiDefinition = $this->parser->parse($configuration);
 

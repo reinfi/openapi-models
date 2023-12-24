@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Generator;
 
 use cebe\openapi\spec\OpenApi;
+use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 
@@ -19,8 +20,11 @@ readonly class ClassGenerator
     {
         $namespace = new PhpNamespace($configuration->namespace);
 
-        foreach ($openApi->components->schemas as $name => $schema) {
-            $this->classTransformer->transform($openApi, $name, $schema, $namespace);
+        $schemas = $openApi->components->schemas ?? [];
+        foreach ($schemas as $name => $schema) {
+            if ($schema instanceof Schema) {
+                $this->classTransformer->transform($openApi, $name, $schema, $namespace);
+            }
         }
 
         return $namespace;

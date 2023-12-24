@@ -27,15 +27,11 @@ readonly class Parser
             } elseif (is_dir($fileOrDirectory)) {
                 $filesToParse = array_merge(
                     $filesToParse,
-                    glob(sprintf('%s/*.yml', $fileOrDirectory)),
-                    glob(sprintf('%s/*.yaml', $fileOrDirectory)),
-                    glob(sprintf('%s/*.json', $fileOrDirectory)),
+                    glob(sprintf('%s/*.yml', $fileOrDirectory)) ?: [],
+                    glob(sprintf('%s/*.yaml', $fileOrDirectory)) ?: [],
+                    glob(sprintf('%s/*.json', $fileOrDirectory)) ?: [],
                 );
             }
-        }
-
-        if (count($filesToParse) === 0) {
-            throw new InvalidArgumentException('No files found to generate models');
         }
 
         return $this->mergeFiles(array_map(static fn (string $file): File => new File($file), $filesToParse));
@@ -47,6 +43,10 @@ readonly class Parser
     private function mergeFiles(array $files): OpenApi
     {
         $firstFile = array_pop($files);
+
+        if (! $firstFile instanceof File) {
+            throw new InvalidArgumentException('No files found to generate models');
+        }
 
         return $this->openApiMerge->mergeFiles($firstFile, $files, false)->getOpenApi();
     }

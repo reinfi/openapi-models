@@ -8,7 +8,6 @@ use DirectoryIterator;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
 use Reinfi\OpenApiModels\Configuration\Configuration;
-use SplFileInfo;
 
 readonly class ClassWriter
 {
@@ -46,7 +45,7 @@ readonly class ClassWriter
 
     private function clearOutputDirectory(string $outputDirectory): void
     {
-        /** @var SplFileInfo $fileInfo */
+        /** @var DirectoryIterator $fileInfo */
         foreach (new DirectoryIterator($outputDirectory) as $fileInfo) {
             if ($fileInfo->isDot()) {
                 continue;

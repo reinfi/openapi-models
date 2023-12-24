@@ -25,17 +25,20 @@
         "symfony/console": "^6.0",
         "php-di/php-di": "^7.0",
         "marcelthole/openapi-merge": "dev-main",
-        "cebe/php-openapi": "^1.7"
+        "cebe/php-openapi": "^1.7",
+        "michaelpetri/typed-input": "^1.3"
     },
     "require-dev": {
         "symplify/easy-coding-standard": "^12.0",
-        "phpunit/phpunit": "^10.5"
+        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": "^1.10"
     },
     "bin": [
         "bin/openapi-models"
     ],
     "scripts": {
         "cs-check": "ecs check",
-        "cs-fix": "ecs check --fix"
+        "cs-fix": "ecs check --fix",
+        "phpstan": "./vendor/bin/phpstan analyse -c phpstan.neon"
     }
 }

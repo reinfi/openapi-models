@@ -17,13 +17,16 @@ readonly class TypeResolver
     ) {
     }
 
+    /**
+     * @return ($schema is Reference ? string : string|Types)
+     */
     public function resolve(OpenApi $openApi, Schema|Reference $schema, PhpNamespace $namespace): string|Types
     {
         if ($schema instanceof Reference) {
             return $namespace->resolveName($this->referenceResolver->resolve($openApi, $schema)->name);
         }
 
-        if (is_array($schema->oneOf)) {
+        if (is_array($schema->oneOf) && count($schema->oneOf) > 0) {
             return Types::OneOf;
         }
 
