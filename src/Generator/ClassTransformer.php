@@ -16,6 +16,7 @@ readonly class ClassTransformer
     public function __construct(
         private PropertyTransformer $propertyTransformer,
         private TypeTransformer $typeTransformer,
+        private ReferenceResolver $referenceResolver,
     ) {
     }
 
@@ -25,41 +26,66 @@ readonly class ClassTransformer
 
         $constructor = $class->addMethod('__construct');
 
-        foreach ($schema->properties as $propertyName => $property) {
-            $type = $this->typeTransformer->transform($openApi, $property, $namespace);
+        $schemasForClass = $this->resolveSchemasForClass($openApi, $schema);
 
-            $parameter = $this->propertyTransformer->transform(
-                $constructor,
-                $propertyName,
-                $property,
-                in_array($propertyName, $schema->required ?: [], true),
-                $type
-            );
+        foreach ($schemasForClass as $schema) {
+            foreach ($schema->properties as $propertyName => $property) {
+                $type = $this->typeTransformer->transform($openApi, $property, $namespace);
 
-            if ($type === Types::Object && $property instanceof Schema) {
-                $inlineType = $this->transformInlineObject($openApi, $name, $propertyName, $property, $namespace);
+                $parameter = $this->propertyTransformer->transform(
+                    $constructor,
+                    $propertyName,
+                    $property,
+                    in_array($propertyName, $schema->required ?: [], true),
+                    $type
+                );
 
-                $parameter->setType($namespace->resolveName($inlineType));
-            }
+                if ($type === Types::Object && $property instanceof Schema) {
+                    $inlineType = $this->transformInlineObject($openApi, $name, $propertyName, $property, $namespace);
 
-            if ($type === Types::Enum && $property instanceof Schema) {
-                $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
+                    $parameter->setType($namespace->resolveName($inlineType));
+                }
 
-                $parameter->setType($namespace->resolveName($enumType));
-            }
+                if ($type === Types::Enum && $property instanceof Schema) {
+                    $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
 
-            if ($type === Types::Array && $property instanceof Schema) {
-                $this->resolveArrayType($openApi, $name, $propertyName, $property, $namespace, $parameter);
-            }
+                    $parameter->setType($namespace->resolveName($enumType));
+                }
 
-            if ($type === Types::OneOf && $property instanceof Schema) {
-                $oneOfType = $this->transformOneOf($openApi, $name, $propertyName, $property->oneOf, $namespace);
+                if ($type === Types::Array && $property instanceof Schema) {
+                    $this->resolveArrayType($openApi, $name, $propertyName, $property, $namespace, $parameter);
+                }
 
-                $parameter->setType($oneOfType);
+                if ($type === Types::OneOf && $property instanceof Schema) {
+                    $oneOfType = $this->transformOneOf($openApi, $name, $propertyName, $property->oneOf, $namespace);
+
+                    $parameter->setType($oneOfType);
+                }
             }
         }
 
         return $class;
+    }
+
+    /**
+     * @return Schema[]
+     */
+    private function resolveSchemasForClass(OpenApi $openApi, Schema $schema): array
+    {
+        if (is_array($schema->allOf)) {
+            return array_map(
+                function (Schema|Reference $schema) use ($openApi): Schema {
+                    if ($schema instanceof Reference) {
+                        return $this->referenceResolver->resolve($openApi, $schema)->schema;
+                    }
+
+                    return $schema;
+                },
+                $schema->allOf
+            );
+        }
+
+        return [$schema];
     }
 
     private function transformInlineObject(
