@@ -1,0 +1,39 @@
+openapi: 3.0.9
+
+info:
+  title: Test Common OpenApi
+  version: 0.0.1
+
+paths: {}
+
+components:
+  schemas:
+    Pagination:
+      type: object
+      required:
+        - limit
+        - totalPages
+        - previousPage
+        - currentPage
+        - nextPage
+      properties:
+        limit:
+          type: number
+        totalPages:
+          type: number
+        previousPage:
+          type: number
+          nullable: true
+        currentPage:
+          type: number
+        nextPage:
+          type: number
+          nullable: true
+
+    Uuid:
+      type: object
+      required:
+        - uuid
+      properties:
+        uuid:
+          type: string

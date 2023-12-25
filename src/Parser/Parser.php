@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use Mthole\OpenApiMerge\FileHandling\File;
 use Mthole\OpenApiMerge\OpenApiMerge;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Webmozart\Glob\Glob;
 
 readonly class Parser
 {
@@ -27,9 +28,9 @@ readonly class Parser
             } elseif (is_dir($fileOrDirectory)) {
                 $filesToParse = array_merge(
                     $filesToParse,
-                    glob(sprintf('%s/*.yml', $fileOrDirectory)) ?: [],
-                    glob(sprintf('%s/*.yaml', $fileOrDirectory)) ?: [],
-                    glob(sprintf('%s/*.json', $fileOrDirectory)) ?: [],
+                    Glob::glob(sprintf('%s/*.yml', $fileOrDirectory)) ?: [],
+                    Glob::glob(sprintf('%s/*.yaml', $fileOrDirectory)) ?: [],
+                    Glob::glob(sprintf('%s/*.json', $fileOrDirectory)) ?: [],
                 );
             }
         }

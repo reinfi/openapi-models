@@ -55,7 +55,7 @@ readonly class ClassWriter
 
             $filePath = $fileInfo->getRealPath();
 
-            if (is_string($filePath)) {
+            if (is_string($filePath) && $fileInfo->isFile()) {
                 unlink($fileInfo->getRealPath());
             }
         }
