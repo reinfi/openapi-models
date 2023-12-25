@@ -39,6 +39,7 @@
     "scripts": {
         "cs-check": "ecs check",
         "cs-fix": "ecs check --fix",
+        "test": "vendor/bin/phpunit --no-coverage",
         "phpstan": "./vendor/bin/phpstan analyse -c phpstan.neon"
     }
 }
