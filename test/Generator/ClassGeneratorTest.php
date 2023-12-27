@@ -20,8 +20,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesClassesFromOpenApi(): void
     {
-        $configuration = $this->createMock(Configuration::class);
-        $configuration->namespace = '';
+        $configuration = new Configuration([], '', '', false);
 
         $transformer = $this->createMock(ClassTransformer::class);
         $transformer->expects($this->exactly(2))->method('transform');
