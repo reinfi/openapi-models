@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Configuration\ConfigurationBuilder;
+use Throwable;
 
 class ConfigurationBuilderTest extends TestCase
 {
@@ -37,7 +38,7 @@ class ConfigurationBuilderTest extends TestCase
      */
     public function testItBuildsValidConfiguration(
         string $pathToConfiguration,
-        ?\Throwable $expectedException = null
+        ?Throwable $expectedException = null
     ): void {
         if ($expectedException !== null) {
             self::expectException($expectedException::class);
