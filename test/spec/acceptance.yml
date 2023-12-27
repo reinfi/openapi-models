@@ -1,0 +1,75 @@
+openapi: 3.0.9
+
+info:
+  title: Acceptance Test
+  version: 0.0.1
+
+paths: {}
+
+components:
+  schemas:
+    Test1:
+      type: object
+      required:
+        - id
+        - email
+        - admin
+        - changed
+      properties:
+        id:
+          type: number
+        email:
+          type: string
+        admin:
+          type: boolean
+        changed:
+          type: string
+          nullable: true
+        deleted:
+          type: boolean
+
+    Test2:
+      type: object
+      required:
+        - ok
+        - test
+      properties:
+        ok:
+          type: boolean
+        test:
+          $ref: '#/components/schemas/Test1'
+
+    Test3:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/Test1'
+
+    Test4:
+      type: object
+      required:
+        - id
+        - whichTest
+      properties:
+        id:
+          type: string
+        whichTest:
+          oneOf:
+            - $ref: '#/components/schemas/Test1'
+            - $ref: '#/components/schemas/Test2'
+
+    Test5:
+      allOf:
+        - $ref: '#/components/schemas/Test2'
+        - type: object
+          required:
+            - fullName
+          properties:
+            fullName:
+              type: string

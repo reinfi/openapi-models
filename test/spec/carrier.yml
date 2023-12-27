@@ -4,22 +4,7 @@ info:
   title: Test Carrier OpenApi
   version: 0.0.1
 
-paths:
-  /carrier/add:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddCarrierRequestBody'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AddCarrierResponse'
+paths: {}
 
 components:
   schemas:

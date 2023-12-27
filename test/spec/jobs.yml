@@ -4,26 +4,7 @@ info:
   title: Test Jobs OpenApi
   version: 0.0.1
 
-paths:
-  /jobs/list:
-    get:
-      parameters:
-        - in: query
-          name: page
-          required: true
-          schema:
-            type: number
-        - in: query
-          name: limit
-          schema:
-            type: number
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsListResponse'
+paths: {}
 
 components:
   schemas:

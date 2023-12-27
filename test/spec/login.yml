@@ -4,22 +4,7 @@ info:
   title: Test Login OpenApi
   version: 0.0.1
 
-paths:
-  /login:
-    post:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequestBody'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
+paths: {}
 
 components:
   schemas:
