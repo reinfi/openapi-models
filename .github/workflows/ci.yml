@@ -43,5 +43,8 @@ jobs:
       - name: Run phpstan
         run: composer phpstan
 
+      - name: Run PHPUnit
+        run: composer test
+
       - name: Run easy coding standard
         run: composer cs-check

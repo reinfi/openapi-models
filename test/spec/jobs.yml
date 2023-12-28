@@ -1,0 +1,45 @@
+openapi: 3.0.9
+
+info:
+  title: Test Jobs OpenApi
+  version: 0.0.1
+
+paths: {}
+
+components:
+  schemas:
+    JobsListResponse:
+      type: object
+      required:
+        - pagination
+        - commandLogs
+      properties:
+        pagination:
+          $ref: 'common.yml#/components/schemas/Pagination'
+        commandLogs:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommandLog'
+
+    CommandLog:
+      type: object
+      required:
+        - uuid
+        - name
+        - startedAt
+        - endedAt
+        - returnCode
+        - output
+      properties:
+        uuid:
+          $ref: 'common.yml#/components/schemas/Uuid'
+        name:
+          type: string
+        startedAt:
+          type: string
+        endedAt:
+          type: string
+        returnCode:
+          type: number
+        output:
+          type: string

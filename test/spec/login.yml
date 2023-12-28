@@ -1,0 +1,40 @@
+openapi: 3.0.9
+
+info:
+  title: Test Login OpenApi
+  version: 0.0.1
+
+paths: {}
+
+components:
+  schemas:
+    LoginRequestBody:
+      type: object
+      required:
+        - login
+        - pw
+      properties:
+        login:
+          type: string
+        pw:
+          type: string
+
+    LoginResponse:
+      type: object
+      required:
+        - ok
+        - error
+        - url
+      properties:
+        ok:
+          type: boolean
+        error:
+          type: string
+        url:
+          type: string
+        state:
+          type: string
+          enum:
+            - loggedIn
+            - loggedOut
+            - unknown

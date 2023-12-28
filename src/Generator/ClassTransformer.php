@@ -116,7 +116,10 @@ readonly class ClassTransformer
             default => 'string'
         });
         foreach ($schema->enum as $enumValue) {
-            $enumCaseName = ucfirst($enumValue);
+            $enumCaseName = match ($enum->getType()) {
+                'int' => sprintf('Value%u', $enumValue),
+                default => ucfirst($enumValue),
+            };
             $enum->addCase($enumCaseName, $enumValue);
         }
 

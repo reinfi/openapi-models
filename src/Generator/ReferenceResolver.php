@@ -20,7 +20,7 @@ readonly class ReferenceResolver
             $matches
         ) !== 1) {
             throw new InvalidArgumentException(
-                sprintf('Can not resolve reference "%s"', $reference->getReference())
+                sprintf('Invalid reference "%s" given, does not match pattern', $reference->getReference())
             );
         }
 

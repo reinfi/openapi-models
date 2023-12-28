@@ -12,7 +12,9 @@ use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 return static function (ECSConfig $configurator): void {
     $configurator->parallel();
 
-    $configurator->paths([__DIR__ . '/config/', __DIR__ . '/src/', __DIR__ . '/ecs.php']);
+    $configurator->paths([__DIR__ . '/config/', __DIR__ . '/src/', __DIR__ . '/test/', __DIR__ . '/ecs.php']);
+
+    $configurator->skip([__DIR__ . '/test/Acceptance/ExpectedClasses', __DIR__ . '/test/output']);
 
     // import SetList here in the end of ecs. is on purpose
     // to avoid overridden by existing Skip Option in current config

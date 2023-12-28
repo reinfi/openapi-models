@@ -1,0 +1,104 @@
+openapi: 3.0.9
+
+info:
+  title: Test Carrier OpenApi
+  version: 0.0.1
+
+paths: {}
+
+components:
+  schemas:
+    AddCarrierRequestBody:
+      type: object
+      required:
+        - name
+        - email
+        - user_generate
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        user_generate:
+          type: boolean
+        send_mail:
+          type: boolean
+        send_mail_name:
+          type: string
+        send_mail_mail:
+          type: string
+        references:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+              address:
+                type: object
+                properties:
+                  postCode:
+                    type: string
+                  street:
+                    type: string
+
+    AddCarrierResponse:
+      type: object
+      required:
+        - ok
+        - errors
+        - redirect
+      properties:
+        ok:
+          type: boolean
+        carrier:
+          oneOf:
+            - $ref: '#/components/schemas/CarrierSingle'
+            - type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                inlineName:
+                  type: string
+
+        errors:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            user_generate:
+              type: string
+            send_mail:
+              type: string
+            send_mail_name:
+              type: string
+            send_mail_mail:
+              type: string
+        redirect:
+          type: string
+
+    CarrierSingle:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    CarrierAdvanced:
+      allOf:
+        - $ref: '#/components/schemas/CarrierSingle'
+        - type: object
+          required:
+            - fullName
+          properties:
+            fullName:
+              type: string
