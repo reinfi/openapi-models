@@ -197,15 +197,28 @@ readonly class ClassTransformer
 
         foreach ($oneOf as $oneOfElement) {
             if ($oneOfElement instanceof Schema) {
-                $resolvedTypes[] = $namespace->resolveName(
-                    $this->transformInlineObject(
-                        $openApi,
-                        $parentName,
-                        $propertyName . ++$countInlineObjects,
-                        $oneOfElement,
-                        $namespace
-                    )
-                );
+                $resolvedType = $this->typeResolver->resolve($openApi, $oneOfElement, $namespace);
+
+                $resolvedTypes[] = match ($resolvedType) {
+                    Types::Object => $namespace->resolveName(
+                        $this->transformInlineObject(
+                            $openApi,
+                            $parentName,
+                            $propertyName . ++$countInlineObjects,
+                            $oneOfElement,
+                            $namespace
+                        )
+                    ),
+                    Types::Enum => $namespace->resolveName(
+                        $this->transformEnum(
+                            $parentName,
+                            $propertyName . ++$countInlineObjects,
+                            $oneOfElement,
+                            $namespace
+                        )
+                    ),
+                    default => $resolvedType,
+                };
             }
 
             if ($oneOfElement instanceof Reference) {

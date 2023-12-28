@@ -735,7 +735,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
 
         $referenceResolver->expects($this->never())->method('resolve');
-        $typeResolver->expects($this->exactly(3))->method('resolve')->with(
+        $typeResolver->expects($this->exactly(4))->method('resolve')->with(
             $openApi,
             $this->callback(function (Schema|Reference $schema): bool {
                 if ($schema instanceof Reference) {
@@ -746,10 +746,10 @@ class ClassTransformerTest extends TestCase
                     return true;
                 }
 
-                return $schema->type === 'string';
+                return in_array($schema->type, ['object', 'string'], true);
             }),
             $namespace
-        )->willReturn(Types::OneOf, 'string', 'Test2');
+        )->willReturn(Types::OneOf, Types::Object, 'string', 'Test2');
 
         $propertyResolver->expects($this->exactly(2))->method('resolve')->willReturn($referenceParameter, $idParameter);
 
