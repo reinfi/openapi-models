@@ -13,6 +13,7 @@ use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
+use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
@@ -783,5 +784,53 @@ class ClassTransformerTest extends TestCase
         self::assertArrayHasKey('Test', $classes);
         self::assertArrayHasKey('TestReference1', $classes);
         self::assertEquals('TestReference1|Test2', $referenceParameter->getType());
+    }
+
+    public function testItThrowsExceptionIfOneOfContainerUnsupportedType(): void
+    {
+        self::expectException(UnsupportedTypeForOneOfException::class);
+        self::expectExceptionMessage('Type "array" is currently not supported for oneOf definition');
+
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $referenceParameter = new PromotedParameter('reference');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+        $typeResolver->expects($this->exactly(2))->method('resolve')->with(
+            $openApi,
+            $this->callback(function (Schema $schema): bool {
+                if (is_array($schema->oneOf) && count($schema->oneOf) === 2) {
+                    return true;
+                }
+
+                return $schema->type === 'array';
+            }),
+            $namespace
+        )->willReturn(Types::OneOf, Types::Array);
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($referenceParameter);
+
+        $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
+
+        $schema = new Schema([
+            'properties' => [
+                'reference' => [
+                    'oneOf' => [
+                        [
+                            'type' => 'array',
+                        ],
+                        [
+                            '$ref' => '#/components/schemas/Test2',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $transformer->transform($openApi, 'Test', $schema, $namespace);
     }
 }

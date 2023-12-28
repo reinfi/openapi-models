@@ -11,6 +11,7 @@ use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
+use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 
 readonly class ClassTransformer
 {
@@ -216,6 +217,9 @@ readonly class ClassTransformer
                             $oneOfElement,
                             $namespace
                         )
+                    ),
+                    Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
+                        $resolvedType->value
                     ),
                     default => $resolvedType,
                 };
