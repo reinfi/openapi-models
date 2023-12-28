@@ -10,6 +10,7 @@
     </testsuite>
     <testsuite name="acceptance">
       <directory suffix=".php">./test/Acceptance</directory>
+      <exclude>./test/Acceptance/ExpectedClasses</exclude>
     </testsuite>
   </testsuites>
   <source>
