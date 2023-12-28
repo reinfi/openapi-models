@@ -43,6 +43,7 @@ components:
       type: object
       required:
         - id
+        - tests
       properties:
         id:
           type: string
