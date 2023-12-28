@@ -24,5 +24,6 @@ class AcceptanceTest extends TestCase
         self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test3.php', __DIR__ . '/../output/Test3.php');
         self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test4.php', __DIR__ . '/../output/Test4.php');
         self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test5.php', __DIR__ . '/../output/Test5.php');
+        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test6.php', __DIR__ . '/../output/Test6.php');
     }
 }

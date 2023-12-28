@@ -149,6 +149,21 @@ readonly class ClassTransformer
             );
         }
 
+        if ($arrayType === Types::OneOf && $itemsSchema instanceof Schema && is_array($itemsSchema->oneOf)) {
+            $oneOfArrayType = $this->transformOneOf(
+                $openApi,
+                $parentName,
+                $propertyName,
+                $itemsSchema->oneOf,
+                $namespace,
+                true
+            );
+            $parameter->setType('array')->addComment(
+                sprintf('@var array<%s> $%s', $oneOfArrayType, $parameter->getName())
+            );
+            return;
+        }
+
         if ($arrayType instanceof Types) {
             throw new UnresolvedArrayTypeException($arrayType->value);
         }
@@ -166,7 +181,8 @@ readonly class ClassTransformer
         string $parentName,
         string $propertyName,
         array $oneOf,
-        PhpNamespace $namespace
+        PhpNamespace $namespace,
+        bool $simplifyName = false
     ): string {
         $resolvedTypes = [];
 
@@ -188,6 +204,13 @@ readonly class ClassTransformer
             if ($oneOfElement instanceof Reference) {
                 $resolvedTypes[] = $this->typeResolver->resolve($openApi, $oneOfElement, $namespace);
             }
+        }
+
+        if ($simplifyName) {
+            $resolvedTypes = array_map(
+                static fn (string $type): string => $namespace->simplifyName($type),
+                $resolvedTypes
+            );
         }
 
         return join('|', $resolvedTypes);
