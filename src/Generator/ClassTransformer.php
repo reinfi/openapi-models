@@ -150,6 +150,12 @@ readonly class ClassTransformer
             );
         }
 
+        if ($arrayType === Types::Enum && $itemsSchema instanceof Schema) {
+            $arrayType = $namespace->resolveName(
+                $this->transformEnum($parentName, $propertyName, $itemsSchema, $namespace)
+            );
+        }
+
         if ($arrayType === Types::OneOf && $itemsSchema instanceof Schema && is_array($itemsSchema->oneOf)) {
             $oneOfArrayType = $this->transformOneOf(
                 $openApi,

@@ -10,6 +10,8 @@ readonly class Test6
         public string $id,
         /** @var array<Test1|Test2>|null $tests */
         public ?array $tests = null,
+        /** @var Test6States[] $states */
+        public array $states,
     ) {
     }
 }

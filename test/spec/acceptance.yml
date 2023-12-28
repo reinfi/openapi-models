@@ -1,4 +1,4 @@
-openapi: 3.0.9
+openapi: 3.0.0
 
 info:
   title: Acceptance Test
@@ -79,6 +79,7 @@ components:
       type: object
       required:
         - id
+        - states
       properties:
         id:
           type: string
@@ -88,3 +89,10 @@ components:
             oneOf:
               - $ref: '#/components/schemas/Test1'
               - $ref: '#/components/schemas/Test2'
+        states:
+          type: array
+          items:
+            type: string
+            enum:
+              - positive
+              - negative
