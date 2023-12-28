@@ -10,6 +10,7 @@ use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
+use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 
 readonly class ClassTransformer
 {
@@ -149,7 +150,7 @@ readonly class ClassTransformer
         }
 
         if ($arrayType instanceof Types) {
-            $arrayType = $arrayType->value;
+            throw new UnresolvedArrayTypeException($arrayType->value);
         }
 
         $parameter->setType('array')->addComment(

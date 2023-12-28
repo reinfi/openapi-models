@@ -12,6 +12,7 @@ use Nette\PhpGenerator\EnumType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
 use PHPUnit\Framework\TestCase;
+use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
@@ -272,6 +273,51 @@ class ClassTransformerTest extends TestCase
             'properties' => [
                 'values' => [
                     'type' => 'array',
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform($openApi, 'Test', $schema, $namespace);
+        $classes = $namespace->getClasses();
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(1, $classes);
+        self::assertEquals('array', $parameter->getType());
+    }
+
+    public function testItThrowsExceptionIfTypeIsNotString(): void
+    {
+        self::expectException(UnresolvedArrayTypeException::class);
+        self::expectExceptionMessage('Could not resolve array type, got type "enum"');
+
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $parameter = new PromotedParameter('values');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))->method('resolve')->with(
+            $openApi,
+            $this->isInstanceOf(Schema::class),
+            $namespace
+        )->willReturn(Types::Array, Types::Enum);
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
+
+        $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
+
+        $schema = new Schema([
+            'properties' => [
+                'values' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'string',
+                        'enum' => ['A', 'B'],
+                    ],
                 ],
             ],
         ]);
