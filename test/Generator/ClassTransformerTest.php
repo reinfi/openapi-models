@@ -328,7 +328,7 @@ class ClassTransformerTest extends TestCase
     public function testItThrowsExceptionIfTypeIsNotString(): void
     {
         self::expectException(UnresolvedArrayTypeException::class);
-        self::expectExceptionMessage('Could not resolve array type, got type "enum"');
+        self::expectExceptionMessage('Could not resolve array type, got type "anyOf"');
 
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('');
@@ -344,7 +344,7 @@ class ClassTransformerTest extends TestCase
             $openApi,
             $this->isInstanceOf(Schema::class),
             $namespace
-        )->willReturn(Types::Array, Types::Enum);
+        )->willReturn(Types::Array, Types::AnyOf);
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
 
@@ -503,6 +503,51 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('array', $arrayParameter->getType());
         self::assertEquals('@var TestValues[] $values', $arrayParameter->getComment());
         self::assertArrayHasKey('TestValues', $classes);
+    }
+
+    public function testItResolvesEnumAsArrayType(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $arrayParameter = new PromotedParameter('states');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))->method('resolve')->with(
+            $openApi,
+            $this->isInstanceOf(Schema::class),
+            $namespace
+        )->willReturn(Types::Array, Types::Enum);
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($arrayParameter);
+
+        $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
+
+        $schema = new Schema([
+            'properties' => [
+                'states' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'string',
+                        'enum' => ['positive', 'negative'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform($openApi, 'Test', $schema, $namespace);
+        $classes = $namespace->getClasses();
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(2, $classes);
+        self::assertEquals('array', $arrayParameter->getType());
+        self::assertEquals('@var TestStates[] $states', $arrayParameter->getComment());
+        self::assertArrayHasKey('TestStates', $classes);
+        self::assertInstanceOf(EnumType::class, $classes['TestStates']);
     }
 
     public function testItResolvesReferenceAsArrayType(): void
