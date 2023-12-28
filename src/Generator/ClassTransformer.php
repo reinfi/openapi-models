@@ -11,6 +11,7 @@ use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
+use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 
 readonly class ClassTransformer
 {
@@ -197,15 +198,31 @@ readonly class ClassTransformer
 
         foreach ($oneOf as $oneOfElement) {
             if ($oneOfElement instanceof Schema) {
-                $resolvedTypes[] = $namespace->resolveName(
-                    $this->transformInlineObject(
-                        $openApi,
-                        $parentName,
-                        $propertyName . ++$countInlineObjects,
-                        $oneOfElement,
-                        $namespace
-                    )
-                );
+                $resolvedType = $this->typeResolver->resolve($openApi, $oneOfElement, $namespace);
+
+                $resolvedTypes[] = match ($resolvedType) {
+                    Types::Object => $namespace->resolveName(
+                        $this->transformInlineObject(
+                            $openApi,
+                            $parentName,
+                            $propertyName . ++$countInlineObjects,
+                            $oneOfElement,
+                            $namespace
+                        )
+                    ),
+                    Types::Enum => $namespace->resolveName(
+                        $this->transformEnum(
+                            $parentName,
+                            $propertyName . ++$countInlineObjects,
+                            $oneOfElement,
+                            $namespace
+                        )
+                    ),
+                    Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
+                        $resolvedType->value
+                    ),
+                    default => $resolvedType,
+                };
             }
 
             if ($oneOfElement instanceof Reference) {

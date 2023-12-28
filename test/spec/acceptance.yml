@@ -64,6 +64,13 @@ components:
           oneOf:
             - $ref: '#/components/schemas/Test1'
             - $ref: '#/components/schemas/Test2'
+        oneOfEnum:
+          oneOf:
+            - $ref: '#/components/schemas/Test1'
+            - type: string
+              enum:
+                - positive
+                - negative
 
     Test5:
       allOf:
