@@ -12,6 +12,7 @@ use Nette\PhpGenerator\EnumType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
 use PHPUnit\Framework\TestCase;
+use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
@@ -284,6 +285,51 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('array', $parameter->getType());
     }
 
+    public function testItThrowsExceptionIfTypeIsNotString(): void
+    {
+        self::expectException(UnresolvedArrayTypeException::class);
+        self::expectExceptionMessage('Could not resolve array type, got type "enum"');
+
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $parameter = new PromotedParameter('values');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))->method('resolve')->with(
+            $openApi,
+            $this->isInstanceOf(Schema::class),
+            $namespace
+        )->willReturn(Types::Array, Types::Enum);
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
+
+        $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
+
+        $schema = new Schema([
+            'properties' => [
+                'values' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'string',
+                        'enum' => ['A', 'B'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform($openApi, 'Test', $schema, $namespace);
+        $classes = $namespace->getClasses();
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(1, $classes);
+        self::assertEquals('array', $parameter->getType());
+    }
+
     public function testItResolvesScalarArrayTypes(): void
     {
         $openApi = new OpenApi([]);
@@ -420,6 +466,68 @@ class ClassTransformerTest extends TestCase
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var Test2[] $values', $parameter->getComment());
+    }
+
+    public function testItResolvesOneOfAsArrayType(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $parameter = new PromotedParameter('values');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+        $typeResolver->expects($this->exactly(4))->method('resolve')->with(
+            $openApi,
+            $this->callback(function (Schema|Reference $schema): bool {
+                if ($schema instanceof Reference) {
+                    return in_array(
+                        $schema->getReference(),
+                        ['#/components/schemas/Test1', '#/components/schemas/Test2'],
+                        true
+                    );
+                }
+
+                if (is_array($schema->oneOf)) {
+                    return true;
+                }
+
+                return $schema->type === 'array';
+            }),
+            $namespace
+        )->willReturn(Types::Array, Types::OneOf, 'Test1', 'Test2');
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
+
+        $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
+
+        $schema = new Schema([
+            'properties' => [
+                'values' => [
+                    'type' => 'array',
+                    'items' => [
+                        'oneOf' => [
+                            [
+                                '$ref' => '#/components/schemas/Test1',
+                            ],
+                            [
+                                '$ref' => '#/components/schemas/Test2',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform($openApi, 'Test', $schema, $namespace);
+        $classes = $namespace->getClasses();
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(1, $classes);
+        self::assertEquals('array', $parameter->getType());
+        self::assertEquals('@var array<Test1|Test2> $values', $parameter->getComment());
     }
 
     public function testItResolvesOneOf(): void

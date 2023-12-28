@@ -73,3 +73,17 @@ components:
           properties:
             fullName:
               type: string
+
+    Test6:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        tests:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/Test1'
+              - $ref: '#/components/schemas/Test2'
