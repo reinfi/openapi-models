@@ -18,15 +18,24 @@ readonly class ClassGenerator
 
     public function generate(OpenApi $openApi, Configuration $configuration): PhpNamespace
     {
-        $namespace = new PhpNamespace($configuration->namespace);
+        $schemaNamespace = $this->buildNamespace($configuration, 'Schema');
 
         $schemas = $openApi->components->schemas ?? [];
         foreach ($schemas as $name => $schema) {
             if ($schema instanceof Schema) {
-                $this->classTransformer->transform($openApi, $name, $schema, $namespace);
+                $this->classTransformer->transform($openApi, $name, $schema, $schemaNamespace);
             }
         }
 
-        return $namespace;
+        return $schemaNamespace;
+    }
+
+    private function buildNamespace(Configuration $configuration, string $namespaceSuffix): PhpNamespace
+    {
+        if (strlen($configuration->namespace) === 0) {
+            return new PhpNamespace($namespaceSuffix);
+        }
+
+        return new PhpNamespace(sprintf('%s\%s', $configuration->namespace, $namespaceSuffix));
     }
 }

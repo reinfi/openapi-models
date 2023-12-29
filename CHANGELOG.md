@@ -1,5 +1,9 @@
 # Changelog
 
+## next
+
+- Schemas will be generated into own namespace `Schema`
+
 ## 0.2.0
 
 - support of oneIf in array items

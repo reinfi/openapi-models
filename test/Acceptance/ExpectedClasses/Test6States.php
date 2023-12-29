@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Api;
+namespace Api\Schema;
 
 enum Test6States: string
 {
