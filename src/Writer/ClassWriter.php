@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Writer;
 
 use DirectoryIterator;
+use Nette\PhpGenerator\Helpers;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
 use Reinfi\OpenApiModels\Configuration\Configuration;
@@ -27,7 +28,14 @@ readonly class ClassWriter
                 continue;
             }
 
-            $filePath = sprintf('%s/%s.php', $configuration->outputPath, $class->getName());
+            $namespaceShortName = Helpers::extractShortName($namespace->getName());
+            $outputDirectoryWithNamespace = sprintf('%s/%s', $configuration->outputPath, $namespaceShortName);
+
+            if (! is_dir($outputDirectoryWithNamespace)) {
+                mkdir($outputDirectoryWithNamespace);
+            }
+
+            $filePath = sprintf('%s/%s.php', $outputDirectoryWithNamespace, $class->getName());
 
             $classOnlyNamespace = new PhpNamespace($namespace->getName());
             $classOnlyNamespace->add($class);

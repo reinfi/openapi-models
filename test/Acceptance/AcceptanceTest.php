@@ -19,12 +19,15 @@ class AcceptanceTest extends TestCase
         self::assertNotNull($output);
         self::assertNotFalse($output);
 
-        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test1.php', __DIR__ . '/../output/Test1.php');
-        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test2.php', __DIR__ . '/../output/Test2.php');
-        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test3.php', __DIR__ . '/../output/Test3.php');
-        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test4.php', __DIR__ . '/../output/Test4.php');
-        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test5.php', __DIR__ . '/../output/Test5.php');
-        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test6.php', __DIR__ . '/../output/Test6.php');
-        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test6States.php', __DIR__ . '/../output/Test6States.php');
+        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test1.php', __DIR__ . '/../output/Schema/Test1.php');
+        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test2.php', __DIR__ . '/../output/Schema/Test2.php');
+        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test3.php', __DIR__ . '/../output/Schema/Test3.php');
+        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test4.php', __DIR__ . '/../output/Schema/Test4.php');
+        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test5.php', __DIR__ . '/../output/Schema/Test5.php');
+        self::assertFileEquals(__DIR__ . '/ExpectedClasses/Test6.php', __DIR__ . '/../output/Schema/Test6.php');
+        self::assertFileEquals(
+            __DIR__ . '/ExpectedClasses/Test6States.php',
+            __DIR__ . '/../output/Schema/Test6States.php'
+        );
     }
 }
