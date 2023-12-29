@@ -50,7 +50,9 @@ class ClassGeneratorTest extends TestCase
 
         $generator = new ClassGenerator($transformer);
 
-        $generator->generate($openApi, $configuration);
+        $namespaces = $generator->generate($openApi, $configuration);
+
+        self::assertCount(1, $namespaces);
     }
 
     public function testItGeneratesClassesFromOpenApiWithNamespace(): void
@@ -77,6 +79,8 @@ class ClassGeneratorTest extends TestCase
 
         $generator = new ClassGenerator($transformer);
 
-        $generator->generate($openApi, $configuration);
+        $namespaces = $generator->generate($openApi, $configuration);
+
+        self::assertCount(1, $namespaces);
     }
 }

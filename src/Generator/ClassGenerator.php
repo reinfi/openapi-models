@@ -16,11 +16,22 @@ readonly class ClassGenerator
     ) {
     }
 
-    public function generate(OpenApi $openApi, Configuration $configuration): PhpNamespace
+    /**
+     * @return array<string, PhpNamespace>
+     */
+    public function generate(OpenApi $openApi, Configuration $configuration): array
+    {
+        return [
+            'schemas' => $this->addSchemas($openApi, $configuration),
+        ];
+    }
+
+    private function addSchemas(OpenApi $openApi, Configuration $configuration): PhpNamespace
     {
         $schemaNamespace = $this->buildNamespace($configuration, 'Schema');
 
         $schemas = $openApi->components->schemas ?? [];
+
         foreach ($schemas as $name => $schema) {
             if ($schema instanceof Schema) {
                 $this->classTransformer->transform($openApi, $name, $schema, $schemaNamespace);
