@@ -16,56 +16,54 @@ readonly class ClassGenerator
 {
     public function __construct(
         private ClassTransformer $classTransformer,
+        private NamespaceResolver $namespaceResolver,
     ) {
     }
 
     /**
-     * @return array<string, PhpNamespace>
+     * @return array<value-of<OpenApiType>, PhpNamespace>
      */
     public function generate(OpenApi $openApi, Configuration $configuration): array
     {
-        return [
-            'schemas' => $this->addSchemas($openApi, $configuration),
-            'requestBodies' => $this->buildMediaTypeComponents(
-                OpenApiType::RequestBodies,
-                $openApi,
-                $configuration,
-                $openApi->components->requestBodies ?? []
-            ),
-            'responses' => $this->buildMediaTypeComponents(
-                OpenApiType::Responses,
-                $openApi,
-                $configuration,
-                $openApi->components->responses ?? []
-            ),
-        ];
+        $this->namespaceResolver->initialize($configuration);
+
+        $this->addSchemas($openApi);
+        $this->buildMediaTypeComponents(
+            OpenApiType::RequestBodies,
+            $openApi,
+            $openApi->components->requestBodies ?? []
+        );
+        $this->buildMediaTypeComponents(OpenApiType::Responses, $openApi, $openApi->components->responses ?? []);
+
+        return $this->namespaceResolver->getNamespaces();
     }
 
-    private function addSchemas(OpenApi $openApi, Configuration $configuration): PhpNamespace
+    private function addSchemas(OpenApi $openApi): void
     {
-        $namespace = $this->buildNamespace($configuration, OpenApiType::Schemas);
-
         $schemas = $openApi->components->schemas ?? [];
+        if (count($schemas) === 0) {
+            return;
+        }
+
+        $namespace = $this->namespaceResolver->resolveNamespace(OpenApiType::Schemas);
 
         foreach ($schemas as $name => $schema) {
             if ($schema instanceof Schema) {
                 $this->classTransformer->transform($openApi, $name, $schema, $namespace);
             }
         }
-
-        return $namespace;
     }
 
     /**
      * @param Response[]|RequestBody[] $components
      */
-    private function buildMediaTypeComponents(
-        OpenApiType $openApiType,
-        OpenApi $openApi,
-        Configuration $configuration,
-        array $components
-    ): PhpNamespace {
-        $namespace = $this->buildNamespace($configuration, $openApiType);
+    private function buildMediaTypeComponents(OpenApiType $openApiType, OpenApi $openApi, array $components): void
+    {
+        if (count($components) === 0) {
+            return;
+        }
+
+        $namespace = $this->namespaceResolver->resolveNamespace($openApiType);
 
         foreach ($components as $name => $component) {
             $hasMultipleMediaTypes = count($component->content) > 1;
@@ -77,8 +75,6 @@ readonly class ClassGenerator
                 }
             }
         }
-
-        return $namespace;
     }
 
     private function mapMediaTypeToSuffix(string $mediaType): string
@@ -89,28 +85,6 @@ readonly class ClassGenerator
             'application/xml' => 'Xml',
             '*/*' => '',
             default => throw new UnknownMediaTypeException($mediaType),
-        };
-    }
-
-    private function buildNamespace(Configuration $configuration, OpenApiType $openApiType): PhpNamespace
-    {
-        if (strlen($configuration->namespace) === 0) {
-            return new PhpNamespace($this->mapOpenApiTypeToNamespace($openApiType));
-        }
-
-        return new PhpNamespace(sprintf(
-            '%s\%s',
-            $configuration->namespace,
-            $this->mapOpenApiTypeToNamespace($openApiType)
-        ));
-    }
-
-    private function mapOpenApiTypeToNamespace(OpenApiType $type): string
-    {
-        return match ($type) {
-            OpenApiType::Schemas => 'Schema',
-            OpenApiType::RequestBodies => 'RequestBody',
-            OpenApiType::Responses => 'Response',
         };
     }
 }

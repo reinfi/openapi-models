@@ -32,7 +32,7 @@ readonly class ClassTransformer
 
         foreach ($schemasForClass as $schema) {
             foreach ($schema->properties as $propertyName => $property) {
-                $type = $this->typeResolver->resolve($openApi, $property, $namespace);
+                $type = $this->typeResolver->resolve($openApi, $property);
 
                 $parameter = $this->propertyResolver->resolve(
                     $constructor,
@@ -143,7 +143,7 @@ readonly class ClassTransformer
             return;
         }
 
-        $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema, $namespace);
+        $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema);
 
         if ($arrayType === Types::Object && $itemsSchema instanceof Schema) {
             $arrayType = $namespace->resolveName(
@@ -198,7 +198,7 @@ readonly class ClassTransformer
 
         foreach ($oneOf as $oneOfElement) {
             if ($oneOfElement instanceof Schema) {
-                $resolvedType = $this->typeResolver->resolve($openApi, $oneOfElement, $namespace);
+                $resolvedType = $this->typeResolver->resolve($openApi, $oneOfElement);
 
                 $resolvedTypes[] = match ($resolvedType) {
                     Types::Object => $namespace->resolveName(
@@ -226,7 +226,7 @@ readonly class ClassTransformer
             }
 
             if ($oneOfElement instanceof Reference) {
-                $resolvedTypes[] = $this->typeResolver->resolve($openApi, $oneOfElement, $namespace);
+                $resolvedTypes[] = $this->typeResolver->resolve($openApi, $oneOfElement);
             }
         }
 

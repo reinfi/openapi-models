@@ -103,3 +103,33 @@ components:
             enum:
               - positive
               - negative
+
+  requestBodies:
+    RequestBody1:
+      description: Test
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+              test:
+                $ref: '#/components/schemas/Test1'
+
+  responses:
+    Response1:
+      description: Test
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+              test:
+                $ref: '#/components/schemas/Test1'

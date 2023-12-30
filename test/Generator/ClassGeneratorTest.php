@@ -12,6 +12,8 @@ use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Generator\ClassGenerator;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
+use Reinfi\OpenApiModels\Generator\NamespaceResolver;
+use Reinfi\OpenApiModels\Generator\OpenApiType;
 
 class ClassGeneratorTest extends TestCase
 {
@@ -23,6 +25,7 @@ class ClassGeneratorTest extends TestCase
     public function testItGeneratesClassesFromOpenApi(): void
     {
         $configuration = new Configuration([], '', '', false);
+        $namespace = new PhpNamespace('Schema');
 
         $openApi = new OpenApi([
             'components' => [
@@ -45,48 +48,24 @@ class ClassGeneratorTest extends TestCase
             $openApi,
             $this->callback(static fn (string $name): bool => in_array($name, ['Test1', 'Test2'], true)),
             $this->isInstanceOf(Schema::class),
-            $this->callback(static fn (PhpNamespace $namespace): bool => $namespace->getName() === 'Schema')
+            $namespace
         );
 
-        $generator = new ClassGenerator($transformer);
-
-        $namespaces = $generator->generate($openApi, $configuration);
-
-        self::assertCount(3, $namespaces);
-    }
-
-    public function testItGeneratesClassesFromOpenApiWithNamespace(): void
-    {
-        $configuration = new Configuration([], '', 'Api', false);
-
-        $openApi = new OpenApi([
-            'components' => [
-                'schemas' => [
-                    'Test1' => [
-                        'type' => 'object',
-                    ],
-                ],
-            ],
-        ]);
-
-        $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->once())->method('transform')->with(
-            $openApi,
-            'Test1',
-            $this->isInstanceOf(Schema::class),
-            $this->callback(static fn (PhpNamespace $namespace): bool => $namespace->getName() === 'Api\Schema')
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
+        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(OpenApiType::Schemas)->willReturn(
+            $namespace
         );
 
-        $generator = new ClassGenerator($transformer);
+        $generator = new ClassGenerator($transformer, $namespaceResolver);
 
-        $namespaces = $generator->generate($openApi, $configuration);
-
-        self::assertCount(3, $namespaces);
+        $generator->generate($openApi, $configuration);
     }
 
     public function testItGeneratesRequestBodies(): void
     {
         $configuration = new Configuration([], '', '', false);
+        $namespace = new PhpNamespace('RequestBody');
 
         $openApi = new OpenApi([
             'components' => [
@@ -109,19 +88,24 @@ class ClassGeneratorTest extends TestCase
             $openApi,
             'Test1',
             $this->isInstanceOf(Schema::class),
-            $this->callback(static fn (PhpNamespace $namespace): bool => $namespace->getName() === 'RequestBody')
+            $namespace
         );
 
-        $generator = new ClassGenerator($transformer);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
+        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
+            OpenApiType::RequestBodies
+        )->willReturn($namespace);
 
-        $namespaces = $generator->generate($openApi, $configuration);
+        $generator = new ClassGenerator($transformer, $namespaceResolver);
 
-        self::assertCount(3, $namespaces);
+        $generator->generate($openApi, $configuration);
     }
 
     public function testItGeneratesResponses(): void
     {
         $configuration = new Configuration([], '', '', false);
+        $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
             'components' => [
@@ -144,19 +128,24 @@ class ClassGeneratorTest extends TestCase
             $openApi,
             'Test1',
             $this->isInstanceOf(Schema::class),
-            $this->callback(static fn (PhpNamespace $namespace): bool => $namespace->getName() === 'Response')
+            $namespace
         );
 
-        $generator = new ClassGenerator($transformer);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
+        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
+            OpenApiType::Responses
+        )->willReturn($namespace);
 
-        $namespaces = $generator->generate($openApi, $configuration);
+        $generator = new ClassGenerator($transformer, $namespaceResolver);
 
-        self::assertCount(3, $namespaces);
+        $generator->generate($openApi, $configuration);
     }
 
     public function testItAppendsSuffixOnMultipleMediaTypes(): void
     {
         $configuration = new Configuration([], '', '', false);
+        $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
             'components' => [
@@ -184,13 +173,17 @@ class ClassGeneratorTest extends TestCase
             $openApi,
             $this->callback(static fn (string $name): bool => in_array($name, ['Test1Json', 'Test1Xml'], true)),
             $this->isInstanceOf(Schema::class),
-            $this->callback(static fn (PhpNamespace $namespace): bool => $namespace->getName() === 'Response')
+            $namespace
         );
 
-        $generator = new ClassGenerator($transformer);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
+        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
+            OpenApiType::Responses
+        )->willReturn($namespace);
 
-        $namespaces = $generator->generate($openApi, $configuration);
+        $generator = new ClassGenerator($transformer, $namespaceResolver);
 
-        self::assertCount(3, $namespaces);
+        $generator->generate($openApi, $configuration);
     }
 }

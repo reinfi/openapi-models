@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
+use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
@@ -42,7 +43,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->exactly(2))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn('int', 'string');
 
         $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
@@ -77,6 +77,7 @@ class ClassTransformerTest extends TestCase
             static fn (Reference $reference): bool => $reference->getReference() === '#/components/schemas/Test2'
         ))->willReturn(
             new SchemaWithName(
+                OpenApiType::Schemas,
                 'Test2',
                 new Schema([
                     'properties' => [
@@ -91,7 +92,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->exactly(2))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn('int', 'string');
 
         $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
@@ -132,7 +132,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->exactly(2))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Object, 'string');
 
         $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
@@ -172,7 +171,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->once())->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Enum);
 
         $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
@@ -217,7 +215,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->once())->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Enum);
 
         $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
@@ -263,7 +260,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->once())->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Array);
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
@@ -302,7 +298,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->once())->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Array);
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
@@ -344,7 +339,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->exactly(2))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Array, Types::AnyOf);
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
@@ -386,7 +380,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->exactly(2))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Array, 'string');
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
@@ -429,7 +422,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->exactly(2))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Array, 'string');
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
@@ -473,7 +465,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->exactly(3))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Array, Types::Object, 'string');
 
         $propertyResolver->expects($this->exactly(2))->method('resolve')->willReturn($arrayParameter, $objectParameter);
@@ -521,7 +512,6 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->exactly(2))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-            $namespace
         )->willReturn(Types::Array, Types::Enum);
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($arrayParameter);
@@ -571,7 +561,6 @@ class ClassTransformerTest extends TestCase
 
                 return true;
             }),
-            $namespace
         )->willReturn(Types::Array, 'Test2');
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
@@ -626,7 +615,6 @@ class ClassTransformerTest extends TestCase
 
                 return $schema->type === 'array';
             }),
-            $namespace
         )->willReturn(Types::Array, Types::OneOf, 'Test1', 'Test2');
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
@@ -689,7 +677,6 @@ class ClassTransformerTest extends TestCase
 
                 return $schema->type === 'array';
             }),
-            $namespace
         )->willReturn(Types::Array, Types::OneOf, 'Test1', 'Test2');
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
@@ -749,7 +736,6 @@ class ClassTransformerTest extends TestCase
 
                 return in_array($schema->type, ['object', 'string'], true);
             }),
-            $namespace
         )->willReturn(Types::OneOf, Types::Object, 'string', 'Test2');
 
         $propertyResolver->expects($this->exactly(2))->method('resolve')->willReturn($referenceParameter, $idParameter);
@@ -809,7 +795,6 @@ class ClassTransformerTest extends TestCase
 
                 return $schema->type === 'array';
             }),
-            $namespace
         )->willReturn(Types::OneOf, Types::Array);
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($referenceParameter);

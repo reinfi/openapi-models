@@ -29,5 +29,13 @@ class AcceptanceTest extends TestCase
             __DIR__ . '/ExpectedClasses/Test6States.php',
             __DIR__ . '/../output/Schema/Test6States.php'
         );
+        self::assertFileEquals(
+            __DIR__ . '/ExpectedClasses/RequestBody1.php',
+            __DIR__ . '/../output/RequestBody/RequestBody1.php'
+        );
+        self::assertFileEquals(
+            __DIR__ . '/ExpectedClasses/Response1.php',
+            __DIR__ . '/../output/Response/Response1.php'
+        );
     }
 }

@@ -11,6 +11,8 @@ use DG\BypassFinals;
 use InvalidArgumentException;
 use Nette\PhpGenerator\PhpNamespace;
 use PHPUnit\Framework\TestCase;
+use Reinfi\OpenApiModels\Generator\NamespaceResolver;
+use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
@@ -109,13 +111,14 @@ class TypeResolverTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $referenceResolver->expects($this->never())->method('resolve');
 
-        $resolver = new TypeResolver($referenceResolver);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->never())->method('resolveNamespace');
+
+        $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 
         $openApi = new OpenApi([]);
-        $namespace = $this->createMock(PhpNamespace::class);
-        $namespace->expects($this->never())->method('resolveName');
 
-        self::assertEquals($expectedType, $resolver->resolve($openApi, $schema, $namespace));
+        self::assertEquals($expectedType, $resolver->resolve($openApi, $schema));
     }
 
     public function testItResolvesReference(): void
@@ -127,16 +130,22 @@ class TypeResolverTest extends TestCase
 
         $schemaWithName = $this->createStub(SchemaWithName::class);
         $schemaWithName->name = 'TestSchema';
+        $schemaWithName->openApiType = OpenApiType::Schemas;
+
+        $namespace = $this->createMock(PhpNamespace::class);
+        $namespace->expects($this->once())->method('resolveName')->with('TestSchema')->willReturn('TestSchema');
 
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $reference)->willReturn(
             $schemaWithName
         );
 
-        $resolver = new TypeResolver($referenceResolver);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(OpenApiType::Schemas)->willReturn(
+            $namespace
+        );
 
-        $namespace = $this->createMock(PhpNamespace::class);
-        $namespace->expects($this->once())->method('resolveName')->with('TestSchema')->willReturn('TestSchema');
+        $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 
         self::assertEquals('TestSchema', $resolver->resolve($openApi, $reference, $namespace));
     }
@@ -149,16 +158,17 @@ class TypeResolverTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $referenceResolver->expects($this->never())->method('resolve');
 
-        $resolver = new TypeResolver($referenceResolver);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->never())->method('resolveNamespace');
+
+        $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 
         $openApi = new OpenApi([]);
-        $namespace = $this->createMock(PhpNamespace::class);
-        $namespace->expects($this->never())->method('resolveName');
 
         $schema = new Schema([
             'type' => 'unknown',
         ]);
 
-        $resolver->resolve($openApi, $schema, $namespace);
+        $resolver->resolve($openApi, $schema);
     }
 }
