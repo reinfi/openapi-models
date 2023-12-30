@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Generator;
 
 use cebe\openapi\spec\OpenApi;
+use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\RequestBody;
 use cebe\openapi\spec\Response;
 use cebe\openapi\spec\Schema;
@@ -55,7 +56,7 @@ readonly class ClassGenerator
     }
 
     /**
-     * @param Response[]|RequestBody[] $components
+     * @param array<RequestBody|Response|Reference> $components
      */
     private function buildMediaTypeComponents(OpenApiType $openApiType, OpenApi $openApi, array $components): void
     {
@@ -66,6 +67,10 @@ readonly class ClassGenerator
         $namespace = $this->namespaceResolver->resolveNamespace($openApiType);
 
         foreach ($components as $name => $component) {
+            if ($component instanceof Reference) {
+                continue;
+            }
+
             $hasMultipleMediaTypes = count($component->content) > 1;
 
             foreach ($component->content as $mediaTypeName => $mediaType) {

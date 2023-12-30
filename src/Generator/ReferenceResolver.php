@@ -27,13 +27,16 @@ readonly class ReferenceResolver
 
         $openApiType = OpenApiType::tryFrom($matches['type']);
 
+        if ($openApiType === null) {
+            throw new InvalidReferenceException($matches['type'], $reference->getReference());
+        }
+
         $schema = match ($openApiType) {
             OpenApiType::Schemas => $openApi->components->schemas[$matches['name']] ?? null,
             OpenApiType::Responses, OpenApiType::RequestBodies => throw new InvalidReferenceException(
                 $openApiType->value,
                 $reference->getReference(),
             ),
-            default => throw new InvalidReferenceException($matches['type'], $reference->getReference())
         };
 
         if ($schema instanceof Schema) {
