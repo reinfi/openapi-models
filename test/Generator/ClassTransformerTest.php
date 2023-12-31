@@ -29,6 +29,35 @@ class ClassTransformerTest extends TestCase
         BypassFinals::enable();
     }
 
+    public function testItTransformsReference(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->once())->method('resolve')->with(
+            $openApi,
+            $this->isInstanceOf(Reference::class),
+        )->willReturn('Test2');
+
+        $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
+
+        $schema = new Reference([
+            '$ref' => '#/components/schemas/Test2',
+        ]);
+
+        $classType = $transformer->transform($openApi, 'Test', $schema, $namespace);
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(1, $namespace->getClasses());
+        self::assertEquals('Test2', $classType->getExtends());
+    }
+
     public function testItTransformsSchemaWithScalarProperties(): void
     {
         $openApi = new OpenApi([]);

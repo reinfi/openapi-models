@@ -37,5 +37,9 @@ class AcceptanceTest extends TestCase
             __DIR__ . '/ExpectedClasses/Response1.php',
             __DIR__ . '/../output/Response/Response1.php'
         );
+        self::assertFileEquals(
+            __DIR__ . '/ExpectedClasses/Response2.php',
+            __DIR__ . '/../output/Response/Response2.php'
+        );
     }
 }

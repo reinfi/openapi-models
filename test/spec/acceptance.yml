@@ -133,3 +133,9 @@ components:
                 type: string
               test:
                 $ref: '#/components/schemas/Test1'
+    Response2:
+      description: Test
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Test2'

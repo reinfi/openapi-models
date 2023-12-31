@@ -74,7 +74,7 @@ readonly class ClassGenerator
             $hasMultipleMediaTypes = count($component->content) > 1;
 
             foreach ($component->content as $mediaTypeName => $mediaType) {
-                if ($mediaType->schema instanceof Schema) {
+                if ($mediaType->schema !== null) {
                     $className = $hasMultipleMediaTypes ? $name . $this->mapMediaTypeToSuffix($mediaTypeName) : $name;
                     $this->classTransformer->transform($openApi, $className, $mediaType->schema, $namespace);
                 }
