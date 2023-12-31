@@ -22,9 +22,17 @@ readonly class ClassTransformer
     ) {
     }
 
-    public function transform(OpenApi $openApi, string $name, Schema $schema, PhpNamespace $namespace): ClassType
-    {
+    public function transform(
+        OpenApi $openApi,
+        string $name,
+        Schema|Reference $schema,
+        PhpNamespace $namespace
+    ): ClassType {
         $class = $namespace->addClass($name)->setReadOnly();
+
+        if ($schema instanceof Reference) {
+            return $this->resolveReferenceForClass($openApi, $schema, $class);
+        }
 
         $constructor = $class->addMethod('__construct');
 
@@ -65,6 +73,13 @@ readonly class ClassTransformer
                 }
             }
         }
+
+        return $class;
+    }
+
+    private function resolveReferenceForClass(OpenApi $openApi, Reference $reference, ClassType $class): ClassType
+    {
+        $class->setExtends($this->typeResolver->resolve($openApi, $reference));
 
         return $class;
     }
