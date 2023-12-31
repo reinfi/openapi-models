@@ -48,13 +48,20 @@ class GenerateCommand extends Command
 
         $openApiDefinition = $this->parser->parse($configuration);
 
-        $namespace = $this->classGenerator->generate($openApiDefinition, $configuration);
+        $namespaces = $this->classGenerator->generate($openApiDefinition, $configuration);
 
-        $this->classWriter->write($configuration, $namespace);
+        $this->classWriter->write($configuration, $namespaces);
 
-        $output->writeln(
-            sprintf('Wrote %u files to output path "%s"', count($namespace->getClasses()), $configuration->outputPath)
-        );
+        foreach ($namespaces as $identifier => $namespace) {
+            $output->writeln(
+                sprintf(
+                    'Wrote %u files to output path "%s" for %s',
+                    count($namespace->getClasses()),
+                    $configuration->outputPath,
+                    $identifier
+                )
+            );
+        }
 
         return self::SUCCESS;
     }

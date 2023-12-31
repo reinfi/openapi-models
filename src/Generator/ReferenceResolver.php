@@ -8,6 +8,7 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use InvalidArgumentException;
+use Reinfi\OpenApiModels\Exception\InvalidReferenceException;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
 
 readonly class ReferenceResolver
@@ -15,7 +16,7 @@ readonly class ReferenceResolver
     public function resolve(OpenApi $openApi, Reference $reference): SchemaWithName
     {
         if (preg_match(
-            '/^(?<fileOrUrl>[^#]+)?#\/components\/schemas\/(?<name>.+)$/',
+            '/^(?<fileOrUrl>[^#]+)?#\/components\/(?<type>.+)\/(?<name>.+)$/',
             $reference->getReference(),
             $matches
         ) !== 1) {
@@ -24,10 +25,22 @@ readonly class ReferenceResolver
             );
         }
 
-        $schema = $openApi->components->schemas[$matches['name']] ?? null;
+        $openApiType = OpenApiType::tryFrom($matches['type']);
+
+        if ($openApiType === null) {
+            throw new InvalidReferenceException($matches['type'], $reference->getReference());
+        }
+
+        $schema = match ($openApiType) {
+            OpenApiType::Schemas => $openApi->components->schemas[$matches['name']] ?? null,
+            OpenApiType::Responses, OpenApiType::RequestBodies => throw new InvalidReferenceException(
+                $openApiType->value,
+                $reference->getReference(),
+            ),
+        };
 
         if ($schema instanceof Schema) {
-            return new SchemaWithName($matches['name'], $schema);
+            return new SchemaWithName($openApiType, $matches['name'], $schema);
         }
 
         throw new InvalidArgumentException(sprintf('Can not resolve reference "%s"', $reference->getReference()));

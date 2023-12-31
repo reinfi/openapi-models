@@ -26,19 +26,23 @@ class ClassWriterTest extends TestCase
 
     public function testItWritesClasses(): void
     {
-        $printer = $this->createConfiguredMock(PsrPrinter::class, [
-            'printNamespace' => 'here comes class contents',
-        ]);
+        $printer = $this->createMock(PsrPrinter::class);
+        $printer->expects($this->exactly(2))->method('printNamespace')->willReturn('here comes class contents');
 
         $writer = new ClassWriter($printer);
 
         $configuration = new Configuration([], $this->outputDir->url(), '', false);
 
-        $namespace = new PhpNamespace($configuration->namespace);
-        $namespace->addClass('ClassFirst');
-        $namespace->addClass('ClassSecond');
+        $firstNamespace = new PhpNamespace('Schema');
+        $firstNamespace->addClass('ClassFirst');
 
-        $writer->write($configuration, $namespace);
+        $secondNamespace = new PhpNamespace('Response');
+        $secondNamespace->addClass('ClassSecond');
+
+        $writer->write($configuration, [
+            'schemas' => $firstNamespace,
+            'responses' => $secondNamespace,
+        ]);
 
         self::assertCount(2, $this->outputDir->getChildren());
     }

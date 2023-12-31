@@ -3,6 +3,7 @@
 ## next
 
 - Schemas will be generated into own namespace `Schema`
+- RequestBodies and Responses will also be generated into their own namespace
 
 ## 0.2.0
 

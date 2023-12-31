@@ -8,22 +8,26 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use InvalidArgumentException;
-use Nette\PhpGenerator\PhpNamespace;
 
 readonly class TypeResolver
 {
     public function __construct(
-        private ReferenceResolver $referenceResolver
+        private ReferenceResolver $referenceResolver,
+        private NamespaceResolver $namespaceResolver,
     ) {
     }
 
     /**
      * @return ($schema is Reference ? string : string|Types)
      */
-    public function resolve(OpenApi $openApi, Schema|Reference $schema, PhpNamespace $namespace): string|Types
+    public function resolve(OpenApi $openApi, Schema|Reference $schema): string|Types
     {
         if ($schema instanceof Reference) {
-            return $namespace->resolveName($this->referenceResolver->resolve($openApi, $schema)->name);
+            $schemaWithName = $this->referenceResolver->resolve($openApi, $schema);
+
+            return $this->namespaceResolver->resolveNamespace($schemaWithName->openApiType)->resolveName(
+                $schemaWithName->name
+            );
         }
 
         if (is_array($schema->oneOf) && count($schema->oneOf) > 0) {

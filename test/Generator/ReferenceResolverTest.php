@@ -8,6 +8,8 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Reinfi\OpenApiModels\Exception\InvalidReferenceException;
+use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 
 class ReferenceResolverTest extends TestCase
@@ -48,6 +50,7 @@ class ReferenceResolverTest extends TestCase
         $resolver = new ReferenceResolver();
 
         self::assertEquals($expectedName, $resolver->resolve($openApi, $reference)->name);
+        self::assertEquals(OpenApiType::Schemas, $resolver->resolve($openApi, $reference)->openApiType);
     }
 
     public function testItThrowsExceptionIfNotValidReference(): void
@@ -58,6 +61,22 @@ class ReferenceResolverTest extends TestCase
         $openApi = new OpenApi([]);
         $reference = new Reference([
             '$ref' => 'no-valid-reference',
+        ]);
+
+        $resolver = new ReferenceResolver();
+        $resolver->resolve($openApi, $reference);
+    }
+
+    public function testItThrowsExceptionIfTypeIsNotValid(): void
+    {
+        self::expectException(InvalidReferenceException::class);
+        self::expectExceptionMessage(
+            'Reference of type "responses" is invalid, full reference: #/components/responses/ResponseInvalid'
+        );
+
+        $openApi = new OpenApi([]);
+        $reference = new Reference([
+            '$ref' => '#/components/responses/ResponseInvalid',
         ]);
 
         $resolver = new ReferenceResolver();
