@@ -46,4 +46,31 @@ class ClassWriterTest extends TestCase
 
         self::assertCount(2, $this->outputDir->getChildren());
     }
+
+    public function testItCopiesUseStatements(): void
+    {
+        $printer = $this->createMock(PsrPrinter::class);
+        $printer->expects($this->once())->method('printNamespace')
+            ->with($this->callback(
+                static fn (PhpNamespace $namespace): bool => count($namespace->getClasses()) === 1 && count(
+                    $namespace->getUses()
+                ) === 1
+            ))
+            ->willReturn('here comes class contents');
+
+        $writer = new ClassWriter($printer);
+
+        $configuration = new Configuration([], $this->outputDir->url(), '', false);
+
+        $namespace = new PhpNamespace('Schema');
+        $namespace->addUse('ClassSecond');
+        $class = $namespace->addClass('ClassFirst');
+        $class->addMethod('__construct')->addPromotedParameter('second')->setType('ClassSecond');
+
+        $writer->write($configuration, [
+            'schemas' => $namespace,
+        ]);
+
+        self::assertCount(1, $this->outputDir->getChildren());
+    }
 }

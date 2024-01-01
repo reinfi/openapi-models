@@ -18,15 +18,18 @@ readonly class TypeResolver
     }
 
     /**
-     * @return ($schema is Reference ? string : string|Types)
+     * @return ($schema is Reference ? ClassReference : string|Types)
      */
-    public function resolve(OpenApi $openApi, Schema|Reference $schema): string|Types
+    public function resolve(OpenApi $openApi, Schema|Reference $schema): ClassReference|string|Types
     {
         if ($schema instanceof Reference) {
             $schemaWithName = $this->referenceResolver->resolve($openApi, $schema);
 
-            return $this->namespaceResolver->resolveNamespace($schemaWithName->openApiType)->resolveName(
-                $schemaWithName->name
+            return new ClassReference(
+                $schemaWithName->openApiType,
+                $this->namespaceResolver->resolveNamespace($schemaWithName->openApiType)->resolveName(
+                    $schemaWithName->name
+                )
             );
         }
 

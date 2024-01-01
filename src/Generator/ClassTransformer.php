@@ -35,7 +35,7 @@ readonly class ClassTransformer
         }
 
         if ($schema instanceof Reference) {
-            return $this->resolveReferenceForClass($openApi, $schema, $class);
+            return $this->resolveReferenceForClass($openApi, $schema, $class, $namespace);
         }
 
         $constructor = $class->addMethod('__construct');
@@ -53,6 +53,10 @@ readonly class ClassTransformer
                     in_array($propertyName, $schema->required ?: [], true),
                     $type
                 );
+
+                if ($type instanceof ClassReference) {
+                    $namespace->addUse($type->name);
+                }
 
                 if ($type === Types::Object && $property instanceof Schema) {
                     $inlineType = $this->transformInlineObject($openApi, $name, $propertyName, $property, $namespace);
@@ -81,9 +85,15 @@ readonly class ClassTransformer
         return $class;
     }
 
-    private function resolveReferenceForClass(OpenApi $openApi, Reference $reference, ClassType $class): ClassType
-    {
-        $class->setExtends($this->typeResolver->resolve($openApi, $reference));
+    private function resolveReferenceForClass(
+        OpenApi $openApi,
+        Reference $reference,
+        ClassType $class,
+        PhpNamespace $namespace
+    ): ClassType {
+        $classReference = $this->typeResolver->resolve($openApi, $reference);
+        $namespace->addUse($classReference->name);
+        $class->setExtends($classReference->name);
 
         return $class;
     }
@@ -195,6 +205,11 @@ readonly class ClassTransformer
             throw new UnresolvedArrayTypeException($arrayType->value);
         }
 
+        if ($arrayType instanceof ClassReference) {
+            $arrayType = $arrayType->name;
+            $namespace->addUse($arrayType);
+        }
+
         $parameter->setType('array')->addComment(
             sprintf('@var %s[]%s $%s', $namespace->simplifyName($arrayType), $nullablePart, $parameter->getName())
         );
@@ -245,7 +260,9 @@ readonly class ClassTransformer
             }
 
             if ($oneOfElement instanceof Reference) {
-                $resolvedTypes[] = $this->typeResolver->resolve($openApi, $oneOfElement);
+                $classReference = $this->typeResolver->resolve($openApi, $oneOfElement);
+                $namespace->addUse($classReference->name);
+                $resolvedTypes[] = $classReference->name;
             }
         }
 
