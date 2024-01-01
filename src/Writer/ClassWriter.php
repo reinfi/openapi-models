@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Writer;
 
 use DirectoryIterator;
+use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Helpers;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
@@ -43,6 +44,10 @@ readonly class ClassWriter
 
                 $classOnlyNamespace = new PhpNamespace($namespace->getName());
                 foreach ($namespace->getUses() as $use) {
+                    if ($class instanceof ClassType && $use === $class->getExtends()) {
+                        $classOnlyNamespace->addUse($use);
+                    }
+
                     if (! $class->hasMethod('__construct')) {
                         continue;
                     }
