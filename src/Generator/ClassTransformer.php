@@ -192,8 +192,7 @@ readonly class ClassTransformer
                 $parentName,
                 $propertyName,
                 $itemsSchema->oneOf,
-                $namespace,
-                true
+                $namespace
             );
             $parameter->setType('array')->addComment(
                 sprintf('@var array<%s>%s $%s', $oneOfArrayType, $nullablePart, $parameter->getName())
@@ -227,8 +226,7 @@ readonly class ClassTransformer
         string $parentName,
         string $propertyName,
         array $oneOf,
-        PhpNamespace $namespace,
-        bool $simplifyName = false
+        PhpNamespace $namespace
     ): string {
         $resolvedTypes = [];
 
@@ -268,13 +266,6 @@ readonly class ClassTransformer
                 $namespace->addUse($classReference->name);
                 $resolvedTypes[] = $classReference->name;
             }
-        }
-
-        if ($simplifyName) {
-            $resolvedTypes = array_map(
-                static fn (string $type): string => $namespace->simplifyName($type),
-                $resolvedTypes
-            );
         }
 
         return join('|', $resolvedTypes);

@@ -138,6 +138,12 @@ components:
                 type: array
                 items:
                   $ref: '#/components/schemas/Test2'
+              whoKnows:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: '#/components/schemas/Test3'
+                    - $ref: '#/components/schemas/Test4'
     Response2:
       description: Response2 for some request
       content:
