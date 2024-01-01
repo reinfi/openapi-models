@@ -10,6 +10,7 @@ components:
   schemas:
     Test1:
       type: object
+      description: Test1 object to show functionality
       required:
         - id
         - email
@@ -106,7 +107,6 @@ components:
 
   requestBodies:
     RequestBody1:
-      description: Test
       content:
         application/json:
           schema:
@@ -121,10 +121,11 @@ components:
 
   responses:
     Response1:
-      description: Test
+      description: Response1 for some request
       content:
         application/json:
           schema:
+            description: Response 1 for json requests
             type: object
             required:
               - id
@@ -134,7 +135,7 @@ components:
               test:
                 $ref: '#/components/schemas/Test1'
     Response2:
-      description: Test
+      description: Response2 for some request
       content:
         application/json:
           schema:

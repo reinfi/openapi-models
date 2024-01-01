@@ -227,4 +227,45 @@ class ClassGeneratorTest extends TestCase
 
         $generator->generate($openApi, $configuration);
     }
+
+    public function testItSetsCommentIfTopLevelHasDescription(): void
+    {
+        $configuration = new Configuration([], '', '', false);
+        $namespace = new PhpNamespace('Response');
+
+        $openApi = new OpenApi([
+            'components' => [
+                'responses' => [
+                    'Test1' => [
+                        'description' => 'test',
+                        'content' => [
+                            'application/json' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $transformer = $this->createMock(ClassTransformer::class);
+        $transformer->expects($this->once())->method('transform')->with(
+            $openApi,
+            'Test1',
+            $this->isInstanceOf(Schema::class),
+            $namespace
+        );
+
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
+        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
+            OpenApiType::Responses
+        )->willReturn($namespace);
+
+        $generator = new ClassGenerator($transformer, $namespaceResolver);
+
+        $generator->generate($openApi, $configuration);
+    }
 }

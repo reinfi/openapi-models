@@ -30,6 +30,10 @@ readonly class ClassTransformer
     ): ClassType {
         $class = $namespace->addClass($name)->setReadOnly();
 
+        if ($schema instanceof Schema && is_string($schema->description) && strlen($schema->description) > 0) {
+            $class->addComment($schema->description);
+        }
+
         if ($schema instanceof Reference) {
             return $this->resolveReferenceForClass($openApi, $schema, $class);
         }
