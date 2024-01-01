@@ -76,7 +76,13 @@ readonly class ClassGenerator
             foreach ($component->content as $mediaTypeName => $mediaType) {
                 if ($mediaType->schema !== null) {
                     $className = $hasMultipleMediaTypes ? $name . $this->mapMediaTypeToSuffix($mediaTypeName) : $name;
-                    $this->classTransformer->transform($openApi, $className, $mediaType->schema, $namespace);
+                    $class = $this->classTransformer->transform($openApi, $className, $mediaType->schema, $namespace);
+
+                    if ($class->getComment() === null && is_string($component->description) && strlen(
+                        $component->description
+                    ) > 0) {
+                        $class->addComment($component->description);
+                    }
                 }
             }
         }

@@ -58,6 +58,56 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test2', $classType->getExtends());
     }
 
+    public function testItSetsDescription(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->never())->method('resolve');
+
+        $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
+
+        $schema = new Schema([
+            'description' => 'test',
+        ]);
+
+        $classType = $transformer->transform($openApi, 'Test', $schema, $namespace);
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertEquals('test', $classType->getComment());
+    }
+
+    public function testItDoesNotSetDescriptionIfEmpty(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->never())->method('resolve');
+
+        $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
+
+        $schema = new Schema([
+            'description' => '',
+        ]);
+
+        $classType = $transformer->transform($openApi, 'Test', $schema, $namespace);
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertNull($classType->getComment());
+    }
+
     public function testItTransformsSchemaWithScalarProperties(): void
     {
         $openApi = new OpenApi([]);
