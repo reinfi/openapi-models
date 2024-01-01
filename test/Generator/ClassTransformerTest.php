@@ -14,6 +14,7 @@ use Nette\PhpGenerator\PromotedParameter;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
+use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
@@ -43,7 +44,7 @@ class ClassTransformerTest extends TestCase
         $typeResolver->expects($this->once())->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Reference::class),
-        )->willReturn('Test2');
+        )->willReturn(new ClassReference(OpenApiType::Schemas, 'Test2'));
 
         $transformer = new ClassTransformer($propertyResolver, $typeResolver, $referenceResolver);
 
@@ -694,7 +695,12 @@ class ClassTransformerTest extends TestCase
 
                 return $schema->type === 'array';
             }),
-        )->willReturn(Types::Array, Types::OneOf, 'Test1', 'Test2');
+        )->willReturn(
+            Types::Array,
+            Types::OneOf,
+            new ClassReference(OpenApiType::Schemas, 'Test1'),
+            new ClassReference(OpenApiType::Schemas, 'Test2')
+        );
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
 
@@ -756,7 +762,12 @@ class ClassTransformerTest extends TestCase
 
                 return $schema->type === 'array';
             }),
-        )->willReturn(Types::Array, Types::OneOf, 'Test1', 'Test2');
+        )->willReturn(
+            Types::Array,
+            Types::OneOf,
+            new ClassReference(OpenApiType::Schemas, 'Test1'),
+            new ClassReference(OpenApiType::Schemas, 'Test2')
+        );
 
         $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
 
@@ -815,7 +826,7 @@ class ClassTransformerTest extends TestCase
 
                 return in_array($schema->type, ['object', 'string'], true);
             }),
-        )->willReturn(Types::OneOf, Types::Object, 'string', 'Test2');
+        )->willReturn(Types::OneOf, Types::Object, 'string', new ClassReference(OpenApiType::Schemas, 'Test2'));
 
         $propertyResolver->expects($this->exactly(2))->method('resolve')->willReturn($referenceParameter, $idParameter);
 

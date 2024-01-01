@@ -42,6 +42,17 @@ readonly class ClassWriter
                 $filePath = sprintf('%s/%s.php', $outputDirectoryWithNamespace, $class->getName());
 
                 $classOnlyNamespace = new PhpNamespace($namespace->getName());
+                foreach ($namespace->getUses() as $use) {
+                    if (! $class->hasMethod('__construct')) {
+                        continue;
+                    }
+
+                    foreach ($class->getMethod('__construct')->getParameters() as $parameter) {
+                        if ($parameter->getType() === $use) {
+                            $classOnlyNamespace->addUse($use);
+                        }
+                    }
+                }
                 $classOnlyNamespace->add($class);
 
                 file_put_contents(

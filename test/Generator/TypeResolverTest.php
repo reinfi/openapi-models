@@ -11,6 +11,7 @@ use DG\BypassFinals;
 use InvalidArgumentException;
 use Nette\PhpGenerator\PhpNamespace;
 use PHPUnit\Framework\TestCase;
+use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\NamespaceResolver;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
@@ -147,7 +148,11 @@ class TypeResolverTest extends TestCase
 
         $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 
-        self::assertEquals('TestSchema', $resolver->resolve($openApi, $reference, $namespace));
+        $resolvedType = $resolver->resolve($openApi, $reference);
+
+        self::assertInstanceOf(ClassReference::class, $resolvedType);
+        self::assertEquals(OpenApiType::Schemas, $resolvedType->openApiType);
+        self::assertEquals('TestSchema', $resolvedType->name);
     }
 
     public function testItThrowsExceptionIfUnknownType(): void

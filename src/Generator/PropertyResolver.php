@@ -16,12 +16,16 @@ readonly class PropertyResolver
         string $name,
         Schema|Reference $schema,
         bool $required,
-        Types|string $type,
+        ClassReference|Types|string $type,
     ): PromotedParameter {
         $property = $constructor->addPromotedParameter($name);
 
         if (is_string($type)) {
             $property->setType($type);
+        }
+
+        if ($type instanceof ClassReference) {
+            $property->setType($type->name);
         }
 
         if ($schema->nullable ?? false) {
