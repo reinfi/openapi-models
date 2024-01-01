@@ -165,10 +165,10 @@ readonly class ClassTransformer
         PhpNamespace $namespace,
         PromotedParameter $parameter,
     ): void {
+        $parameter->setType('array');
         $nullablePart = $parameter->isNullable() ? '|null' : '';
         $itemsSchema = $schema->items;
         if ($itemsSchema === null) {
-            $parameter->setType(sprintf('array%s', $nullablePart));
             return;
         }
 
@@ -206,11 +206,15 @@ readonly class ClassTransformer
         }
 
         if ($arrayType instanceof ClassReference) {
-            $arrayType = $arrayType->name;
-            $namespace->addUse($arrayType);
+            $namespace->addUse($arrayType->name);
+
+            $parameter->addComment(
+                sprintf('@var %s[]%s $%s', $arrayType->name, $nullablePart, $parameter->getName())
+            );
+            return;
         }
 
-        $parameter->setType('array')->addComment(
+        $parameter->addComment(
             sprintf('@var %s[]%s $%s', $namespace->simplifyName($arrayType), $nullablePart, $parameter->getName())
         );
     }

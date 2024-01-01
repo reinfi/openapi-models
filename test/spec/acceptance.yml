@@ -134,6 +134,10 @@ components:
                 type: string
               test:
                 $ref: '#/components/schemas/Test1'
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Test2'
     Response2:
       description: Response2 for some request
       content:

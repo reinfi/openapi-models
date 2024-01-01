@@ -55,6 +55,16 @@ readonly class ClassWriter
                     foreach ($class->getMethod('__construct')->getParameters() as $parameter) {
                         if ($parameter->getType() === $use) {
                             $classOnlyNamespace->addUse($use);
+                            continue;
+                        }
+
+                        if ($parameter->getType() === 'array' && $parameter->getComment() !== null) {
+                            if (str_contains($parameter->getComment(), $use)) {
+                                $classOnlyNamespace->addUse($use);
+                                $parameter->setComment(
+                                    str_replace($use, $namespace->simplifyName($use), $parameter->getComment())
+                                );
+                            }
                         }
                     }
                 }
