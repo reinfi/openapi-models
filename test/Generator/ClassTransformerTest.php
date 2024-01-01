@@ -398,7 +398,7 @@ class ClassTransformerTest extends TestCase
 
         self::assertEquals('Test', $classType->getName());
         self::assertCount(1, $classes);
-        self::assertEquals('array|null', $parameter->getType());
+        self::assertEquals('array', $parameter->getType());
     }
 
     public function testItThrowsExceptionIfTypeIsNotString(): void
