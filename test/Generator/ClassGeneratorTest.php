@@ -183,7 +183,7 @@ class ClassGeneratorTest extends TestCase
         $generator->generate($openApi, $configuration);
     }
 
-    public function testItAppendsSuffixOnMultipleMediaTypes(): void
+    public function testItGeneratesOnlyJsonSchema(): void
     {
         $configuration = new Configuration([], '', '', false);
         $namespace = new PhpNamespace('Response');
@@ -210,9 +210,9 @@ class ClassGeneratorTest extends TestCase
         ]);
 
         $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->exactly(2))->method('transform')->with(
+        $transformer->expects($this->once())->method('transform')->with(
             $openApi,
-            $this->callback(static fn (string $name): bool => in_array($name, ['Test1Json', 'Test1Xml'], true)),
+            'Test1',
             $this->isInstanceOf(Schema::class),
             $namespace
         );

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
+use cebe\openapi\spec\MediaType;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\RequestBody;
@@ -71,31 +72,24 @@ readonly class ClassGenerator
                 continue;
             }
 
-            $hasMultipleMediaTypes = count($component->content) > 1;
+            // Json is preferred, other formats are used when Json is not present.
+            $jsonMediaType = $component->content['application/json'] ?? null;
+            $mediaTypes = $jsonMediaType instanceof MediaType ? [$jsonMediaType] : $component->content;
 
-            foreach ($component->content as $mediaTypeName => $mediaType) {
+            foreach ($mediaTypes as $mediaType) {
                 if ($mediaType->schema !== null) {
-                    $className = $hasMultipleMediaTypes ? $name . $this->mapMediaTypeToSuffix($mediaTypeName) : $name;
-                    $class = $this->classTransformer->transform($openApi, $className, $mediaType->schema, $namespace);
+                    $class = $this->classTransformer->transform($openApi, $name, $mediaType->schema, $namespace);
 
                     if ($class->getComment() === null && is_string($component->description) && strlen(
                         $component->description
                     ) > 0) {
                         $class->addComment($component->description);
                     }
+
+                    // We do not differentiate between responses and just generate the first one with a schema.
+                    break;
                 }
             }
         }
-    }
-
-    private function mapMediaTypeToSuffix(string $mediaType): string
-    {
-        return match ($mediaType) {
-            'application/json' => 'Json',
-            'application/x-www-form-urlencoded' => 'Form',
-            'application/xml' => 'Xml',
-            '*/*' => '',
-            default => throw new UnknownMediaTypeException($mediaType),
-        };
     }
 }
