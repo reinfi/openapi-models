@@ -12,7 +12,6 @@ use cebe\openapi\spec\Response;
 use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Configuration\Configuration;
-use Reinfi\OpenApiModels\Exception\UnknownMediaTypeException;
 
 readonly class ClassGenerator
 {
