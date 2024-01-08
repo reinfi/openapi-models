@@ -16,6 +16,7 @@ components:
         - email
         - admin
         - changed
+        - date
       properties:
         id:
           type: number
@@ -26,6 +27,12 @@ components:
         changed:
           type: string
           nullable: true
+        date:
+          type: string
+          format: date
+        dateTime:
+          type: string
+          format: date-time
         deleted:
           type: boolean
 

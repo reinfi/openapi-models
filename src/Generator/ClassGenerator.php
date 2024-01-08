@@ -28,18 +28,24 @@ readonly class ClassGenerator
     {
         $this->namespaceResolver->initialize($configuration);
 
-        $this->addSchemas($openApi);
+        $this->addSchemas($configuration, $openApi);
         $this->buildMediaTypeComponents(
+            $configuration,
             OpenApiType::RequestBodies,
             $openApi,
             $openApi->components->requestBodies ?? []
         );
-        $this->buildMediaTypeComponents(OpenApiType::Responses, $openApi, $openApi->components->responses ?? []);
+        $this->buildMediaTypeComponents(
+            $configuration,
+            OpenApiType::Responses,
+            $openApi,
+            $openApi->components->responses ?? []
+        );
 
         return $this->namespaceResolver->getNamespaces();
     }
 
-    private function addSchemas(OpenApi $openApi): void
+    private function addSchemas(Configuration $configuration, OpenApi $openApi): void
     {
         $schemas = $openApi->components->schemas ?? [];
         if (count($schemas) === 0) {
@@ -50,7 +56,7 @@ readonly class ClassGenerator
 
         foreach ($schemas as $name => $schema) {
             if ($schema instanceof Schema) {
-                $this->classTransformer->transform($openApi, $name, $schema, $namespace);
+                $this->classTransformer->transform($configuration, $openApi, $name, $schema, $namespace);
             }
         }
     }
@@ -58,8 +64,12 @@ readonly class ClassGenerator
     /**
      * @param array<RequestBody|Response|Reference> $components
      */
-    private function buildMediaTypeComponents(OpenApiType $openApiType, OpenApi $openApi, array $components): void
-    {
+    private function buildMediaTypeComponents(
+        Configuration $configuration,
+        OpenApiType $openApiType,
+        OpenApi $openApi,
+        array $components
+    ): void {
         if (count($components) === 0) {
             return;
         }
@@ -77,7 +87,13 @@ readonly class ClassGenerator
 
             foreach ($mediaTypes as $mediaType) {
                 if ($mediaType->schema !== null) {
-                    $class = $this->classTransformer->transform($openApi, $name, $mediaType->schema, $namespace);
+                    $class = $this->classTransformer->transform(
+                        $configuration,
+                        $openApi,
+                        $name,
+                        $mediaType->schema,
+                        $namespace
+                    );
 
                     if ($class->getComment() === null && is_string($component->description) && strlen(
                         $component->description

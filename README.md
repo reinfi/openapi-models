@@ -37,9 +37,38 @@ return [
     'outputPath' => __DIR__ . '/output', # output directory
     'namespace' => 'Api', # namespace for generated classes, can be empty
     'clearOutputDirectory' => true, # to remove all files in output directory, default is false
+    'dateTimeAsObject' => false, # date/date-time definition will be `string` otherwise `DateTimeInterface`.
 ];
 ```
 
 If you like to store your configuration somewhere else you need to provide the file name to the command.
 
 `php vendor/bin/openapi-models generate --config spec/openapi-models.php`
+
+## Date or DateTime
+
+The following schema has date/date-time properties.
+
+```yml
+components:
+  schemas:
+    Test1:
+      type: object
+      required:
+        - date
+      properties:
+        date:
+          type: string
+          format: date
+        dateTime:
+          type: string
+          format: date-time
+```
+
+The default is to generate the fields as `string`-type because this would not require
+any logic for serialization of the class. 
+
+You can change the configuration `dateTimeAsObject` to `true` and then these fields will be of type `DateTimeInterface`. 
+
+A serialization function is added to these classes to support native `json_encode`. If you do not use native json_encode you 
+may need to provide an own implementation to fulfill open api specifications. 

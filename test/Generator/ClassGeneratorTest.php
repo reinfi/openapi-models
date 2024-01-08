@@ -25,7 +25,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesClassesFromOpenApi(): void
     {
-        $configuration = new Configuration([], '', '', false);
+        $configuration = new Configuration([], '', '', false, false);
         $namespace = new PhpNamespace('Schema');
 
         $openApi = new OpenApi([
@@ -46,6 +46,7 @@ class ClassGeneratorTest extends TestCase
 
         $transformer = $this->createMock(ClassTransformer::class);
         $transformer->expects($this->exactly(2))->method('transform')->with(
+            $configuration,
             $openApi,
             $this->callback(static fn (string $name): bool => in_array($name, ['Test1', 'Test2'], true)),
             $this->isInstanceOf(Schema::class),
@@ -65,7 +66,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesRequestBodies(): void
     {
-        $configuration = new Configuration([], '', '', false);
+        $configuration = new Configuration([], '', '', false, false);
         $namespace = new PhpNamespace('RequestBody');
 
         $openApi = new OpenApi([
@@ -86,6 +87,7 @@ class ClassGeneratorTest extends TestCase
 
         $transformer = $this->createMock(ClassTransformer::class);
         $transformer->expects($this->once())->method('transform')->with(
+            $configuration,
             $openApi,
             'Test1',
             $this->isInstanceOf(Schema::class),
@@ -105,7 +107,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesResponses(): void
     {
-        $configuration = new Configuration([], '', '', false);
+        $configuration = new Configuration([], '', '', false, false);
         $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
@@ -126,6 +128,7 @@ class ClassGeneratorTest extends TestCase
 
         $transformer = $this->createMock(ClassTransformer::class);
         $transformer->expects($this->once())->method('transform')->with(
+            $configuration,
             $openApi,
             'Test1',
             $this->isInstanceOf(Schema::class),
@@ -145,7 +148,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesReferenceClasses(): void
     {
-        $configuration = new Configuration([], '', '', false);
+        $configuration = new Configuration([], '', '', false, false);
         $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
@@ -166,6 +169,7 @@ class ClassGeneratorTest extends TestCase
 
         $transformer = $this->createMock(ClassTransformer::class);
         $transformer->expects($this->once())->method('transform')->with(
+            $configuration,
             $openApi,
             'Test1',
             $this->isInstanceOf(Reference::class),
@@ -185,7 +189,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesOnlyJsonSchema(): void
     {
-        $configuration = new Configuration([], '', '', false);
+        $configuration = new Configuration([], '', '', false, false);
         $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
@@ -211,6 +215,7 @@ class ClassGeneratorTest extends TestCase
 
         $transformer = $this->createMock(ClassTransformer::class);
         $transformer->expects($this->once())->method('transform')->with(
+            $configuration,
             $openApi,
             'Test1',
             $this->isInstanceOf(Schema::class),
@@ -230,7 +235,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItSetsCommentIfTopLevelHasDescription(): void
     {
-        $configuration = new Configuration([], '', '', false);
+        $configuration = new Configuration([], '', '', false, false);
         $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
@@ -252,6 +257,7 @@ class ClassGeneratorTest extends TestCase
 
         $transformer = $this->createMock(ClassTransformer::class);
         $transformer->expects($this->once())->method('transform')->with(
+            $configuration,
             $openApi,
             'Test1',
             $this->isInstanceOf(Schema::class),
