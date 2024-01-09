@@ -49,7 +49,7 @@ class NamespaceResolverTest extends TestCase
 
     public function testItInitializesNamespacesFromConfiguration(): void
     {
-        $configuration = new Configuration([], '', '', false, false);
+        $configuration = new Configuration([], '', '');
 
         $resolver = new NamespaceResolver();
 
@@ -72,7 +72,7 @@ class NamespaceResolverTest extends TestCase
         string $configurationNamespace,
         string $expectedNameSpace
     ): void {
-        $configuration = new Configuration([], '', $configurationNamespace, false, false);
+        $configuration = new Configuration([], '', $configurationNamespace);
 
         $resolver = new NamespaceResolver();
 

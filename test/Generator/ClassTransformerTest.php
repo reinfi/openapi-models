@@ -38,7 +38,7 @@ class ClassTransformerTest extends TestCase
     {
         BypassFinals::enable();
 
-        $this->configuration = new Configuration([], '', '', false, false);
+        $this->configuration = new Configuration([], '', '');
     }
 
     public function testItTransformsReference(): void
@@ -1440,6 +1440,7 @@ class ClassTransformerTest extends TestCase
 
         $serializableResolver->expects($this->once())->method('addSerialization')
             ->with(
+                $this->configuration,
                 $openApi,
                 $schema,
                 $namespace,

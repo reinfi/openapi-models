@@ -124,7 +124,14 @@ readonly class ClassTransformer
         }
 
         if ($this->serializableResolver->needsSerialization($class)) {
-            $this->serializableResolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+            $this->serializableResolver->addSerialization(
+                $configuration,
+                $openApi,
+                $schema,
+                $namespace,
+                $class,
+                $constructor
+            );
         }
 
         return $class;

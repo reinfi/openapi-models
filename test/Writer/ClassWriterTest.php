@@ -31,7 +31,7 @@ class ClassWriterTest extends TestCase
 
         $writer = new ClassWriter($printer);
 
-        $configuration = new Configuration([], $this->outputDir->url(), '', false, false);
+        $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $firstNamespace = new PhpNamespace('Schema');
         $firstNamespace->addClass('ClassFirst');
@@ -60,7 +60,7 @@ class ClassWriterTest extends TestCase
 
         $writer = new ClassWriter($printer);
 
-        $configuration = new Configuration([], $this->outputDir->url(), '', false, false);
+        $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $namespace = new PhpNamespace('Schema');
         $namespace->addUse('ClassSecond');

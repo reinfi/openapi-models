@@ -25,7 +25,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesClassesFromOpenApi(): void
     {
-        $configuration = new Configuration([], '', '', false, false);
+        $configuration = new Configuration([], '', '');
         $namespace = new PhpNamespace('Schema');
 
         $openApi = new OpenApi([
@@ -66,7 +66,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesRequestBodies(): void
     {
-        $configuration = new Configuration([], '', '', false, false);
+        $configuration = new Configuration([], '', '');
         $namespace = new PhpNamespace('RequestBody');
 
         $openApi = new OpenApi([
@@ -107,7 +107,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesResponses(): void
     {
-        $configuration = new Configuration([], '', '', false, false);
+        $configuration = new Configuration([], '', '');
         $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
@@ -148,7 +148,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesReferenceClasses(): void
     {
-        $configuration = new Configuration([], '', '', false, false);
+        $configuration = new Configuration([], '', '');
         $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
@@ -189,7 +189,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItGeneratesOnlyJsonSchema(): void
     {
-        $configuration = new Configuration([], '', '', false, false);
+        $configuration = new Configuration([], '', '');
         $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
@@ -235,7 +235,7 @@ class ClassGeneratorTest extends TestCase
 
     public function testItSetsCommentIfTopLevelHasDescription(): void
     {
-        $configuration = new Configuration([], '', '', false, false);
+        $configuration = new Configuration([], '', '');
         $namespace = new PhpNamespace('Response');
 
         $openApi = new OpenApi([
