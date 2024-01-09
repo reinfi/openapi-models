@@ -15,6 +15,7 @@ use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
+use Reinfi\OpenApiModels\Model\Imports;
 
 readonly class ClassTransformer
 {
@@ -31,7 +32,8 @@ readonly class ClassTransformer
         OpenApi $openApi,
         string $name,
         Schema|Reference $schema,
-        PhpNamespace $namespace
+        PhpNamespace $namespace,
+        Imports $imports
     ): ClassType {
         $class = $namespace->addClass($name)->setReadOnly();
 
@@ -40,7 +42,7 @@ readonly class ClassTransformer
         }
 
         if ($schema instanceof Reference) {
-            return $this->resolveReferenceForClass($openApi, $schema, $class, $namespace);
+            return $this->resolveReferenceForClass($openApi, $schema, $class, $namespace, $imports);
         }
 
         $constructor = $class->addMethod('__construct');
@@ -60,12 +62,12 @@ readonly class ClassTransformer
                 );
 
                 if ($type instanceof ClassReference) {
-                    $namespace->addUse($type->name);
+                    $imports->addImport($type->name);
                 }
 
                 if ($type === Types::Date || $type === Types::DateTime) {
                     if ($configuration->dateTimeAsObject) {
-                        $namespace->addUse(DateTimeInterface::class);
+                        $imports->addImport(DateTimeInterface::class);
                         $parameter->setType(DateTimeInterface::class);
                     } else {
                         $parameter->setType('string');
@@ -79,7 +81,8 @@ readonly class ClassTransformer
                         $name,
                         $propertyName,
                         $property,
-                        $namespace
+                        $namespace,
+                        $imports
                     );
 
                     $parameter->setType($namespace->resolveName($inlineType));
@@ -99,6 +102,7 @@ readonly class ClassTransformer
                         $propertyName,
                         $property,
                         $namespace,
+                        $imports,
                         $parameter
                     );
                 }
@@ -110,7 +114,8 @@ readonly class ClassTransformer
                         $name,
                         $propertyName,
                         $property->oneOf,
-                        $namespace
+                        $namespace,
+                        $imports
                     );
 
                     $parameter->setType($oneOfType);
@@ -129,10 +134,11 @@ readonly class ClassTransformer
         OpenApi $openApi,
         Reference $reference,
         ClassType $class,
-        PhpNamespace $namespace
+        PhpNamespace $namespace,
+        Imports $imports,
     ): ClassType {
         $classReference = $this->typeResolver->resolve($openApi, $reference);
-        $namespace->addUse($classReference->name);
+        $imports->addImport($classReference->name);
         $class->setExtends($classReference->name);
 
         return $class;
@@ -165,11 +171,12 @@ readonly class ClassTransformer
         string $parentName,
         string $propertyName,
         Schema $schema,
-        PhpNamespace $namespace
+        PhpNamespace $namespace,
+        Imports $imports,
     ): string {
         $className = $parentName . ucfirst($propertyName);
 
-        $this->transform($configuration, $openApi, $className, $schema, $namespace);
+        $this->transform($configuration, $openApi, $className, $schema, $namespace, $imports);
 
         return $className;
     }
@@ -205,6 +212,7 @@ readonly class ClassTransformer
         string $propertyName,
         Schema $schema,
         PhpNamespace $namespace,
+        Imports $imports,
         PromotedParameter $parameter,
     ): void {
         $parameter->setType('array');
@@ -224,7 +232,8 @@ readonly class ClassTransformer
                     $parentName,
                     $propertyName,
                     $itemsSchema,
-                    $namespace
+                    $namespace,
+                    $imports
                 )
             );
         }
@@ -242,7 +251,8 @@ readonly class ClassTransformer
                 $parentName,
                 $propertyName,
                 $itemsSchema->oneOf,
-                $namespace
+                $namespace,
+                $imports
             );
 
             if (str_contains($oneOfArrayType, DateTimeInterface::class)) {
@@ -259,7 +269,7 @@ readonly class ClassTransformer
             $parameter->setType('array')->addComment(
                 sprintf('@var array<%s>%s $%s', DateTimeInterface::class, $nullablePart, $parameter->getName())
             );
-            $namespace->addUse(DateTimeInterface::class);
+            $imports->addImport(DateTimeInterface::class);
             return;
         }
 
@@ -268,7 +278,7 @@ readonly class ClassTransformer
         }
 
         if ($arrayType instanceof ClassReference) {
-            $namespace->addUse($arrayType->name);
+            $imports->addImport($arrayType->name);
 
             $parameter->addComment(
                 sprintf('@var %s[]%s $%s', $arrayType->name, $nullablePart, $parameter->getName())
@@ -290,7 +300,8 @@ readonly class ClassTransformer
         string $parentName,
         string $propertyName,
         array $oneOf,
-        PhpNamespace $namespace
+        PhpNamespace $namespace,
+        Imports $imports,
     ): string {
         $resolvedTypes = [];
 
@@ -308,7 +319,8 @@ readonly class ClassTransformer
                             $parentName,
                             $propertyName . ++$countInlineObjects,
                             $oneOfElement,
-                            $namespace
+                            $namespace,
+                            $imports
                         )
                     ),
                     Types::Enum => $namespace->resolveName(
@@ -329,7 +341,7 @@ readonly class ClassTransformer
 
             if ($oneOfElement instanceof Reference) {
                 $classReference = $this->typeResolver->resolve($openApi, $oneOfElement);
-                $namespace->addUse($classReference->name);
+                $imports->addImport($classReference->name);
                 $resolvedTypes[] = $classReference->name;
             }
         }

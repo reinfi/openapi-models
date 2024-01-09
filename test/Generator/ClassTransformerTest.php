@@ -27,6 +27,7 @@ use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 use Reinfi\OpenApiModels\Generator\SerializableResolver;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
+use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
 
 class ClassTransformerTest extends TestCase
@@ -68,7 +69,14 @@ class ClassTransformerTest extends TestCase
             '$ref' => '#/components/schemas/Test2',
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
 
         self::assertEquals('Test', $classType->getName());
         self::assertCount(1, $namespace->getClasses());
@@ -100,7 +108,14 @@ class ClassTransformerTest extends TestCase
             'description' => 'test',
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
 
         self::assertEquals('Test', $classType->getName());
         self::assertEquals('test', $classType->getComment());
@@ -131,7 +146,14 @@ class ClassTransformerTest extends TestCase
             'description' => '',
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
 
         self::assertEquals('Test', $classType->getName());
         self::assertNull($classType->getComment());
@@ -172,7 +194,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
 
         self::assertEquals('Test', $classType->getName());
         self::assertCount(1, $namespace->getClasses());
@@ -224,7 +253,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
 
         self::assertEquals('Test', $classType->getName());
         self::assertCount(1, $namespace->getClasses());
@@ -236,6 +272,7 @@ class ClassTransformerTest extends TestCase
     {
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('Api');
+        $imports = new Imports($namespace);
         $configuration = new Configuration([], '', '', false, true);
 
         $dateProperty = new PromotedParameter('date');
@@ -279,12 +316,15 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform($configuration, $openApi, 'Test', $schema, $namespace, $imports);
 
         self::assertEquals('Test', $classType->getName());
         self::assertCount(1, $namespace->getClasses());
         self::assertEquals(DateTimeInterface::class, $dateProperty->getType());
         self::assertEquals(DateTimeInterface::class, $dateTimeProperty->getType());
+
+        $imports->copyImports();
+
         self::assertContains(DateTimeInterface::class, $namespace->getUses());
     }
 
@@ -342,7 +382,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
 
         self::assertEquals('Test', $classType->getName());
         self::assertCount(1, $namespace->getClasses());
@@ -387,7 +434,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
 
         self::assertEquals('Test', $classType->getName());
         self::assertCount(2, $namespace->getClasses());
@@ -427,7 +481,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -477,7 +538,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -529,7 +597,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -574,7 +649,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -624,7 +706,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -670,7 +759,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -719,7 +815,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -767,7 +870,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -820,7 +930,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -869,7 +986,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -923,7 +1047,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -995,7 +1126,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -1069,7 +1207,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -1139,7 +1284,7 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $transformer->transform($configuration, $openApi, 'Test', $schema, $namespace);
+        $transformer->transform($configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));
     }
 
     public function testItResolvesOneOf(): void
@@ -1199,7 +1344,14 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
         $classes = $namespace->getClasses();
 
         self::assertEquals('Test', $classType->getName());
@@ -1259,7 +1411,7 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));
     }
 
     public function testItCallsSerialization(): void
@@ -1302,6 +1454,6 @@ class ClassTransformerTest extends TestCase
             $serializableResolver
         );
 
-        $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));
     }
 }
