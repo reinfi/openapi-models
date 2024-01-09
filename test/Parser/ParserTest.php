@@ -48,7 +48,7 @@ class ParserTest extends TestCase
         $configuration = new Configuration([
             $this->inputRoot->url() . '/sub',
             $this->inputRoot->url() . '/login.yml',
-        ], '', '', false, false);
+        ], '', '');
 
         $parser = new Parser($openApiMerger);
 
@@ -65,7 +65,7 @@ class ParserTest extends TestCase
         $openApiMerger = $this->createMock(OpenApiMerge::class);
         $openApiMerger->expects($this->never())->method('mergeFiles');
 
-        $configuration = new Configuration([], '', '', false, false);
+        $configuration = new Configuration([], '', '');
 
         $parser = new Parser($openApiMerger);
 

@@ -38,6 +38,7 @@ return [
     'namespace' => 'Api', # namespace for generated classes, can be empty
     'clearOutputDirectory' => true, # to remove all files in output directory, default is false
     'dateTimeAsObject' => false, # date/date-time definition will be `string` otherwise `DateTimeInterface`.
+    'dateTimeFormat' => 'Y-m-d H:i:s', # format for serialize of date time fields
 ];
 ```
 
@@ -72,3 +73,12 @@ You can change the configuration `dateTimeAsObject` to `true` and then these fie
 
 A serialization function is added to these classes to support native `json_encode`. If you do not use native json_encode you 
 may need to provide an own implementation to fulfill open api specifications. 
+
+The default format for a `date` is `Y-m-d`, for a `date-time`-type is `Y-m-d\TH:i:sP` (RFC3339), but you can configure it.
+
+```php
+'dateFormat' => 'Y-m-d',
+'dateTimeFormat' => 'Y-m-d H:i:s',
+```
+
+This is just for convenience if you do not want to deal with time zones or just need different formats. 

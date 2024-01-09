@@ -11,6 +11,7 @@ use DG\BypassFinals;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use PHPUnit\Framework\TestCase;
+use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\InvalidDateFormatException;
 use Reinfi\OpenApiModels\Exception\PropertyNotFoundException;
 use Reinfi\OpenApiModels\Generator\SerializableResolver;
@@ -53,6 +54,7 @@ class SerializableResolverTest extends TestCase
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('Api');
         $schema = new Schema([]);
+        $configuration = new Configuration([], '', '');
 
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->never())->method('resolve');
@@ -62,7 +64,7 @@ class SerializableResolverTest extends TestCase
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');
 
-        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+        $resolver->addSerialization($configuration, $openApi, $schema, $namespace, $class, $constructor);
 
         self::assertCount(0, $namespace->getUses());
     }
@@ -71,6 +73,7 @@ class SerializableResolverTest extends TestCase
     {
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('Api');
+        $configuration = new Configuration([], '', '');
 
         $schema = new Schema([
             'properties' => [
@@ -95,7 +98,7 @@ class SerializableResolverTest extends TestCase
         $constructor->addPromotedParameter('date')->setType(DateTimeInterface::class);
         $constructor->addPromotedParameter('dateTime')->setType(DateTimeInterface::class)->setNullable();
 
-        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+        $resolver->addSerialization($configuration, $openApi, $schema, $namespace, $class, $constructor);
 
         self::assertCount(1, $namespace->getUses());
         self::assertCount(2, $class->getMethods());
@@ -111,10 +114,56 @@ class SerializableResolverTest extends TestCase
         );
     }
 
+    public function testItUsesDateTimeFormatFromConfiguration(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('Api');
+        $configuration = new Configuration([], '', '', dateFormat: 'd.m.Y', dateTimeFormat: 'd.m.Y H:i:s');
+
+        $schema = new Schema([
+            'properties' => [
+                'date' => [
+                    'type' => 'string',
+                    'format' => 'date',
+                ],
+                'dateTime' => [
+                    'type' => 'string',
+                    'format' => 'date-time',
+                ],
+            ],
+        ]);
+
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $typeResolver->expects($this->exactly(2))->method('resolve')->willReturn(Types::Date, Types::DateTime);
+
+        $resolver = new SerializableResolver($typeResolver);
+
+        $class = new ClassType('Test');
+        $constructor = $class->addMethod('__construct');
+        $constructor->addPromotedParameter('date')->setType(DateTimeInterface::class);
+        $constructor->addPromotedParameter('dateTime')->setType(DateTimeInterface::class)->setNullable();
+
+        $resolver->addSerialization($configuration, $openApi, $schema, $namespace, $class, $constructor);
+
+        self::assertCount(1, $namespace->getUses());
+        self::assertCount(2, $class->getMethods());
+        self::assertCount(1, $class->getImplements());
+
+        $method = $class->getMethod('jsonSerialize');
+
+        self::assertEquals('array', $method->getReturnType());
+        self::assertStringContainsString('\'date\' => $this->date->format(\'d.m.Y\'),', $method->getBody());
+        self::assertStringContainsString(
+            '\'dateTime\' => $this->dateTime?->format(\'d.m.Y H:i:s\'),',
+            $method->getBody()
+        );
+    }
+
     public function testItWorksForDateTimeInOneOf(): void
     {
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('Api');
+        $configuration = new Configuration([], '', '');
 
         $schema = new Schema([
             'properties' => [
@@ -141,7 +190,7 @@ class SerializableResolverTest extends TestCase
         $constructor = $class->addMethod('__construct');
         $constructor->addPromotedParameter('date')->setType(sprintf('int|%s', DateTimeInterface::class));
 
-        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+        $resolver->addSerialization($configuration, $openApi, $schema, $namespace, $class, $constructor);
 
         self::assertCount(1, $namespace->getUses());
         self::assertCount(2, $class->getMethods());
@@ -160,6 +209,7 @@ class SerializableResolverTest extends TestCase
     {
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('Api');
+        $configuration = new Configuration([], '', '');
 
         $schema = new Schema([
             'properties' => [
@@ -184,7 +234,7 @@ class SerializableResolverTest extends TestCase
             '@var array<DateTimeInterface> $dates'
         );
 
-        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+        $resolver->addSerialization($configuration, $openApi, $schema, $namespace, $class, $constructor);
 
         self::assertCount(1, $namespace->getUses());
         self::assertCount(2, $class->getMethods());
@@ -203,6 +253,7 @@ class SerializableResolverTest extends TestCase
     {
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('Api');
+        $configuration = new Configuration([], '', '');
 
         $schema = new Schema([
             'properties' => [
@@ -228,7 +279,7 @@ class SerializableResolverTest extends TestCase
             '@var array<DateTimeInterface> $dates'
         );
 
-        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+        $resolver->addSerialization($configuration, $openApi, $schema, $namespace, $class, $constructor);
 
         self::assertCount(1, $namespace->getUses());
         self::assertCount(2, $class->getMethods());
@@ -250,6 +301,7 @@ class SerializableResolverTest extends TestCase
 
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('');
+        $configuration = new Configuration([], '', '');
 
         $schema = new Schema([]);
 
@@ -262,7 +314,7 @@ class SerializableResolverTest extends TestCase
         $constructor = $class->addMethod('__construct');
         $constructor->addPromotedParameter('date')->setType(DateTimeInterface::class);
 
-        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+        $resolver->addSerialization($configuration, $openApi, $schema, $namespace, $class, $constructor);
     }
 
     public function testItThrowsExceptionIfPropertyHasInvalidType(): void
@@ -272,6 +324,7 @@ class SerializableResolverTest extends TestCase
 
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('');
+        $configuration = new Configuration([], '', '');
 
         $schema = new Schema([
             'properties' => [
@@ -291,6 +344,6 @@ class SerializableResolverTest extends TestCase
         $constructor = $class->addMethod('__construct');
         $constructor->addPromotedParameter('date')->setType(DateTimeInterface::class);
 
-        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+        $resolver->addSerialization($configuration, $openApi, $schema, $namespace, $class, $constructor);
     }
 }

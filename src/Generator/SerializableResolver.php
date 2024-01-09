@@ -12,6 +12,7 @@ use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
+use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\InvalidDateFormatException;
 use Reinfi\OpenApiModels\Exception\PropertyNotFoundException;
 
@@ -36,6 +37,7 @@ readonly class SerializableResolver
     }
 
     public function addSerialization(
+        Configuration $configuration,
         OpenApi $openApi,
         Schema $schema,
         PhpNamespace $namespace,
@@ -72,7 +74,7 @@ readonly class SerializableResolver
                         'array_map(static fn (%2$s $date): string => $date->format(\'%3$s\'), $this->%1$s)',
                         $parameter->getName(),
                         DateTimeInterface::class,
-                        $this->resolveFormat($openApi, $property, $type, $parameter)
+                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter)
                     );
                     if ($parameter->isNullable()) {
                         $method->addBody(sprintf(
@@ -89,7 +91,7 @@ readonly class SerializableResolver
                         '    \'%1$s\' => $this->%1$s instanceOf %2$s ? $this->%1$s->format(\'%3$s\') : $this->%1$s,',
                         $parameter->getName(),
                         DateTimeInterface::class,
-                        $this->resolveFormat($openApi, $property, $type, $parameter)
+                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter)
                     ));
                     break;
                 default :
@@ -97,7 +99,7 @@ readonly class SerializableResolver
                         '    \'%1$s\' => $this->%1$s%2$s->format(\'%3$s\'),',
                         $parameter->getName(),
                         $parameter->isNullable() ? '?' : '',
-                        $this->resolveFormat($openApi, $property, $type, $parameter)
+                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter)
                     ));
             }
         }
@@ -120,8 +122,13 @@ readonly class SerializableResolver
         return false;
     }
 
-    private function resolveFormat(OpenApi $openApi, Schema $schema, Types|string $type, Parameter $parameter): string
-    {
+    private function resolveFormat(
+        Configuration $configuration,
+        OpenApi $openApi,
+        Schema $schema,
+        Types|string $type,
+        Parameter $parameter
+    ): string {
         if ($type === Types::OneOf) {
             foreach ($schema->oneOf as $oneOfSchema) {
                 $type = $this->typeResolver->resolve($openApi, $oneOfSchema);
@@ -136,8 +143,8 @@ readonly class SerializableResolver
         }
 
         return match ($type) {
-            Types::Date => 'Y-m-d',
-            Types::DateTime => DateTimeInterface::RFC3339,
+            Types::Date => $configuration->dateFormat,
+            Types::DateTime => $configuration->dateTimeFormat,
             default => throw new InvalidDateFormatException($parameter->getName())
         };
     }

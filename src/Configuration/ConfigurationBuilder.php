@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Configuration;
 
+use DateTimeInterface;
 use InvalidArgumentException;
 
 readonly class ConfigurationBuilder
@@ -34,6 +35,8 @@ readonly class ConfigurationBuilder
             $configurationValues['namespace'] ?? '',
             (bool) ($configurationValues['clearOutputDirectory'] ?? false),
             (bool) ($configurationValues['dateTimeAsObject'] ?? false),
+            $configurationValues['dateFormat'] ?? 'Y-m-d',
+            $configurationValues['dateTimeFormat'] ?? DateTimeInterface::RFC3339,
         );
 
         $this->validate($configuration);
