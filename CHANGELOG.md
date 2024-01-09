@@ -1,6 +1,9 @@
 # Changelog
 
-## next
+## 0.4.0
+
+- beautify command output
+- allow configuration of used date and date-time formats
 
 ## 0.3.0
 
