@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Parser;
 
-use cebe\openapi\spec\OpenApi;
 use InvalidArgumentException;
 use Mthole\OpenApiMerge\FileHandling\File;
 use Mthole\OpenApiMerge\OpenApiMerge;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Model\ParserResult;
 use Webmozart\Glob\Glob;
 
 readonly class Parser
@@ -18,7 +18,7 @@ readonly class Parser
     ) {
     }
 
-    public function parse(Configuration $configuration): OpenApi
+    public function parse(Configuration $configuration): ParserResult
     {
         $filesToParse = [];
 
@@ -39,9 +39,9 @@ readonly class Parser
     }
 
     /**
-     * @param File[] $files
+     * @param list<File> $files
      */
-    private function mergeFiles(array $files): OpenApi
+    private function mergeFiles(array $files): ParserResult
     {
         $firstFile = array_pop($files);
 
@@ -49,6 +49,9 @@ readonly class Parser
             throw new InvalidArgumentException('No files found to generate models');
         }
 
-        return $this->openApiMerge->mergeFiles($firstFile, $files, false)->getOpenApi();
+        return new ParserResult($this->openApiMerge->mergeFiles($firstFile, $files, false)->getOpenApi(), [
+            $firstFile,
+            ...$files,
+        ]);
     }
 }

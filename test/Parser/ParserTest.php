@@ -52,7 +52,10 @@ class ParserTest extends TestCase
 
         $parser = new Parser($openApiMerger);
 
-        $parser->parse($configuration);
+        $parserResult = $parser->parse($configuration);
+
+        self::assertCount(4, $parserResult->parsedFiles);
+        self::assertContainsOnly(File::class, $parserResult->parsedFiles);
     }
 
     public function testItThrowsExceptionIfNoFilesFound(): void
