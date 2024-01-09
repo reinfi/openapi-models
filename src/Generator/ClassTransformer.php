@@ -305,7 +305,8 @@ readonly class ClassTransformer
                             $namespace
                         )
                     ),
-                    Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
+
+                    Types::Date, Types::DateTime, Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
                         $resolvedType->value
                     ),
                     default => $resolvedType,
