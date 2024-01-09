@@ -116,6 +116,11 @@ components:
             enum:
               - positive
               - negative
+        dates:
+          type: array
+          items:
+            type: string
+            format: date
 
   requestBodies:
     RequestBody1:

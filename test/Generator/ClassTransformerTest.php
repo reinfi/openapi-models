@@ -727,6 +727,54 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('@var string[]|null $values', $parameter->getComment());
     }
 
+    public function testItResolvesDateArrayType(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $parameter = new PromotedParameter('dates');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))->method('resolve')->with(
+            $openApi,
+            $this->isInstanceOf(Schema::class),
+        )->willReturn(Types::Array, Types::Date);
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver
+        );
+
+        $schema = new Schema([
+            'properties' => [
+                'values' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'string',
+                        'format' => 'date',
+                    ],
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classes = $namespace->getClasses();
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(1, $classes);
+        self::assertEquals('array', $parameter->getType());
+        self::assertEquals('@var array<DateTimeInterface> $dates', $parameter->getComment());
+    }
+
     public function testItResolvesInlineObjectAsArrayType(): void
     {
         $openApi = new OpenApi([]);

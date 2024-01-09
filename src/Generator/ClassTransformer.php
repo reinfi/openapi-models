@@ -249,6 +249,14 @@ readonly class ClassTransformer
             return;
         }
 
+        if (in_array($arrayType, [Types::Date, Types::DateTime], true)) {
+            $parameter->setType('array')->addComment(
+                sprintf('@var array<%s>%s $%s', DateTimeInterface::class, $nullablePart, $parameter->getName())
+            );
+            $namespace->addUse(DateTimeInterface::class);
+            return;
+        }
+
         if ($arrayType instanceof Types) {
             throw new UnresolvedArrayTypeException($arrayType->value);
         }
