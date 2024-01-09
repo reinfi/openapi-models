@@ -94,7 +94,16 @@ readonly class ClassWriter
 
             $filePath = $fileInfo->getRealPath();
 
-            if (is_string($filePath) && $fileInfo->isFile()) {
+            if (! is_string($filePath)) {
+                continue;
+            }
+
+            if ($fileInfo->isDir()) {
+                $this->clearOutputDirectory($filePath);
+                continue;
+            }
+
+            if ($fileInfo->isFile()) {
                 unlink($fileInfo->getRealPath());
             }
         }
