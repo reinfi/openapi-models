@@ -17,6 +17,7 @@ use Nette\PhpGenerator\PromotedParameter;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
+use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
@@ -727,6 +728,54 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('@var string[]|null $values', $parameter->getComment());
     }
 
+    public function testItResolvesDateArrayType(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $parameter = new PromotedParameter('dates');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))->method('resolve')->with(
+            $openApi,
+            $this->isInstanceOf(Schema::class),
+        )->willReturn(Types::Array, Types::Date);
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver
+        );
+
+        $schema = new Schema([
+            'properties' => [
+                'values' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'string',
+                        'format' => 'date',
+                    ],
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace);
+        $classes = $namespace->getClasses();
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(1, $classes);
+        self::assertEquals('array', $parameter->getType());
+        self::assertEquals('@var array<DateTimeInterface> $dates', $parameter->getComment());
+    }
+
     public function testItResolvesInlineObjectAsArrayType(): void
     {
         $openApi = new OpenApi([]);
@@ -1027,6 +1076,70 @@ class ClassTransformerTest extends TestCase
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var array<Test1|Test2>|null $values', $parameter->getComment());
+    }
+
+    public function testItThrowsExceptionIfOneOfContainerDate(): void
+    {
+        self::expectException(UnsupportedTypeForArrayException::class);
+        self::expectExceptionMessage(
+            'Type "date or datetime in oneOf" is currently not supported for array definition'
+        );
+
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $parameter = new PromotedParameter('values');
+        $configuration = new Configuration([], '', '', false, true);
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+        $typeResolver->expects($this->exactly(4))->method('resolve')->with(
+            $openApi,
+            $this->callback(function (Schema|Reference $schema): bool {
+                if ($schema instanceof Reference) {
+                    return $schema->getReference() === '#/components/schemas/Test1';
+                }
+
+                if (is_array($schema->oneOf)) {
+                    return true;
+                }
+
+                return $schema->type === 'array' || ($schema->type === 'string' && $schema->format === 'date');
+            }),
+        )->willReturn(Types::Array, Types::OneOf, new ClassReference(OpenApiType::Schemas, 'Test1'), Types::Date);
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver
+        );
+
+        $schema = new Schema([
+            'properties' => [
+                'values' => [
+                    'type' => 'array',
+                    'items' => [
+                        'oneOf' => [
+                            [
+                                '$ref' => '#/components/schemas/Test1',
+                            ],
+                            [
+                                'type' => 'string',
+                                'format' => 'date',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $transformer->transform($configuration, $openApi, 'Test', $schema, $namespace);
     }
 
     public function testItResolvesOneOf(): void

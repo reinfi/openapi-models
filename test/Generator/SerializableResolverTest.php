@@ -156,6 +156,93 @@ class SerializableResolverTest extends TestCase
         );
     }
 
+    public function testItWorksForDateTimeInArray(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('Api');
+
+        $schema = new Schema([
+            'properties' => [
+                'dates' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'string',
+                        'format' => 'date',
+                    ],
+                ],
+            ],
+        ]);
+
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $typeResolver->expects($this->exactly(2))->method('resolve')->willReturn(Types::Array, Types::Date);
+
+        $resolver = new SerializableResolver($typeResolver);
+
+        $class = new ClassType('Test');
+        $constructor = $class->addMethod('__construct');
+        $constructor->addPromotedParameter('dates')->setType('array')->setComment(
+            '@var array<DateTimeInterface> $dates'
+        );
+
+        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+
+        self::assertCount(1, $namespace->getUses());
+        self::assertCount(2, $class->getMethods());
+        self::assertCount(1, $class->getImplements());
+
+        $method = $class->getMethod('jsonSerialize');
+
+        self::assertEquals('array', $method->getReturnType());
+        self::assertStringContainsString(
+            '\'dates\' => array_map(static fn (DateTimeInterface $date): string => $date->format(\'Y-m-d\'), $this->dates)',
+            $method->getBody()
+        );
+    }
+
+    public function testItWorksForDateTimeInArrayWithNullableParameter(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('Api');
+
+        $schema = new Schema([
+            'properties' => [
+                'dates' => [
+                    'type' => 'array',
+                    'nullable' => true,
+                    'items' => [
+                        'type' => 'string',
+                        'format' => 'date-time',
+                    ],
+                ],
+            ],
+        ]);
+
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $typeResolver->expects($this->exactly(2))->method('resolve')->willReturn(Types::Array, Types::DateTime);
+
+        $resolver = new SerializableResolver($typeResolver);
+
+        $class = new ClassType('Test');
+        $constructor = $class->addMethod('__construct');
+        $constructor->addPromotedParameter('dates')->setNullable()->setType('array')->setComment(
+            '@var array<DateTimeInterface> $dates'
+        );
+
+        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+
+        self::assertCount(1, $namespace->getUses());
+        self::assertCount(2, $class->getMethods());
+        self::assertCount(1, $class->getImplements());
+
+        $method = $class->getMethod('jsonSerialize');
+
+        self::assertEquals('array', $method->getReturnType());
+        self::assertStringContainsString(
+            '\'dates\' => $this->dates === null ? $this->dates : array_map(static fn (DateTimeInterface $date): string => $date->format(\'Y-m-d\TH:i:sP\'), $this->dates)',
+            $method->getBody()
+        );
+    }
+
     public function testItThrowsExceptionIfPropertyNotFoundInSchema(): void
     {
         self::expectException(PropertyNotFoundException::class);

@@ -13,6 +13,7 @@ use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
+use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 
 readonly class ClassTransformer
@@ -243,9 +244,22 @@ readonly class ClassTransformer
                 $itemsSchema->oneOf,
                 $namespace
             );
+
+            if (str_contains($oneOfArrayType, DateTimeInterface::class)) {
+                throw new UnsupportedTypeForArrayException('date or datetime in oneOf');
+            }
+
             $parameter->setType('array')->addComment(
                 sprintf('@var array<%s>%s $%s', $oneOfArrayType, $nullablePart, $parameter->getName())
             );
+            return;
+        }
+
+        if (in_array($arrayType, [Types::Date, Types::DateTime], true)) {
+            $parameter->setType('array')->addComment(
+                sprintf('@var array<%s>%s $%s', DateTimeInterface::class, $nullablePart, $parameter->getName())
+            );
+            $namespace->addUse(DateTimeInterface::class);
             return;
         }
 
