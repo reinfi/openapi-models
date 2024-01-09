@@ -76,12 +76,12 @@ readonly class SerializableResolver
                     );
                     if ($parameter->isNullable()) {
                         $method->addBody(sprintf(
-                            '    \'%1$s\' => $this->%1$s === null ? $this->%1$s : %2$s',
+                            '    \'%1$s\' => $this->%1$s === null ? $this->%1$s : %2$s,',
                             $parameter->getName(),
                             $arrayMapFunction
                         ));
                     } else {
-                        $method->addBody(sprintf('    \'%1$s\' => %2$s', $parameter->getName(), $arrayMapFunction));
+                        $method->addBody(sprintf('    \'%1$s\' => %2$s,', $parameter->getName(), $arrayMapFunction));
                     }
                     break;
                 case Types::OneOf :

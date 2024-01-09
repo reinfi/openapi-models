@@ -22,7 +22,7 @@ readonly class Test6 implements \JsonSerializable
     public function jsonSerialize(): array
     {
         return array_merge(get_object_vars($this), [
-            'dates' => $this->dates === null ? $this->dates : array_map(static fn (DateTimeInterface $date): string => $date->format('Y-m-d'), $this->dates)
+            'dates' => $this->dates === null ? $this->dates : array_map(static fn (DateTimeInterface $date): string => $date->format('Y-m-d'), $this->dates),
         ]);
     }
 }
