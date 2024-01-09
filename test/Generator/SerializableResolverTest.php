@@ -111,6 +111,51 @@ class SerializableResolverTest extends TestCase
         );
     }
 
+    public function testItWorksForDateTimeInOneOf(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('Api');
+
+        $schema = new Schema([
+            'properties' => [
+                'date' => [
+                    'oneOf' => [
+                        [
+                            'type' => 'number',
+                        ],
+                        [
+                            'type' => 'string',
+                            'format' => 'date',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $typeResolver->expects($this->exactly(3))->method('resolve')->willReturn(Types::OneOf, 'int', Types::Date);
+
+        $resolver = new SerializableResolver($typeResolver);
+
+        $class = new ClassType('Test');
+        $constructor = $class->addMethod('__construct');
+        $constructor->addPromotedParameter('date')->setType(sprintf('int|%s', DateTimeInterface::class));
+
+        $resolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
+
+        self::assertCount(1, $namespace->getUses());
+        self::assertCount(2, $class->getMethods());
+        self::assertCount(1, $class->getImplements());
+
+        $method = $class->getMethod('jsonSerialize');
+
+        self::assertEquals('array', $method->getReturnType());
+        self::assertStringContainsString(
+            '\'date\' => $this->date instanceOf DateTimeInterface ? $this->date->format(\'Y-m-d\') : $this->date',
+            $method->getBody()
+        );
+    }
+
     public function testItThrowsExceptionIfPropertyNotFoundInSchema(): void
     {
         self::expectException(PropertyNotFoundException::class);

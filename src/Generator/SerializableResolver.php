@@ -27,7 +27,8 @@ readonly class SerializableResolver
     {
         foreach ($class->getMethods() as $method) {
             foreach ($method->getParameters() as $parameter) {
-                if ($parameter->getType() === DateTimeInterface::class) {
+                $type = $parameter->getType(true);
+                if ($type?->allows(DateTimeInterface::class)) {
                     return true;
                 }
             }
@@ -45,7 +46,9 @@ readonly class SerializableResolver
     ): void {
         $promotedParameters = array_filter(
             $constructor->getParameters(),
-            static fn (Parameter $parameter): bool => $parameter instanceof PromotedParameter && $parameter->getType() === DateTimeInterface::class,
+            static fn (Parameter $parameter): bool => $parameter instanceof PromotedParameter && $parameter->getType(
+                true
+            )?->allows(DateTimeInterface::class),
         );
 
         if (count($promotedParameters) === 0) {
@@ -65,19 +68,39 @@ readonly class SerializableResolver
                 throw new PropertyNotFoundException($parameter->getName());
             }
 
-            $method->addBody(sprintf(
-                '    \'%1$s\' => $this->%1$s%2$s->format(\'%3$s\'),',
-                $parameter->getName(),
-                $parameter->isNullable() ? '?' : '',
-                $this->resolveFormat($openApi, $property, $parameter)
-            ));
+            $type = $this->typeResolver->resolve($openApi, $property);
+
+            switch ($type) {
+                case Types::OneOf :
+                    $method->addBody(sprintf(
+                        '    \'%1$s\' => $this->%1$s instanceOf %2$s ? $this->%1$s->format(\'%3$s\') : $this->%1$s,',
+                        $parameter->getName(),
+                        DateTimeInterface::class,
+                        $this->resolveFormat($openApi, $property, $type, $parameter)
+                    ));
+                    break;
+                default :
+                    $method->addBody(sprintf(
+                        '    \'%1$s\' => $this->%1$s%2$s->format(\'%3$s\'),',
+                        $parameter->getName(),
+                        $parameter->isNullable() ? '?' : '',
+                        $this->resolveFormat($openApi, $property, $type, $parameter)
+                    ));
+            }
         }
         $method->addBody(']);');
     }
 
-    private function resolveFormat(OpenApi $openApi, Schema $schema, Parameter $parameter): string
+    private function resolveFormat(OpenApi $openApi, Schema $schema, Types|string $type, Parameter $parameter): string
     {
-        $type = $this->typeResolver->resolve($openApi, $schema);
+        if ($type === Types::OneOf) {
+            foreach ($schema->oneOf as $oneOfSchema) {
+                $type = $this->typeResolver->resolve($openApi, $oneOfSchema);
+                if (in_array($type, [Types::DateTime, Types::Date], true)) {
+                    break;
+                }
+            }
+        }
 
         return match ($type) {
             Types::Date => 'Y-m-d',
