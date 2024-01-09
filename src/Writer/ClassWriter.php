@@ -53,7 +53,7 @@ readonly class ClassWriter
                     }
 
                     foreach ($class->getMethod('__construct')->getParameters() as $parameter) {
-                        if ($parameter->getType() === $use) {
+                        if ($parameter->getType(true)?->allows($use) || $parameter->getType() === $use) {
                             $classOnlyNamespace->addUse($use);
                             continue;
                         }

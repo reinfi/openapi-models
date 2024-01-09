@@ -79,6 +79,11 @@ components:
               enum:
                 - positive
                 - negative
+        oneOfDate:
+          oneOf:
+            - $ref: '#/components/schemas/Test1'
+            - type: string
+              format: date
 
     Test5:
       allOf:

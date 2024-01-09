@@ -305,8 +305,8 @@ readonly class ClassTransformer
                             $namespace
                         )
                     ),
-
-                    Types::Date, Types::DateTime, Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
+                    Types::DateTime, Types::Date => $configuration->dateTimeAsObject ? DateTimeInterface::class : 'string',
+                    Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
                         $resolvedType->value
                     ),
                     default => $resolvedType,
