@@ -12,6 +12,7 @@ use cebe\openapi\spec\Response;
 use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Model\Imports;
 
 readonly class ClassGenerator
 {
@@ -53,12 +54,15 @@ readonly class ClassGenerator
         }
 
         $namespace = $this->namespaceResolver->resolveNamespace(OpenApiType::Schemas);
+        $imports = new Imports($namespace);
 
         foreach ($schemas as $name => $schema) {
             if ($schema instanceof Schema) {
-                $this->classTransformer->transform($configuration, $openApi, $name, $schema, $namespace);
+                $this->classTransformer->transform($configuration, $openApi, $name, $schema, $namespace, $imports);
             }
         }
+
+        $imports->copyImports();
     }
 
     /**
@@ -75,6 +79,7 @@ readonly class ClassGenerator
         }
 
         $namespace = $this->namespaceResolver->resolveNamespace($openApiType);
+        $imports = new Imports($namespace);
 
         foreach ($components as $name => $component) {
             if ($component instanceof Reference) {
@@ -92,7 +97,8 @@ readonly class ClassGenerator
                         $openApi,
                         $name,
                         $mediaType->schema,
-                        $namespace
+                        $namespace,
+                        $imports
                     );
 
                     if ($class->getComment() === null && is_string($component->description) && strlen(
@@ -106,5 +112,7 @@ readonly class ClassGenerator
                 }
             }
         }
+
+        $imports->copyImports();
     }
 }
