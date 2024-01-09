@@ -2,6 +2,8 @@
 
 ## next
 
+## 0.3.0
+
 - Schemas will be generated into own namespace `Schema`
 - RequestBodies and Responses will also be generated into their own namespace
 - date and date-time are supported, by default it is disabled and will be transformed into `string`.
