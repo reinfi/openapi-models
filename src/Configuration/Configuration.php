@@ -11,7 +11,8 @@ readonly class Configuration
         public array $paths,
         public string $outputPath,
         public string $namespace,
-        public bool $clearOutputDirectory
+        public bool $clearOutputDirectory,
+        public bool $dateTimeAsObject,
     ) {
     }
 }

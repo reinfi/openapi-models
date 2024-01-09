@@ -33,6 +33,7 @@ readonly class ConfigurationBuilder
             $configurationValues['outputPath'] ?? '',
             $configurationValues['namespace'] ?? '',
             (bool) ($configurationValues['clearOutputDirectory'] ?? false),
+            (bool) ($configurationValues['dateTimeAsObject'] ?? false),
         );
 
         $this->validate($configuration);

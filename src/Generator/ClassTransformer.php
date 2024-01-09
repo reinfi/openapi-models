@@ -7,9 +7,11 @@ namespace Reinfi\OpenApiModels\Generator;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
+use DateTimeInterface;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
+use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 
@@ -19,10 +21,12 @@ readonly class ClassTransformer
         private PropertyResolver $propertyResolver,
         private TypeResolver $typeResolver,
         private ReferenceResolver $referenceResolver,
+        private SerializableResolver $serializableResolver,
     ) {
     }
 
     public function transform(
+        Configuration $configuration,
         OpenApi $openApi,
         string $name,
         Schema|Reference $schema,
@@ -58,8 +62,24 @@ readonly class ClassTransformer
                     $namespace->addUse($type->name);
                 }
 
+                if ($type === Types::Date || $type === Types::DateTime) {
+                    if ($configuration->dateTimeAsObject) {
+                        $namespace->addUse(DateTimeInterface::class);
+                        $parameter->setType(DateTimeInterface::class);
+                    } else {
+                        $parameter->setType('string');
+                    }
+                }
+
                 if ($type === Types::Object && $property instanceof Schema) {
-                    $inlineType = $this->transformInlineObject($openApi, $name, $propertyName, $property, $namespace);
+                    $inlineType = $this->transformInlineObject(
+                        $configuration,
+                        $openApi,
+                        $name,
+                        $propertyName,
+                        $property,
+                        $namespace
+                    );
 
                     $parameter->setType($namespace->resolveName($inlineType));
                 }
@@ -71,15 +91,34 @@ readonly class ClassTransformer
                 }
 
                 if ($type === Types::Array && $property instanceof Schema) {
-                    $this->resolveArrayType($openApi, $name, $propertyName, $property, $namespace, $parameter);
+                    $this->resolveArrayType(
+                        $configuration,
+                        $openApi,
+                        $name,
+                        $propertyName,
+                        $property,
+                        $namespace,
+                        $parameter
+                    );
                 }
 
                 if ($type === Types::OneOf && $property instanceof Schema) {
-                    $oneOfType = $this->transformOneOf($openApi, $name, $propertyName, $property->oneOf, $namespace);
+                    $oneOfType = $this->transformOneOf(
+                        $configuration,
+                        $openApi,
+                        $name,
+                        $propertyName,
+                        $property->oneOf,
+                        $namespace
+                    );
 
                     $parameter->setType($oneOfType);
                 }
             }
+        }
+
+        if ($this->serializableResolver->needsSerialization($class)) {
+            $this->serializableResolver->addSerialization($openApi, $schema, $namespace, $class, $constructor);
         }
 
         return $class;
@@ -120,6 +159,7 @@ readonly class ClassTransformer
     }
 
     private function transformInlineObject(
+        Configuration $configuration,
         OpenApi $openApi,
         string $parentName,
         string $propertyName,
@@ -128,7 +168,7 @@ readonly class ClassTransformer
     ): string {
         $className = $parentName . ucfirst($propertyName);
 
-        $this->transform($openApi, $className, $schema, $namespace);
+        $this->transform($configuration, $openApi, $className, $schema, $namespace);
 
         return $className;
     }
@@ -158,6 +198,7 @@ readonly class ClassTransformer
     }
 
     private function resolveArrayType(
+        Configuration $configuration,
         OpenApi $openApi,
         string $parentName,
         string $propertyName,
@@ -176,7 +217,14 @@ readonly class ClassTransformer
 
         if ($arrayType === Types::Object && $itemsSchema instanceof Schema) {
             $arrayType = $namespace->resolveName(
-                $this->transformInlineObject($openApi, $parentName, $propertyName, $itemsSchema, $namespace)
+                $this->transformInlineObject(
+                    $configuration,
+                    $openApi,
+                    $parentName,
+                    $propertyName,
+                    $itemsSchema,
+                    $namespace
+                )
             );
         }
 
@@ -188,6 +236,7 @@ readonly class ClassTransformer
 
         if ($arrayType === Types::OneOf && $itemsSchema instanceof Schema && is_array($itemsSchema->oneOf)) {
             $oneOfArrayType = $this->transformOneOf(
+                $configuration,
                 $openApi,
                 $parentName,
                 $propertyName,
@@ -222,6 +271,7 @@ readonly class ClassTransformer
      * @param array<Schema|Reference> $oneOf
      */
     private function transformOneOf(
+        Configuration $configuration,
         OpenApi $openApi,
         string $parentName,
         string $propertyName,
@@ -239,6 +289,7 @@ readonly class ClassTransformer
                 $resolvedTypes[] = match ($resolvedType) {
                     Types::Object => $namespace->resolveName(
                         $this->transformInlineObject(
+                            $configuration,
                             $openApi,
                             $parentName,
                             $propertyName . ++$countInlineObjects,
@@ -254,7 +305,8 @@ readonly class ClassTransformer
                             $namespace
                         )
                     ),
-                    Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
+
+                    Types::Date, Types::DateTime, Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
                         $resolvedType->value
                     ),
                     default => $resolvedType,

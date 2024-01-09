@@ -9,6 +9,8 @@ enum Types: string
     case AnyOf = 'anyOf';
     case OneOf = 'oneOf';
     case Array = 'array';
+    case Date = 'date';
+    case DateTime = 'dateTime';
     case Object = 'object';
     case Enum = 'enum';
 }

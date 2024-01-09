@@ -7,4 +7,5 @@ return [
     'outputPath' => __DIR__ . '/../output',
     'namespace' => 'Api',
     'clearOutputDirectory' => false,
+    'dateTimeAsObject' => true,
 ];

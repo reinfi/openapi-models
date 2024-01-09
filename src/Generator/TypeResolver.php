@@ -48,7 +48,11 @@ readonly class TypeResolver
             },
             'integer' => 'int',
             'boolean' => 'bool',
-            'string' => 'string',
+            'string' => match ($schema->format) {
+                'date', => Types::Date,
+                'date-time' => Types::DateTime,
+                default => 'string',
+            },
             'array' => Types::Array,
             'object' => Types::Object,
             default => throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type))
