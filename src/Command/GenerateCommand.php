@@ -93,6 +93,8 @@ class GenerateCommand extends Command
                 ['Output path', $configuration->outputPath],
                 ['Clear output directory', $configuration->clearOutputDirectory ? 'yes' : 'no'],
                 ['Use DateTimeInterface for dates', $configuration->dateTimeAsObject ? 'yes' : 'no'],
+                ['Date format', $configuration->dateTimeAsObject ? $configuration->dateFormat : ''],
+                ['DateTime format', $configuration->dateTimeAsObject ? $configuration->dateTimeFormat : ''],
             ]
         );
     }
