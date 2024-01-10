@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
-use cebe\openapi\spec\MediaType;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\RequestBody;
@@ -12,6 +11,7 @@ use cebe\openapi\spec\Response;
 use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Exception\OnlyJsonContentTypeSupported;
 use Reinfi\OpenApiModels\Model\Imports;
 
 readonly class ClassGenerator
@@ -86,29 +86,31 @@ readonly class ClassGenerator
                 continue;
             }
 
-            // Json is preferred, other formats are used when Json is not present.
-            $jsonMediaType = $component->content['application/json'] ?? null;
-            $mediaTypes = $jsonMediaType instanceof MediaType ? [$jsonMediaType] : $component->content;
+            if (count($component->content) === 0) {
+                continue;
+            }
 
-            foreach ($mediaTypes as $mediaType) {
-                if ($mediaType->schema !== null) {
-                    $class = $this->classTransformer->transform(
-                        $configuration,
-                        $openApi,
-                        $name,
-                        $mediaType->schema,
-                        $namespace,
-                        $imports
-                    );
+            // Only json is supported, this is due to the fact that we only implement serialization for json format.
+            $mediaType = $component->content['application/json'] ?? null;
 
-                    if ($class->getComment() === null && is_string($component->description) && strlen(
-                        $component->description
-                    ) > 0) {
-                        $class->addComment($component->description);
-                    }
+            if ($mediaType === null) {
+                throw new OnlyJsonContentTypeSupported(array_keys($component->content));
+            }
 
-                    // We do not differentiate between responses and just generate the first one with a schema.
-                    break;
+            if ($mediaType->schema !== null) {
+                $class = $this->classTransformer->transform(
+                    $configuration,
+                    $openApi,
+                    $name,
+                    $mediaType->schema,
+                    $namespace,
+                    $imports
+                );
+
+                if ($class->getComment() === null && is_string($component->description) && strlen(
+                    $component->description
+                ) > 0) {
+                    $class->addComment($component->description);
                 }
             }
         }
