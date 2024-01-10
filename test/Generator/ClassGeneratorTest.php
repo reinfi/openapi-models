@@ -11,6 +11,7 @@ use DG\BypassFinals;
 use Nette\PhpGenerator\PhpNamespace;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Exception\OnlyJsonContentTypeSupported;
 use Reinfi\OpenApiModels\Generator\ClassGenerator;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
 use Reinfi\OpenApiModels\Generator\NamespaceResolver;
@@ -221,6 +222,44 @@ class ClassGeneratorTest extends TestCase
             $this->isInstanceOf(Schema::class),
             $namespace
         );
+
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
+        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
+            OpenApiType::Responses
+        )->willReturn($namespace);
+
+        $generator = new ClassGenerator($transformer, $namespaceResolver);
+
+        $generator->generate($openApi, $configuration);
+    }
+
+    public function testItThrowsExceptionIfJsonContentTypeNotFound(): void
+    {
+        self::expectException(OnlyJsonContentTypeSupported::class);
+        self::expectExceptionMessage('Only "application/json" is supported as media type, found: application/xml');
+
+        $configuration = new Configuration([], '', '');
+        $namespace = new PhpNamespace('Response');
+
+        $openApi = new OpenApi([
+            'components' => [
+                'responses' => [
+                    'Test1' => [
+                        'content' => [
+                            'application/xml' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $transformer = $this->createMock(ClassTransformer::class);
+        $transformer->expects($this->never())->method('transform');
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
         $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
