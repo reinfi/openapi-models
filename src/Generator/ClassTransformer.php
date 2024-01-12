@@ -10,11 +10,11 @@ use cebe\openapi\spec\Schema;
 use DateTimeInterface;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
-use Nette\PhpGenerator\PromotedParameter;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
+use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
 
 readonly class ClassTransformer
@@ -24,6 +24,7 @@ readonly class ClassTransformer
         private TypeResolver $typeResolver,
         private ReferenceResolver $referenceResolver,
         private SerializableResolver $serializableResolver,
+        private ArrayObjectResolver $arrayObjectResolver,
     ) {
     }
 
@@ -41,90 +42,121 @@ readonly class ClassTransformer
             $class->addComment($schema->description);
         }
 
-        if ($schema instanceof Reference) {
-            return $this->resolveReferenceForClass($openApi, $schema, $class, $namespace, $imports);
+        $schemaType = $this->typeResolver->resolve($openApi, $schema);
+
+        if ($schemaType instanceof ClassReference) {
+            return $this->resolveReferenceForClass($class, $schemaType, $imports);
         }
+
+        assert($schema instanceof Schema);
 
         $constructor = $class->addMethod('__construct');
 
-        $schemasForClass = $this->resolveSchemasForClass($openApi, $schema);
+        if ($schemaType === Types::Object || $schemaType === Types::AllOf) {
+            $schemasForClass = $this->resolveSchemasForClass($openApi, $schema);
 
-        foreach ($schemasForClass as $schema) {
-            foreach ($schema->properties as $propertyName => $property) {
-                $type = $this->typeResolver->resolve($openApi, $property);
+            foreach ($schemasForClass as $schema) {
+                foreach ($schema->properties as $propertyName => $property) {
+                    $type = $this->typeResolver->resolve($openApi, $property);
 
-                $parameter = $this->propertyResolver->resolve(
-                    $constructor,
-                    $propertyName,
-                    $property,
-                    in_array($propertyName, $schema->required ?: [], true),
-                    $type
-                );
+                    $parameter = $this->propertyResolver->resolve(
+                        $constructor,
+                        $propertyName,
+                        $property,
+                        in_array($propertyName, $schema->required ?: [], true),
+                        $type
+                    );
 
-                if ($type instanceof ClassReference) {
-                    $imports->addImport($type->name);
-                }
-
-                if ($type === Types::Date || $type === Types::DateTime) {
-                    if ($configuration->dateTimeAsObject) {
-                        $imports->addImport(DateTimeInterface::class);
-                        $parameter->setType(DateTimeInterface::class);
-                    } else {
-                        $parameter->setType('string');
+                    if ($type instanceof ClassReference) {
+                        $imports->addImport($type->name);
                     }
-                }
 
-                if ($type === Types::Object && $property instanceof Schema) {
-                    $inlineType = $this->transformInlineObject(
-                        $configuration,
-                        $openApi,
-                        $name,
-                        $propertyName,
-                        $property,
-                        $namespace,
-                        $imports
-                    );
+                    if ($type === Types::Date || $type === Types::DateTime) {
+                        if ($configuration->dateTimeAsObject) {
+                            $imports->addImport(DateTimeInterface::class);
+                            $parameter->setType(DateTimeInterface::class);
+                        } else {
+                            $parameter->setType('string');
+                        }
+                    }
 
-                    $parameter->setType($namespace->resolveName($inlineType));
-                }
+                    if ($type === Types::Object && $property instanceof Schema) {
+                        $inlineType = $this->transformInlineObject(
+                            $configuration,
+                            $openApi,
+                            $name,
+                            $propertyName,
+                            $property,
+                            $namespace,
+                            $imports
+                        );
 
-                if ($type === Types::Enum && $property instanceof Schema) {
-                    $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
+                        $parameter->setType($namespace->resolveName($inlineType));
+                    }
 
-                    $parameter->setType($namespace->resolveName($enumType));
-                }
+                    if ($type === Types::Enum && $property instanceof Schema) {
+                        $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
 
-                if ($type === Types::Array && $property instanceof Schema) {
-                    $this->resolveArrayType(
-                        $configuration,
-                        $openApi,
-                        $name,
-                        $propertyName,
-                        $property,
-                        $namespace,
-                        $imports,
-                        $parameter
-                    );
-                }
+                        $parameter->setType($namespace->resolveName($enumType));
+                    }
 
-                if ($type === Types::OneOf && $property instanceof Schema) {
-                    $oneOfType = $this->transformOneOf(
-                        $configuration,
-                        $openApi,
-                        $name,
-                        $propertyName,
-                        $property->oneOf,
-                        $namespace,
-                        $imports
-                    );
+                    if ($type === Types::Array && $property instanceof Schema) {
+                        $arrayType = $this->resolveArrayType(
+                            $configuration,
+                            $openApi,
+                            $name,
+                            $propertyName,
+                            $parameter->isNullable(),
+                            $property,
+                            $namespace,
+                            $imports,
+                        );
 
-                    $parameter->setType($oneOfType);
+                        $parameter->setType('array');
+
+                        if ($arrayType !== null) {
+                            $parameter->addComment($arrayType->docType);
+                            $imports->addImport(...$arrayType->imports);
+                        }
+                    }
+
+                    if ($type === Types::OneOf && $property instanceof Schema) {
+                        $oneOfType = $this->transformOneOf(
+                            $configuration,
+                            $openApi,
+                            $name,
+                            $propertyName,
+                            $property->oneOf,
+                            $namespace,
+                            $imports
+                        );
+
+                        $parameter->setType($oneOfType);
+                    }
                 }
             }
         }
 
-        if ($this->serializableResolver->needsSerialization($class)) {
+        if ($schemaType === Types::Array) {
+            $arrayType = $this->resolveArrayType(
+                $configuration,
+                $openApi,
+                $name,
+                'items',
+                $schema->nullable ?? false,
+                $schema,
+                $namespace,
+                $imports
+            );
+            if ($arrayType !== null) {
+                $this->arrayObjectResolver->resolve($class, $constructor, $arrayType, $imports);
+            }
+        }
+
+        $serializableType = $this->serializableResolver->needsSerialization($class);
+        if ($serializableType !== SerializableType::None) {
             $this->serializableResolver->addSerialization(
+                $serializableType,
                 $configuration,
                 $openApi,
                 $schema,
@@ -138,13 +170,10 @@ readonly class ClassTransformer
     }
 
     private function resolveReferenceForClass(
-        OpenApi $openApi,
-        Reference $reference,
         ClassType $class,
-        PhpNamespace $namespace,
+        ClassReference $classReference,
         Imports $imports,
     ): ClassType {
-        $classReference = $this->typeResolver->resolve($openApi, $reference);
         $imports->addImport($classReference->name);
         $class->setExtends($classReference->name);
 
@@ -217,17 +246,17 @@ readonly class ClassTransformer
         OpenApi $openApi,
         string $parentName,
         string $propertyName,
+        bool $nullable,
         Schema $schema,
         PhpNamespace $namespace,
         Imports $imports,
-        PromotedParameter $parameter,
-    ): void {
-        $parameter->setType('array');
-        $nullablePart = $parameter->isNullable() ? '|null' : '';
+    ): ?ArrayType {
         $itemsSchema = $schema->items;
         if ($itemsSchema === null) {
-            return;
+            return null;
         }
+
+        $nullablePart = $nullable ? '|null' : '';
 
         $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema);
 
@@ -266,18 +295,25 @@ readonly class ClassTransformer
                 throw new UnsupportedTypeForArrayException('date or datetime in oneOf');
             }
 
-            $parameter->setType('array')->addComment(
-                sprintf('@var array<%s>%s $%s', $oneOfArrayType, $nullablePart, $parameter->getName())
-            );
-            return;
+            return new ArrayType($oneOfArrayType, $nullable, sprintf(
+                '@var array<%s>%s $%s',
+                $oneOfArrayType,
+                $nullablePart,
+                $propertyName
+            ));
         }
 
         if (in_array($arrayType, [Types::Date, Types::DateTime], true)) {
-            $parameter->setType('array')->addComment(
-                sprintf('@var array<%s>%s $%s', DateTimeInterface::class, $nullablePart, $parameter->getName())
-            );
-            $imports->addImport(DateTimeInterface::class);
-            return;
+            return new ArrayType(DateTimeInterface::class, $nullable, sprintf(
+                '@var array<%s>%s $%s',
+                DateTimeInterface::class,
+                $nullablePart,
+                $propertyName
+            ), [DateTimeInterface::class]);
+        }
+
+        if ($arrayType === Types::Array) {
+            throw new UnsupportedTypeForArrayException('array', 'You can use a reference to resolve this issue.');
         }
 
         if ($arrayType instanceof Types) {
@@ -285,17 +321,20 @@ readonly class ClassTransformer
         }
 
         if ($arrayType instanceof ClassReference) {
-            $imports->addImport($arrayType->name);
-
-            $parameter->addComment(
-                sprintf('@var %s[]%s $%s', $arrayType->name, $nullablePart, $parameter->getName())
-            );
-            return;
+            return new ArrayType($arrayType, $nullable, sprintf(
+                '@var %s[]%s $%s',
+                $arrayType->name,
+                $nullablePart,
+                $propertyName
+            ), [$arrayType->name]);
         }
 
-        $parameter->addComment(
-            sprintf('@var %s[]%s $%s', $namespace->simplifyName($arrayType), $nullablePart, $parameter->getName())
-        );
+        return new ArrayType($arrayType, $nullable, sprintf(
+            '@var %s[]%s $%s',
+            $namespace->simplifyName($arrayType),
+            $nullablePart,
+            $propertyName
+        ));
     }
 
     /**
@@ -339,7 +378,7 @@ readonly class ClassTransformer
                         )
                     ),
                     Types::DateTime, Types::Date => $configuration->dateTimeAsObject ? DateTimeInterface::class : 'string',
-                    Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
+                    Types::AllOf, Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
                         $resolvedType->value
                     ),
                     default => $resolvedType,

@@ -122,6 +122,25 @@ components:
             type: string
             format: date
 
+    Test7:
+      type: array
+      items:
+        $ref: '#/components/schemas/Test1'
+
+    Test8:
+      type: array
+      nullable: true
+      items:
+        type: string
+        format: date
+
+    Test9:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/Test1'
+          - $ref: '#/components/schemas/Test2'
+
   requestBodies:
     RequestBody1:
       content:

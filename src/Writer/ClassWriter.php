@@ -7,7 +7,9 @@ namespace Reinfi\OpenApiModels\Writer;
 use DirectoryIterator;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Helpers;
+use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\Property;
 use Nette\PhpGenerator\PsrPrinter;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 
@@ -48,26 +50,31 @@ readonly class ClassWriter
                         $classOnlyNamespace->addUse($use);
                     }
 
-                    if (! $class->hasMethod('__construct')) {
-                        continue;
+                    if ($class instanceof ClassType && in_array($use, $class->getImplements(), true)) {
+                        $classOnlyNamespace->addUse($use);
                     }
 
-                    foreach ($class->getMethod('__construct')->getParameters() as $parameter) {
-                        if ($parameter->getType(true)?->allows($use) || $parameter->getType() === $use) {
+                    foreach ($class->getMethods() as $method) {
+                        if ($method->getReturnType() !== 'mixed' && $method->getReturnType(true)?->allows($use)) {
                             $classOnlyNamespace->addUse($use);
-                            continue;
                         }
 
-                        if ($parameter->getType() === 'array' && $parameter->getComment() !== null) {
-                            if (str_contains($parameter->getComment(), $use)) {
-                                $classOnlyNamespace->addUse($use);
-                                $parameter->setComment(
-                                    str_replace($use, $namespace->simplifyName($use), $parameter->getComment())
-                                );
-                            }
+                        foreach ($method->getParameters() as $parameter) {
+                            $this->resolveUsagesForParameterOrProperty($classOnlyNamespace, $use, $parameter);
+                        }
+
+                        if (str_contains($method->getBody(), $use)) {
+                            $classOnlyNamespace->addUse($use);
+                        }
+                    }
+
+                    if ($class instanceof ClassType) {
+                        foreach ($class->getProperties() as $property) {
+                            $this->resolveUsagesForParameterOrProperty($classOnlyNamespace, $use, $property);
                         }
                     }
                 }
+
                 $classOnlyNamespace->add($class);
 
                 file_put_contents(
@@ -105,6 +112,29 @@ readonly class ClassWriter
 
             if ($fileInfo->isFile()) {
                 unlink($fileInfo->getRealPath());
+            }
+        }
+    }
+
+    private function resolveUsagesForParameterOrProperty(
+        PhpNamespace $namespace,
+        string $use,
+        Parameter|Property $parameterOrProperty
+    ): void {
+        if ($parameterOrProperty->getType() === 'mixed') {
+            return;
+        }
+
+        if ($parameterOrProperty->getType(true)?->allows($use) || $parameterOrProperty->getType() === $use) {
+            $namespace->addUse($use);
+        }
+
+        if ($parameterOrProperty->getType() === 'array' && $parameterOrProperty->getComment() !== null) {
+            if (str_contains($parameterOrProperty->getComment(), $use)) {
+                $namespace->addUse($use);
+                $parameterOrProperty->setComment(
+                    str_replace($use, $namespace->simplifyName($use), $parameterOrProperty->getComment())
+                );
             }
         }
     }

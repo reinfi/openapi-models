@@ -129,12 +129,11 @@ class TypeResolverTest extends TestCase
             '$ref' => '#/components/schemas/TestSchema',
         ]);
 
+        $namespace = new PhpNamespace('');
+
         $schemaWithName = $this->createStub(SchemaWithName::class);
         $schemaWithName->name = 'TestSchema';
         $schemaWithName->openApiType = OpenApiType::Schemas;
-
-        $namespace = $this->createMock(PhpNamespace::class);
-        $namespace->expects($this->once())->method('resolveName')->with('TestSchema')->willReturn('TestSchema');
 
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $reference)->willReturn(
