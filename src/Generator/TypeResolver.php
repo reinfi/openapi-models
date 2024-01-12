@@ -7,7 +7,9 @@ namespace Reinfi\OpenApiModels\Generator;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
+use DateTimeInterface;
 use InvalidArgumentException;
+use Reinfi\OpenApiModels\Model\ScalarType;
 
 readonly class TypeResolver
 {
@@ -18,12 +20,22 @@ readonly class TypeResolver
     }
 
     /**
-     * @return ($schema is Reference ? ClassReference : string|Types)
+     * @return ($schema is Reference ? ClassReference|ScalarType : string|Types)
      */
-    public function resolve(OpenApi $openApi, Schema|Reference $schema): ClassReference|string|Types
+    public function resolve(OpenApi $openApi, Schema|Reference $schema): ScalarType|ClassReference|string|Types
     {
         if ($schema instanceof Reference) {
             $schemaWithName = $this->referenceResolver->resolve($openApi, $schema);
+
+            $referenceType = $this->resolve($openApi, $schemaWithName->schema);
+
+            if (in_array($referenceType, [Types::Date, Types::DateTime])) {
+                return new ClassReference($schemaWithName->openApiType, DateTimeInterface::class);
+            }
+
+            if (is_string($referenceType)) {
+                return new ScalarType($referenceType, $schemaWithName->schema);
+            }
 
             return new ClassReference(
                 $schemaWithName->openApiType,

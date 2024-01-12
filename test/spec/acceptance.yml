@@ -41,17 +41,23 @@ components:
       required:
         - ok
         - test
+        - money
       properties:
         ok:
           type: boolean
         test:
           $ref: '#/components/schemas/Test1'
+        money:
+          $ref: '#/components/schemas/Money'
+        date:
+          $ref: '#/components/schemas/NullableDate'
 
     Test3:
       type: object
       required:
         - id
         - tests
+        - inline
       properties:
         id:
           type: string
@@ -59,6 +65,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Test1'
+        inline:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
 
     Test4:
       type: object
@@ -140,6 +153,15 @@ components:
         oneOf:
           - $ref: '#/components/schemas/Test1'
           - $ref: '#/components/schemas/Test2'
+
+    NullableDate:
+      type: string
+      format: date
+      nullable: true
+
+    Money:
+      type: integer
+      format: double
 
   requestBodies:
     RequestBody1:

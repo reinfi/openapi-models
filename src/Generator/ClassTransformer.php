@@ -16,6 +16,7 @@ use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
+use Reinfi\OpenApiModels\Model\ScalarType;
 
 readonly class ClassTransformer
 {
@@ -50,20 +51,27 @@ readonly class ClassTransformer
 
         assert($schema instanceof Schema);
 
+        if (is_string($schemaType) || in_array($schemaType, [Types::Date, Types::DateTime])) {
+            if ($class->getName() !== null) {
+                $namespace->removeClass($class->getName());
+            }
+            return $class;
+        }
+
         $constructor = $class->addMethod('__construct');
 
         if ($schemaType === Types::Object || $schemaType === Types::AllOf) {
             $schemasForClass = $this->resolveSchemasForClass($openApi, $schema);
 
-            foreach ($schemasForClass as $schema) {
-                foreach ($schema->properties as $propertyName => $property) {
+            foreach ($schemasForClass as $schemaForClass) {
+                foreach ($schemaForClass->properties as $propertyName => $property) {
                     $type = $this->typeResolver->resolve($openApi, $property);
 
                     $parameter = $this->propertyResolver->resolve(
                         $constructor,
                         $propertyName,
                         $property,
-                        in_array($propertyName, $schema->required ?: [], true),
+                        in_array($propertyName, $schemaForClass->required ?: [], true),
                         $type
                     );
 
@@ -259,6 +267,10 @@ readonly class ClassTransformer
         $nullablePart = $nullable ? '|null' : '';
 
         $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema);
+
+        if ($arrayType instanceof ScalarType) {
+            $arrayType = $arrayType->name;
+        }
 
         if ($arrayType === Types::Object && $itemsSchema instanceof Schema) {
             $arrayType = $namespace->resolveName(

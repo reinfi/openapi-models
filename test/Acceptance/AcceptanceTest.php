@@ -19,11 +19,16 @@ class AcceptanceTest extends TestCase
         self::assertNotNull($output);
         self::assertNotFalse($output);
 
-        foreach (glob(__DIR__ . '/ExpectedClasses/**/*.php') as $file) {
+        $expectedFiles = glob(__DIR__ . '/ExpectedClasses/**/*.php');
+        self::assertNotFalse($expectedFiles);
+
+        foreach ($expectedFiles as $file) {
             $fileName = basename($file);
             $fileDirectory = basename(dirname($file));
 
             self::assertFileEquals($file, sprintf(__DIR__ . '/../output/%s/%s', $fileDirectory, $fileName));
         }
+
+        self::assertFileDoesNotExist(__DIR__ . '/../output/Schema/NullableDate.php');
     }
 }
