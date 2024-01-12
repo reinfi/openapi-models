@@ -27,7 +27,9 @@ class ClassWriterTest extends TestCase
     public function testItWritesClasses(): void
     {
         $printer = $this->createMock(PsrPrinter::class);
-        $printer->expects($this->exactly(2))->method('printNamespace')->willReturn('here comes class contents');
+        $printer->expects($this->exactly(2))
+            ->method('printNamespace')
+            ->willReturn('here comes class contents');
 
         $writer = new ClassWriter($printer);
 
@@ -50,7 +52,8 @@ class ClassWriterTest extends TestCase
     public function testItCopiesUseStatements(): void
     {
         $printer = $this->createMock(PsrPrinter::class);
-        $printer->expects($this->once())->method('printNamespace')
+        $printer->expects($this->once())
+            ->method('printNamespace')
             ->with($this->callback(
                 static fn (PhpNamespace $namespace): bool => count($namespace->getClasses()) === 1 && count(
                     $namespace->getUses()
@@ -65,7 +68,9 @@ class ClassWriterTest extends TestCase
         $namespace = new PhpNamespace('Schema');
         $namespace->addUse('ClassSecond');
         $class = $namespace->addClass('ClassFirst');
-        $class->addMethod('__construct')->addPromotedParameter('second')->setType('ClassSecond');
+        $class->addMethod('__construct')
+            ->addPromotedParameter('second')
+            ->setType('ClassSecond');
 
         $writer->write($configuration, [
             'schemas' => $namespace,

@@ -37,7 +37,8 @@ readonly class ClassTransformer
         PhpNamespace $namespace,
         Imports $imports
     ): ClassType {
-        $class = $namespace->addClass($name)->setReadOnly();
+        $class = $namespace->addClass($name)
+            ->setReadOnly();
 
         if ($schema instanceof Schema && is_string($schema->description) && strlen($schema->description) > 0) {
             $class->addComment($schema->description);
@@ -197,7 +198,8 @@ readonly class ClassTransformer
             return array_map(
                 function (Schema|Reference $schema) use ($openApi): Schema {
                     if ($schema instanceof Reference) {
-                        return $this->referenceResolver->resolve($openApi, $schema)->schema;
+                        return $this->referenceResolver->resolve($openApi, $schema)
+->schema;
                     }
 
                     return $schema;

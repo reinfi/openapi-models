@@ -92,7 +92,8 @@ readonly class SerializableResolver
         $namespace->addUse(JsonSerializable::class);
         $class->setImplements([...$class->getImplements(), JsonSerializable::class]);
 
-        $method = $class->addMethod('jsonSerialize')->setReturnType('array');
+        $method = $class->addMethod('jsonSerialize')
+            ->setReturnType('array');
 
         $method->addBody('return array_merge(get_object_vars($this), [');
         foreach ($promotedParameters as $parameter) {
@@ -103,7 +104,8 @@ readonly class SerializableResolver
             }
 
             if ($property instanceof Reference) {
-                $property = $this->referenceResolver->resolve($openApi, $property)->schema;
+                $property = $this->referenceResolver->resolve($openApi, $property)
+->schema;
             }
 
             $type = $this->typeResolver->resolve($openApi, $property);
@@ -203,9 +205,9 @@ readonly class SerializableResolver
         bool $isDateTime
     ): void {
         $parameter = $constructor->getParameter('items');
-        $method = $class->addMethod('jsonSerialize')->setReturnType('array')->setReturnNullable(
-            $parameter->isNullable()
-        );
+        $method = $class->addMethod('jsonSerialize')
+            ->setReturnType('array')
+            ->setReturnNullable($parameter->isNullable());
 
         if (! $isDateTime || $schema->items === null) {
             $method->addBody('return $this->?;', [$parameter->getName()]);
