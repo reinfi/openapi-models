@@ -312,6 +312,10 @@ readonly class ClassTransformer
             ), [DateTimeInterface::class]);
         }
 
+        if ($arrayType === Types::Array) {
+            throw new UnsupportedTypeForArrayException('array', 'You can use a reference to resolve this issue.');
+        }
+
         if ($arrayType instanceof Types) {
             throw new UnresolvedArrayTypeException($arrayType->value);
         }

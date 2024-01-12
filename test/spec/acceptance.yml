@@ -134,7 +134,6 @@ components:
         type: string
         format: date
 
-
   requestBodies:
     RequestBody1:
       content:
