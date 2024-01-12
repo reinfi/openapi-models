@@ -112,10 +112,12 @@ class TypeResolverTest extends TestCase
     public function testItResolvesType(Schema $schema, string|Types $expectedType): void
     {
         $referenceResolver = $this->createMock(ReferenceResolver::class);
-        $referenceResolver->expects($this->never())->method('resolve');
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->never())->method('resolveNamespace');
+        $namespaceResolver->expects($this->never())
+            ->method('resolveNamespace');
 
         $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 
@@ -138,14 +140,15 @@ class TypeResolverTest extends TestCase
         ]));
 
         $referenceResolver = $this->createMock(ReferenceResolver::class);
-        $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $reference)->willReturn(
-            $schemaWithName
-        );
+        $referenceResolver->expects($this->once())
+            ->method('resolve')
+            ->with($openApi, $reference)
+            ->willReturn($schemaWithName);
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(OpenApiType::Schemas)->willReturn(
-            $namespace
-        );
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->with(OpenApiType::Schemas)->willReturn($namespace);
 
         $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 
@@ -168,12 +171,14 @@ class TypeResolverTest extends TestCase
         ]));
 
         $referenceResolver = $this->createMock(ReferenceResolver::class);
-        $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $reference)->willReturn(
-            $schemaWithName
-        );
+        $referenceResolver->expects($this->once())
+            ->method('resolve')
+            ->with($openApi, $reference)
+            ->willReturn($schemaWithName);
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->never())->method('resolveNamespace');
+        $namespaceResolver->expects($this->never())
+            ->method('resolveNamespace');
 
         $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 
@@ -196,12 +201,14 @@ class TypeResolverTest extends TestCase
         ]));
 
         $referenceResolver = $this->createMock(ReferenceResolver::class);
-        $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $reference)->willReturn(
-            $schemaWithName
-        );
+        $referenceResolver->expects($this->once())
+            ->method('resolve')
+            ->with($openApi, $reference)
+            ->willReturn($schemaWithName);
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->never())->method('resolveNamespace');
+        $namespaceResolver->expects($this->never())
+            ->method('resolveNamespace');
 
         $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 
@@ -218,10 +225,12 @@ class TypeResolverTest extends TestCase
         self::expectExceptionMessage('Not implemented type "unknown" found');
 
         $referenceResolver = $this->createMock(ReferenceResolver::class);
-        $referenceResolver->expects($this->never())->method('resolve');
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->never())->method('resolveNamespace');
+        $namespaceResolver->expects($this->never())
+            ->method('resolveNamespace');
 
         $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
 

@@ -56,7 +56,8 @@ class GenerateCommand extends Command
         $io->info(sprintf('OpenApi-Models - Version %s', Versions::getVersion(Versions::rootPackageName())));
 
         $configuration = $this->configurationBuilder->buildFromFile(
-            $typedInput->getOption('config')->asNonEmptyString()
+            $typedInput->getOption('config')
+                ->asNonEmptyString()
         );
 
         $this->outputConfiguration($io, $configuration);

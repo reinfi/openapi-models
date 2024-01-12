@@ -22,13 +22,13 @@ return static function (ECSConfig $configurator): void {
     $configurator->import(SetList::COMMON);
     $configurator->import(SetList::NAMESPACES);
     $configurator->import(SetList::CLEAN_CODE);
+    $configurator->import(SetList::SYMPLIFY);
 
     $configurator->ruleWithConfiguration(TypeDeclarationSpacesFixer::class, [
         'elements' => ['function', 'property'],
     ]);
     $configurator->rule(FullyQualifiedStrictTypesFixer::class);
     $configurator->rule(ImportStatementSniff::class);
-    $configurator->rule(LineLengthFixer::class);
 
     $configurator->lineEnding("\n");
 };

@@ -63,7 +63,8 @@ class ParserTest extends TestCase
         self::expectException(InvalidArgumentException::class);
 
         $openApiMerger = $this->createMock(OpenApiMerge::class);
-        $openApiMerger->expects($this->never())->method('mergeFiles');
+        $openApiMerger->expects($this->never())
+            ->method('mergeFiles');
 
         $configuration = new Configuration([], '', '');
 

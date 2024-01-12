@@ -30,22 +30,21 @@ class ArrayObjectResolver
             $imports->addImport($arrayType->type->name);
         }
 
-        $this->addIterator($class, $parameter, $imports)->addCount($class, $parameter)->addOffsetExists(
-            $class,
-            $parameter
-        )->addOffsetGet(
-            $class,
-            $parameter,
-            $arrayType
-        )->addOffsetSet($class, $imports)->addOffsetUnset($class, $imports);
+        $this->addIterator($class, $parameter, $imports)
+            ->addCount($class, $parameter)
+            ->addOffsetExists($class, $parameter)
+            ->addOffsetGet($class, $parameter, $arrayType)
+            ->addOffsetSet($class, $imports)
+            ->addOffsetUnset($class, $imports);
     }
 
     private function resolvePropertyAndParameter(ClassType $class, Method $constructor, ArrayType $arrayType): Parameter
     {
         if ($arrayType->nullable) {
-            return $constructor->addPromotedParameter('items')->setType('array')->setNullable()->setVisibility(
-                ClassLike::VisibilityPrivate
-            )->addComment($arrayType->docType);
+            return $constructor->addPromotedParameter('items')
+                ->setType('array')
+                ->setNullable()
+                ->setVisibility(ClassLike::VisibilityPrivate)->addComment($arrayType->docType);
         }
 
         $constructor->setVariadic();
@@ -57,9 +56,9 @@ class ArrayObjectResolver
             $parameter->setType($arrayType->type);
         }
 
-        $class->addProperty($parameter->getName())->setType('array')->setVisibility(
-            ClassLike::VisibilityPrivate
-        )->addComment($arrayType->docType);
+        $class->addProperty($parameter->getName())
+            ->setType('array')
+            ->setVisibility(ClassLike::VisibilityPrivate)->addComment($arrayType->docType);
 
         $constructor->addBody('$this->? = $?;', [$parameter->getName(), $parameter->getName()]);
 
@@ -69,7 +68,8 @@ class ArrayObjectResolver
     private function addIterator(ClassType $class, Parameter $parameter, Imports $imports): self
     {
         $imports->addImport(Traversable::class, ArrayIterator::class);
-        $method = $class->addMethod('getIterator')->setReturnType(Traversable::class);
+        $method = $class->addMethod('getIterator')
+            ->setReturnType(Traversable::class);
 
         if ($parameter->isNullable()) {
             $method->addBody(
@@ -84,7 +84,8 @@ class ArrayObjectResolver
 
     private function addCount(ClassType $class, Parameter $parameter): self
     {
-        $method = $class->addMethod('count')->setReturnType('int');
+        $method = $class->addMethod('count')
+            ->setReturnType('int');
 
         if ($parameter->isNullable()) {
             $method->addBody(sprintf('return count($this->%s ?? []);', $parameter->getName()));
@@ -97,22 +98,24 @@ class ArrayObjectResolver
 
     private function addOffsetExists(ClassType $class, Parameter $parameter): self
     {
-        $method = $class->addMethod('offsetExists')->setReturnType('bool')->addBody(
-            sprintf('return isset($this->%s[$offset]);', $parameter->getName())
-        );
+        $method = $class->addMethod('offsetExists')
+            ->setReturnType('bool')
+            ->addBody(sprintf('return isset($this->%s[$offset]);', $parameter->getName()));
 
-        $method->addParameter('offset')->setType('mixed');
+        $method->addParameter('offset')
+            ->setType('mixed');
 
         return $this;
     }
 
     private function addOffsetGet(ClassType $class, Parameter $parameter, ArrayType $arrayType): self
     {
-        $method = $class->addMethod('offsetGet')->addBody(
-            sprintf('return $this->%s[$offset] ?? null;', $parameter->getName())
-        )->setReturnNullable();
+        $method = $class->addMethod('offsetGet')
+            ->addBody(sprintf('return $this->%s[$offset] ?? null;', $parameter->getName()))
+            ->setReturnNullable();
 
-        $method->addParameter('offset')->setType('mixed');
+        $method->addParameter('offset')
+            ->setType('mixed');
 
         if ($arrayType->type instanceof ClassReference) {
             $method->setReturnType($arrayType->type->name);
@@ -125,12 +128,15 @@ class ArrayObjectResolver
 
     private function addOffsetSet(ClassType $class, Imports $imports): self
     {
-        $method = $class->addMethod('offsetSet')->addBody(
-            sprintf('throw new %s(\'Object is readOnly\');', BadMethodCallException::class)
-        )->setReturnType('void');
+        $method = $class->addMethod('offsetSet')
+            ->addBody(sprintf('throw new %s(\'Object is readOnly\');', BadMethodCallException::class))->setReturnType(
+                'void'
+            );
 
-        $method->addParameter('offset')->setType('mixed');
-        $method->addParameter('value')->setType('mixed');
+        $method->addParameter('offset')
+            ->setType('mixed');
+        $method->addParameter('value')
+            ->setType('mixed');
 
         $imports->addImport(BadMethodCallException::class);
 
@@ -139,11 +145,13 @@ class ArrayObjectResolver
 
     private function addOffsetUnset(ClassType $class, Imports $imports): self
     {
-        $method = $class->addMethod('offsetUnset')->addBody(
-            sprintf('throw new %s(\'Object is readOnly\');', BadMethodCallException::class)
-        )->setReturnType('void');
+        $method = $class->addMethod('offsetUnset')
+            ->addBody(sprintf('throw new %s(\'Object is readOnly\');', BadMethodCallException::class))->setReturnType(
+                'void'
+            );
 
-        $method->addParameter('offset')->setType('mixed');
+        $method->addParameter('offset')
+            ->setType('mixed');
 
         $imports->addImport(BadMethodCallException::class);
 

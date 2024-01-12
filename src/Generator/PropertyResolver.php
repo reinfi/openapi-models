@@ -34,7 +34,8 @@ readonly class PropertyResolver
         }
 
         if (! $required) {
-            $property->setDefaultValue(null)->setNullable();
+            $property->setDefaultValue(null)
+                ->setNullable();
         }
 
         return $property;

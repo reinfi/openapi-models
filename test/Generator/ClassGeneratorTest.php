@@ -47,19 +47,23 @@ class ClassGeneratorTest extends TestCase
         ]);
 
         $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->exactly(2))->method('transform')->with(
-            $configuration,
-            $openApi,
-            $this->callback(static fn (string $name): bool => in_array($name, ['Test1', 'Test2'], true)),
-            $this->isInstanceOf(Schema::class),
-            $namespace
-        )->willReturn(new ClassType());
+        $transformer->expects($this->exactly(2))
+            ->method('transform')
+            ->with(
+                $configuration,
+                $openApi,
+                $this->callback(static fn (string $name): bool => in_array($name, ['Test1', 'Test2'], true)),
+                $this->isInstanceOf(Schema::class),
+                $namespace
+            )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
-        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(OpenApiType::Schemas)->willReturn(
-            $namespace
-        );
+        $namespaceResolver->expects($this->once())
+            ->method('initialize')
+            ->with($configuration);
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->with(OpenApiType::Schemas)->willReturn($namespace);
 
         $generator = new ClassGenerator($transformer, $namespaceResolver);
 
@@ -88,19 +92,23 @@ class ClassGeneratorTest extends TestCase
         ]);
 
         $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->once())->method('transform')->with(
-            $configuration,
-            $openApi,
-            'Test1',
-            $this->isInstanceOf(Schema::class),
-            $namespace
-        )->willReturn(new ClassType());
+        $transformer->expects($this->once())
+            ->method('transform')
+            ->with(
+                $configuration,
+                $openApi,
+                'Test1',
+                $this->isInstanceOf(Schema::class),
+                $namespace
+            )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
-        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
-            OpenApiType::RequestBodies
-        )->willReturn($namespace);
+        $namespaceResolver->expects($this->once())
+            ->method('initialize')
+            ->with($configuration);
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->with(OpenApiType::RequestBodies)->willReturn($namespace);
 
         $generator = new ClassGenerator($transformer, $namespaceResolver);
 
@@ -129,19 +137,23 @@ class ClassGeneratorTest extends TestCase
         ]);
 
         $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->once())->method('transform')->with(
-            $configuration,
-            $openApi,
-            'Test1',
-            $this->isInstanceOf(Schema::class),
-            $namespace
-        )->willReturn(new ClassType());
+        $transformer->expects($this->once())
+            ->method('transform')
+            ->with(
+                $configuration,
+                $openApi,
+                'Test1',
+                $this->isInstanceOf(Schema::class),
+                $namespace
+            )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
-        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
-            OpenApiType::Responses
-        )->willReturn($namespace);
+        $namespaceResolver->expects($this->once())
+            ->method('initialize')
+            ->with($configuration);
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->with(OpenApiType::Responses)->willReturn($namespace);
 
         $generator = new ClassGenerator($transformer, $namespaceResolver);
 
@@ -170,19 +182,23 @@ class ClassGeneratorTest extends TestCase
         ]);
 
         $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->once())->method('transform')->with(
-            $configuration,
-            $openApi,
-            'Test1',
-            $this->isInstanceOf(Reference::class),
-            $namespace
-        )->willReturn(new ClassType());
+        $transformer->expects($this->once())
+            ->method('transform')
+            ->with(
+                $configuration,
+                $openApi,
+                'Test1',
+                $this->isInstanceOf(Reference::class),
+                $namespace
+            )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
-        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
-            OpenApiType::Responses
-        )->willReturn($namespace);
+        $namespaceResolver->expects($this->once())
+            ->method('initialize')
+            ->with($configuration);
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->with(OpenApiType::Responses)->willReturn($namespace);
 
         $generator = new ClassGenerator($transformer, $namespaceResolver);
 
@@ -216,19 +232,23 @@ class ClassGeneratorTest extends TestCase
         ]);
 
         $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->once())->method('transform')->with(
-            $configuration,
-            $openApi,
-            'Test1',
-            $this->isInstanceOf(Schema::class),
-            $namespace
-        )->willReturn(new ClassType());
+        $transformer->expects($this->once())
+            ->method('transform')
+            ->with(
+                $configuration,
+                $openApi,
+                'Test1',
+                $this->isInstanceOf(Schema::class),
+                $namespace
+            )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
-        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
-            OpenApiType::Responses
-        )->willReturn($namespace);
+        $namespaceResolver->expects($this->once())
+            ->method('initialize')
+            ->with($configuration);
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->with(OpenApiType::Responses)->willReturn($namespace);
 
         $generator = new ClassGenerator($transformer, $namespaceResolver);
 
@@ -260,13 +280,16 @@ class ClassGeneratorTest extends TestCase
         ]);
 
         $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->never())->method('transform');
+        $transformer->expects($this->never())
+            ->method('transform');
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
-        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
-            OpenApiType::Responses
-        )->willReturn($namespace);
+        $namespaceResolver->expects($this->once())
+            ->method('initialize')
+            ->with($configuration);
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->with(OpenApiType::Responses)->willReturn($namespace);
 
         $generator = new ClassGenerator($transformer, $namespaceResolver);
 
@@ -296,19 +319,23 @@ class ClassGeneratorTest extends TestCase
         ]);
 
         $transformer = $this->createMock(ClassTransformer::class);
-        $transformer->expects($this->once())->method('transform')->with(
-            $configuration,
-            $openApi,
-            'Test1',
-            $this->isInstanceOf(Schema::class),
-            $namespace
-        )->willReturn(new ClassType());
+        $transformer->expects($this->once())
+            ->method('transform')
+            ->with(
+                $configuration,
+                $openApi,
+                'Test1',
+                $this->isInstanceOf(Schema::class),
+                $namespace
+            )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
-        $namespaceResolver->expects($this->once())->method('resolveNamespace')->with(
-            OpenApiType::Responses
-        )->willReturn($namespace);
+        $namespaceResolver->expects($this->once())
+            ->method('initialize')
+            ->with($configuration);
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->with(OpenApiType::Responses)->willReturn($namespace);
 
         $generator = new ClassGenerator($transformer, $namespaceResolver);
 
