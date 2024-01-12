@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Api\Schema;
 
 use DateTimeInterface;
+use JsonSerializable;
 
 /**
  * Test1 object to show functionality
  */
-readonly class Test1 implements \JsonSerializable
+readonly class Test1 implements JsonSerializable
 {
     public function __construct(
         public int $id,

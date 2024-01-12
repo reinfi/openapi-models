@@ -33,6 +33,10 @@ readonly class TypeResolver
             );
         }
 
+        if (is_array($schema->allOf) && count($schema->allOf) > 0) {
+            return Types::AllOf;
+        }
+
         if (is_array($schema->oneOf) && count($schema->oneOf) > 0) {
             return Types::OneOf;
         }

@@ -18,13 +18,15 @@ class Imports
     ) {
     }
 
-    public function addImport(string $import): void
+    public function addImport(string ...$imports): void
     {
-        if (in_array($import, $this->imports, true)) {
-            return;
-        }
+        foreach ($imports as $import) {
+            if (in_array($import, $this->imports, true)) {
+                return;
+            }
 
-        $this->imports[] = $import;
+            $this->imports[] = $import;
+        }
     }
 
     public function copyImports(): void

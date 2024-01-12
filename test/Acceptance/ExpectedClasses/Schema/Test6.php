@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Api\Schema;
 
 use DateTimeInterface;
+use JsonSerializable;
 
-readonly class Test6 implements \JsonSerializable
+readonly class Test6 implements JsonSerializable
 {
     public function __construct(
         public string $id,

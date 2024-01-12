@@ -6,6 +6,7 @@ namespace Reinfi\OpenApiModels\Generator;
 
 enum Types: string
 {
+    case AllOf = 'allOf';
     case AnyOf = 'anyOf';
     case OneOf = 'oneOf';
     case Array = 'array';

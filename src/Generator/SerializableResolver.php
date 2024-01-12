@@ -7,11 +7,13 @@ namespace Reinfi\OpenApiModels\Generator;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Schema;
 use DateTimeInterface;
+use IteratorAggregate;
 use JsonSerializable;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\Property;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\InvalidDateFormatException;
 use Reinfi\OpenApiModels\Exception\PropertyNotFoundException;
@@ -23,20 +25,33 @@ readonly class SerializableResolver
     ) {
     }
 
-    public function needsSerialization(ClassType $class): bool
+    public function needsSerialization(ClassType $class): SerializableType
     {
+        $isArrayObject = in_array(IteratorAggregate::class, $class->getImplements(), true);
+
         foreach ($class->getMethods() as $method) {
             foreach ($method->getParameters() as $parameter) {
                 if ($this->needsParameterSerialization($parameter)) {
-                    return true;
+                    return $isArrayObject ? SerializableType::ArrayObjectDateTime : SerializableType::DateTime;
                 }
             }
         }
 
-        return false;
+        foreach ($class->getProperties() as $property) {
+            if ($this->needsParameterSerialization($property)) {
+                return $isArrayObject ? SerializableType::ArrayObjectDateTime : SerializableType::DateTime;
+            }
+        }
+
+        if ($isArrayObject) {
+            return SerializableType::ArrayObject;
+        }
+
+        return SerializableType::None;
     }
 
     public function addSerialization(
+        SerializableType $serializableType,
         Configuration $configuration,
         OpenApi $openApi,
         Schema $schema,
@@ -44,6 +59,25 @@ readonly class SerializableResolver
         ClassType $class,
         Method $constructor
     ): void {
+        if ($serializableType === SerializableType::None) {
+            return;
+        }
+
+        if ($serializableType === SerializableType::ArrayObject || $serializableType === SerializableType::ArrayObjectDateTime) {
+            $namespace->addUse(JsonSerializable::class);
+            $class->setImplements([...$class->getImplements(), JsonSerializable::class]);
+
+            $this->addArrayObject(
+                $configuration,
+                $openApi,
+                $class,
+                $constructor,
+                $schema,
+                $serializableType === SerializableType::ArrayObjectDateTime
+            );
+            return;
+        }
+
         $promotedParameters = array_filter(
             $constructor->getParameters(),
             fn (Parameter $parameter): bool => $this->needsParameterSerialization($parameter),
@@ -54,7 +88,7 @@ readonly class SerializableResolver
         }
 
         $namespace->addUse(JsonSerializable::class);
-        $class->setImplements([JsonSerializable::class]);
+        $class->setImplements([...$class->getImplements(), JsonSerializable::class]);
 
         $method = $class->addMethod('jsonSerialize')->setReturnType('array');
 
@@ -74,7 +108,7 @@ readonly class SerializableResolver
                         'array_map(static fn (%2$s $date): string => $date->format(\'%3$s\'), $this->%1$s)',
                         $parameter->getName(),
                         DateTimeInterface::class,
-                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter)
+                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter->getName())
                     );
                     if ($parameter->isNullable()) {
                         $method->addBody(sprintf(
@@ -91,7 +125,7 @@ readonly class SerializableResolver
                         '    \'%1$s\' => $this->%1$s instanceOf %2$s ? $this->%1$s->format(\'%3$s\') : $this->%1$s,',
                         $parameter->getName(),
                         DateTimeInterface::class,
-                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter)
+                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter->getName())
                     ));
                     break;
                 default :
@@ -99,15 +133,19 @@ readonly class SerializableResolver
                         '    \'%1$s\' => $this->%1$s%2$s->format(\'%3$s\'),',
                         $parameter->getName(),
                         $parameter->isNullable() ? '?' : '',
-                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter)
+                        $this->resolveFormat($configuration, $openApi, $property, $type, $parameter->getName())
                     ));
             }
         }
         $method->addBody(']);');
     }
 
-    private function needsParameterSerialization(Parameter $parameter): bool
+    private function needsParameterSerialization(Parameter|Property $parameter): bool
     {
+        if ($parameter->getType() === 'mixed') {
+            return false;
+        }
+
         $type = $parameter->getType(true);
         if ($type?->allows(DateTimeInterface::class)) {
             return true;
@@ -122,12 +160,47 @@ readonly class SerializableResolver
         return false;
     }
 
+    private function addArrayObject(
+        Configuration $configuration,
+        OpenApi $openApi,
+        ClassType $class,
+        Method $constructor,
+        Schema $schema,
+        bool $isDateTime
+    ): void {
+        $parameter = $constructor->getParameter('items');
+        $method = $class->addMethod('jsonSerialize')->setReturnType('array')->setReturnNullable(
+            $parameter->isNullable()
+        );
+
+        if (! $isDateTime || $schema->items === null) {
+            $method->addBody('return $this->?;', [$parameter->getName()]);
+            return;
+        }
+
+        $arrayMapFunction = sprintf(
+            'array_map(static fn (%2$s $date): string => $date->format(\'%3$s\'), $this->%1$s)',
+            $parameter->getName(),
+            DateTimeInterface::class,
+            $this->resolveFormat($configuration, $openApi, $schema, Types::Array, $parameter->getName())
+        );
+        if ($parameter->isNullable()) {
+            $method->addBody(sprintf(
+                'return $this->%1$s === null ? $this->%1$s : %2$s;',
+                $parameter->getName(),
+                $arrayMapFunction
+            ));
+        } else {
+            $method->addBody(sprintf('return %s;', $arrayMapFunction));
+        }
+    }
+
     private function resolveFormat(
         Configuration $configuration,
         OpenApi $openApi,
         Schema $schema,
         Types|string $type,
-        Parameter $parameter
+        string $parameterName
     ): string {
         if ($type === Types::OneOf) {
             foreach ($schema->oneOf as $oneOfSchema) {
@@ -145,7 +218,7 @@ readonly class SerializableResolver
         return match ($type) {
             Types::Date => $configuration->dateFormat,
             Types::DateTime => $configuration->dateTimeFormat,
-            default => throw new InvalidDateFormatException($parameter->getName())
+            default => throw new InvalidDateFormatException($parameterName)
         };
     }
 }
