@@ -134,6 +134,13 @@ components:
         type: string
         format: date
 
+    Test9:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/Test1'
+          - $ref: '#/components/schemas/Test2'
+
   requestBodies:
     RequestBody1:
       content:
