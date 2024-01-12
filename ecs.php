@@ -5,7 +5,6 @@ declare(strict_types=1);
 use PHP_CodeSniffer\Standards\PSR12\Sniffs\Files\ImportStatementSniff;
 use PhpCsFixer\Fixer\Import\FullyQualifiedStrictTypesFixer;
 use PhpCsFixer\Fixer\Whitespace\TypeDeclarationSpacesFixer;
-use Symplify\CodingStandard\Fixer\LineLength\LineLengthFixer;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 
