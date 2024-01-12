@@ -181,6 +181,8 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
 
+        $propertyResolver->method('resolve')->willReturn(new PromotedParameter('test'));
+
         $referenceResolver->expects($this->never())->method('resolve');
 
         $serializableResolver->method('needsSerialization')->willReturn(SerializableType::None);
@@ -362,6 +364,8 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
 
+        $propertyResolver->method('resolve')->willReturn(new PromotedParameter('test'));
+
         $serializableResolver->method('needsSerialization')->willReturn(SerializableType::None);
 
         $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $this->callback(
@@ -431,6 +435,8 @@ class ClassTransformerTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $referenceResolver = $this->createMock(ReferenceResolver::class);
 
+        $propertyResolver->method('resolve')->willReturn(new PromotedParameter('test'));
+
         $referenceResolver->expects($this->never())->method('resolve');
 
         $typeResolver->expects($this->exactly(3))->method('resolve')->with(
@@ -489,6 +495,8 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+
+        $propertyResolver->method('resolve')->willReturn(new PromotedParameter('test'));
 
         $referenceResolver->expects($this->never())->method('resolve');
 
@@ -550,6 +558,8 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+
+        $propertyResolver->method('resolve')->willReturn(new PromotedParameter('test'));
 
         $referenceResolver->expects($this->never())->method('resolve');
 

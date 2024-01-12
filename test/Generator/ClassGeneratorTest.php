@@ -8,6 +8,7 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use DG\BypassFinals;
+use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
@@ -52,7 +53,7 @@ class ClassGeneratorTest extends TestCase
             $this->callback(static fn (string $name): bool => in_array($name, ['Test1', 'Test2'], true)),
             $this->isInstanceOf(Schema::class),
             $namespace
-        );
+        )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
         $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
@@ -93,7 +94,7 @@ class ClassGeneratorTest extends TestCase
             'Test1',
             $this->isInstanceOf(Schema::class),
             $namespace
-        );
+        )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
         $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
@@ -134,7 +135,7 @@ class ClassGeneratorTest extends TestCase
             'Test1',
             $this->isInstanceOf(Schema::class),
             $namespace
-        );
+        )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
         $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
@@ -175,7 +176,7 @@ class ClassGeneratorTest extends TestCase
             'Test1',
             $this->isInstanceOf(Reference::class),
             $namespace
-        );
+        )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
         $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
@@ -221,7 +222,7 @@ class ClassGeneratorTest extends TestCase
             'Test1',
             $this->isInstanceOf(Schema::class),
             $namespace
-        );
+        )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
         $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
@@ -301,7 +302,7 @@ class ClassGeneratorTest extends TestCase
             'Test1',
             $this->isInstanceOf(Schema::class),
             $namespace
-        );
+        )->willReturn(new ClassType());
 
         $namespaceResolver = $this->createMock(NamespaceResolver::class);
         $namespaceResolver->expects($this->once())->method('initialize')->with($configuration);
