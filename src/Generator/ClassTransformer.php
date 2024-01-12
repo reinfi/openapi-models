@@ -418,7 +418,15 @@ readonly class ClassTransformer
                         $resolvedTypes,
                         explode(
                             '|',
-                            $this->transformOneOf($configuration, $openApi, $parentName, $propertyName, $reference->schema->oneOf, $namespace, $imports)
+                            $this->transformOneOf(
+                                $configuration,
+                                $openApi,
+                                $parentName,
+                                $propertyName,
+                                $reference->schema->oneOf,
+                                $namespace,
+                                $imports
+                            )
                         )
                     );
                 }
