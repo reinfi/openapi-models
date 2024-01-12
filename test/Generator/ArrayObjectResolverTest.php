@@ -26,7 +26,7 @@ class ArrayObjectResolverTest extends TestCase
     /**
      * @return iterable<array{nullable: bool}>
      */
-    public static function NullableDataProvider(): iterable
+    public static function nullableDataProvider(): iterable
     {
         yield [
             'nullable' => true,
@@ -37,8 +37,47 @@ class ArrayObjectResolverTest extends TestCase
         ];
     }
 
+    /**
+     * @return iterable<array{arrayType: string|ClassReference, expectedDocComments: string[]}>
+     */
+    public static function typingsInterfaceDataProvider(): iterable
+    {
+        yield [
+            'arrayType' => 'string',
+            'expectedDocComments' => [
+                '@implements ArrayAccess<int, string>',
+                '@implements IteratorAggregate<string>',
+            ],
+        ];
+
+        yield [
+            'arrayType' => 'Api\Schema\Test1',
+            'expectedDocComments' => [
+                '@implements ArrayAccess<int, Test1>',
+                '@implements IteratorAggregate<Test1>',
+            ],
+        ];
+
+        yield [
+            'arrayType' => 'DateTimeInterface',
+            'expectedDocComments' => [
+                '@implements ArrayAccess<int, DateTimeInterface>',
+                '@implements IteratorAggregate<DateTimeInterface>',
+            ],
+        ];
+
+        yield [
+            'arrayType' => 'Api\Schema\Test1|Api\Schema\Test2',
+            'expectedDocComments' => [
+                '@implements ArrayAccess<int, Test1|Test2>',
+                '@implements IteratorAggregate<Test1|Test2>',
+            ],
+        ];
+    }
+
     public function testItResolvesScalarNotNullableTypeToParameter(): void
     {
+        $namespace = new PhpNamespace('');
         $class = new ClassType();
         $constructor = new Method('__construct');
         $imports = new Imports(new PhpNamespace(''));
@@ -47,7 +86,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($constructor->isVariadic());
         self::assertCount(1, $constructor->getParameters());
@@ -70,6 +109,7 @@ class ArrayObjectResolverTest extends TestCase
 
     public function testItResolvesScalarNullableTypeToParameter(): void
     {
+        $namespace = new PhpNamespace('');
         $class = new ClassType();
         $constructor = new Method('__construct');
         $imports = new Imports(new PhpNamespace(''));
@@ -78,7 +118,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertFalse($constructor->isVariadic());
         self::assertCount(1, $constructor->getParameters());
@@ -108,7 +148,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($constructor->isVariadic());
         self::assertCount(1, $constructor->getParameters());
@@ -135,6 +175,7 @@ class ArrayObjectResolverTest extends TestCase
 
     public function testItImplementsExpectedInterfaces(): void
     {
+        $namespace = new PhpNamespace('');
         $class = new ClassType();
         $constructor = new Method('__construct');
         $imports = $this->createMock(Imports::class);
@@ -143,13 +184,38 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertEquals([IteratorAggregate::class, Countable::class, ArrayAccess::class], $class->getImplements());
     }
 
     /**
-     * @dataProvider NullableDataProvider
+     * @dataProvider typingsInterfaceDataProvider
+     *
+     * @param array<string>                 $expectedDocComments
+     */
+    public function testItAddsTypingsForInterfaces(string|ClassReference $arrayType, array $expectedDocComments): void
+    {
+        $namespace = new PhpNamespace('Api\Schema');
+        $class = new ClassType();
+        $constructor = new Method('__construct');
+        $imports = $this->createMock(Imports::class);
+
+        $arrayType = new ArrayType($arrayType, nullable: false, docType: 'docType');
+
+        $resolver = new ArrayObjectResolver();
+
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
+
+        self::assertNotNull($class->getComment());
+
+        foreach ($expectedDocComments as $docComment) {
+            self::assertStringContainsString($docComment, $class->getComment());
+        }
+    }
+
+    /**
+     * @dataProvider nullableDataProvider
      */
     public function testItAddsIteratorMethod(bool $nullable): void
     {
@@ -162,7 +228,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($class->hasMethod('getIterator'));
 
@@ -182,7 +248,7 @@ class ArrayObjectResolverTest extends TestCase
     }
 
     /**
-     * @dataProvider NullableDataProvider
+     * @dataProvider nullableDataProvider
      */
     public function testItAddsCountMethod(bool $nullable): void
     {
@@ -195,7 +261,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($class->hasMethod('count'));
 
@@ -220,7 +286,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($class->hasMethod('offsetExists'));
 
@@ -234,6 +300,7 @@ class ArrayObjectResolverTest extends TestCase
 
     public function testItAddsOffsetGetMethod(): void
     {
+        $namespace = new PhpNamespace('');
         $class = new ClassType();
         $constructor = new Method('__construct');
         $namespace = new PhpNamespace('Api');
@@ -243,7 +310,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($class->hasMethod('offsetGet'));
 
@@ -258,6 +325,7 @@ class ArrayObjectResolverTest extends TestCase
 
     public function testItAddsOffsetGetMethodForReference(): void
     {
+        $namespace = new PhpNamespace('');
         $class = new ClassType();
         $constructor = new Method('__construct');
         $namespace = new PhpNamespace('Api');
@@ -270,7 +338,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($class->hasMethod('offsetGet'));
 
@@ -294,7 +362,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($class->hasMethod('offsetSet'));
 
@@ -326,7 +394,7 @@ class ArrayObjectResolverTest extends TestCase
 
         $resolver = new ArrayObjectResolver();
 
-        $resolver->resolve($class, $constructor, $arrayType, $imports);
+        $resolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
 
         self::assertTrue($class->hasMethod('offsetUnset'));
 

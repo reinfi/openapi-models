@@ -13,18 +13,25 @@ use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\Parameter;
+use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
 use Traversable;
 
 class ArrayObjectResolver
 {
-    public function resolve(ClassType $class, Method $constructor, ArrayType $arrayType, Imports $imports): void
-    {
+    public function resolve(
+        ClassType $class,
+        Method $constructor,
+        ArrayType $arrayType,
+        Imports $imports,
+        PhpNamespace $namespace
+    ): void {
         $class->setImplements([IteratorAggregate::class, Countable::class, ArrayAccess::class]);
         $imports->addImport(...$class->getImplements());
 
-        $parameter = $this->resolvePropertyAndParameter($class, $constructor, $arrayType);
+        $parameter = $this->addInterfaceTypeHints($class, $arrayType, $namespace)
+            ->resolvePropertyAndParameter($class, $constructor, $arrayType);
 
         if ($arrayType->type instanceof ClassReference) {
             $imports->addImport($arrayType->type->name);
@@ -36,6 +43,28 @@ class ArrayObjectResolver
             ->addOffsetGet($class, $parameter, $arrayType)
             ->addOffsetSet($class, $imports)
             ->addOffsetUnset($class, $imports);
+    }
+
+    private function addInterfaceTypeHints(ClassType $class, ArrayType $arrayType, PhpNamespace $namespace): self
+    {
+        if ($arrayType->type instanceof ClassReference) {
+            $type = $namespace->simplifyType($arrayType->type->name);
+        } else {
+            $type = join(
+                '|',
+                array_map(
+                    static fn (string $type): string => str_contains($type, '\\') ? $namespace->simplifyType(
+                        $type
+                    ) : $type,
+                    explode('|', $arrayType->type)
+                )
+            );
+        }
+
+        $class->addComment(sprintf('@implements %s<int, %s>', ArrayAccess::class, $type));
+        $class->addComment(sprintf('@implements %s<%s>', IteratorAggregate::class, $type));
+
+        return $this;
     }
 
     private function resolvePropertyAndParameter(ClassType $class, Method $constructor, ArrayType $arrayType): Parameter

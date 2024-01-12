@@ -12,6 +12,10 @@ use IteratorAggregate;
 use JsonSerializable;
 use Traversable;
 
+/**
+ * @implements ArrayAccess<int, Test1|Test2>
+ * @implements IteratorAggregate<Test1|Test2>
+ */
 readonly class Test9 implements IteratorAggregate, Countable, ArrayAccess, JsonSerializable
 {
     /** @var array<Test1|Test2> $items */
