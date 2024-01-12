@@ -30,5 +30,7 @@ class AcceptanceTest extends TestCase
         }
 
         self::assertFileDoesNotExist(__DIR__ . '/../output/Schema/NullableDate.php');
+        self::assertFileDoesNotExist(__DIR__ . '/../output/Schema/Money.php');
+        self::assertFileDoesNotExist(__DIR__ . '/../output/Schema/Test7OrTest8.php');
     }
 }

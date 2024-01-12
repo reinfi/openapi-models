@@ -18,6 +18,7 @@ use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
+use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
 
@@ -217,6 +218,42 @@ class TypeResolverTest extends TestCase
         self::assertInstanceOf(ClassReference::class, $resolvedType);
         self::assertEquals(OpenApiType::Schemas, $resolvedType->openApiType);
         self::assertEquals(DateTimeInterface::class, $resolvedType->name);
+    }
+
+    public function testItResolvesReferenceToOneOfSchema(): void
+    {
+        $openApi = new OpenApi([]);
+        $reference = new Reference([
+            '$ref' => '#/components/schemas/TestOrNoTest',
+        ]);
+
+        $schemaWithName = new SchemaWithName(OpenApiType::Schemas, 'TestOrNoTest', new Schema([
+            'oneOf' => [
+                [
+                    '$ref' => '#/components/schemas/Test',
+                ],
+                [
+                    '$ref' => '#/components/schemas/NotTest',
+                ],
+            ],
+        ]));
+
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $referenceResolver->expects($this->once())
+            ->method('resolve')
+            ->with($openApi, $reference)
+            ->willReturn($schemaWithName);
+
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->never())
+            ->method('resolveNamespace');
+
+        $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
+
+        $resolvedType = $resolver->resolve($openApi, $reference);
+
+        self::assertInstanceOf(OneOfReference::class, $resolvedType);
+        self::assertEquals($schemaWithName->schema, $resolvedType->schema);
     }
 
     public function testItThrowsExceptionIfUnknownType(): void

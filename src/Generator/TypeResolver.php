@@ -9,6 +9,7 @@ use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use DateTimeInterface;
 use InvalidArgumentException;
+use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
 
 readonly class TypeResolver
@@ -20,10 +21,12 @@ readonly class TypeResolver
     }
 
     /**
-     * @return ($schema is Reference ? ClassReference|ScalarType : string|Types)
+     * @return ($schema is Reference ? ClassReference|OneOfReference|ScalarType : string|Types)
      */
-    public function resolve(OpenApi $openApi, Schema|Reference $schema): ScalarType|ClassReference|string|Types
-    {
+    public function resolve(
+        OpenApi $openApi,
+        Schema|Reference $schema
+    ): ScalarType|ClassReference|OneOfReference|string|Types {
         if ($schema instanceof Reference) {
             $schemaWithName = $this->referenceResolver->resolve($openApi, $schema);
 
@@ -31,6 +34,10 @@ readonly class TypeResolver
 
             if (in_array($referenceType, [Types::Date, Types::DateTime])) {
                 return new ClassReference($schemaWithName->openApiType, DateTimeInterface::class);
+            }
+
+            if ($referenceType === Types::OneOf) {
+                return new OneOfReference($schemaWithName->schema);
             }
 
             if (is_string($referenceType)) {

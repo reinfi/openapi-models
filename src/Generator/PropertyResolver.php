@@ -8,6 +8,7 @@ use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PromotedParameter;
+use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
 
 readonly class PropertyResolver
@@ -17,7 +18,7 @@ readonly class PropertyResolver
         string $name,
         Schema|Reference $schema,
         bool $required,
-        ScalarType|ClassReference|Types|string $type,
+        ScalarType|ClassReference|OneOfReference|Types|string $type,
     ): PromotedParameter {
         $property = $constructor->addPromotedParameter($name);
 

@@ -16,6 +16,7 @@ use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
+use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
 
 readonly class ClassTransformer
@@ -52,7 +53,7 @@ readonly class ClassTransformer
 
         assert($schema instanceof Schema);
 
-        if (is_string($schemaType) || in_array($schemaType, [Types::Date, Types::DateTime])) {
+        if (is_string($schemaType) || in_array($schemaType, [Types::Date, Types::DateTime, Types::OneOf])) {
             if ($class->getName() !== null) {
                 $namespace->removeClass($class->getName());
             }
@@ -78,6 +79,11 @@ readonly class ClassTransformer
 
                     if ($type instanceof ClassReference) {
                         $imports->addImport($type->name);
+                    }
+
+                    if ($type instanceof OneOfReference) {
+                        $property = $type->schema;
+                        $type = Types::OneOf;
                     }
 
                     if ($type === Types::Date || $type === Types::DateTime) {
@@ -274,6 +280,11 @@ readonly class ClassTransformer
             $arrayType = $arrayType->name;
         }
 
+        if ($arrayType instanceof OneOfReference) {
+            $itemsSchema = $arrayType->schema;
+            $arrayType = Types::OneOf;
+        }
+
         if ($arrayType === Types::Object && $itemsSchema instanceof Schema) {
             $arrayType = $namespace->resolveName(
                 $this->transformInlineObject(
@@ -400,9 +411,34 @@ readonly class ClassTransformer
             }
 
             if ($oneOfElement instanceof Reference) {
-                $classReference = $this->typeResolver->resolve($openApi, $oneOfElement);
-                $imports->addImport($classReference->name);
-                $resolvedTypes[] = $classReference->name;
+                $reference = $this->typeResolver->resolve($openApi, $oneOfElement);
+
+                if ($reference instanceof OneOfReference) {
+                    $resolvedTypes = array_merge(
+                        $resolvedTypes,
+                        explode(
+                            '|',
+                            $this->transformOneOf(
+                                $configuration,
+                                $openApi,
+                                $parentName,
+                                $propertyName,
+                                $reference->schema->oneOf,
+                                $namespace,
+                                $imports
+                            )
+                        )
+                    );
+                }
+
+                if ($reference instanceof ScalarType) {
+                    $resolvedTypes[] = $reference->name;
+                }
+
+                if ($reference instanceof ClassReference) {
+                    $imports->addImport($reference->name);
+                    $resolvedTypes[] = $reference->name;
+                }
             }
         }
 

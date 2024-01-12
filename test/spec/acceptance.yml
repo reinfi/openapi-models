@@ -78,6 +78,7 @@ components:
       required:
         - id
         - whichTest
+        - oneOfReference
       properties:
         id:
           type: string
@@ -85,6 +86,7 @@ components:
           oneOf:
             - $ref: '#/components/schemas/Test1'
             - $ref: '#/components/schemas/Test2'
+            - $ref: '#/components/schemas/Test7OrTest8'
         oneOfEnum:
           oneOf:
             - $ref: '#/components/schemas/Test1'
@@ -97,6 +99,8 @@ components:
             - $ref: '#/components/schemas/Test1'
             - type: string
               format: date
+        oneOfReference:
+          $ref: '#/components/schemas/Test7OrTest8'
 
     Test5:
       allOf:
@@ -162,6 +166,11 @@ components:
     Money:
       type: integer
       format: double
+
+    Test7OrTest8:
+      oneOf:
+        - $ref: '#/components/schemas/Test7'
+        - $ref: '#/components/schemas/Test8'
 
   requestBodies:
     RequestBody1:

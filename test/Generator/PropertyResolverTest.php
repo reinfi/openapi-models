@@ -11,6 +11,7 @@ use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\Types;
+use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
 
 class PropertyResolverTest extends TestCase
@@ -89,6 +90,15 @@ class PropertyResolverTest extends TestCase
                 'nullable' => true,
                 'shouldHaveDefaultValueNull' => true,
             ],
+            [
+                'name' => 'property',
+                'schema' => new Schema([]),
+                'required' => false,
+                'type' => new OneOfReference(new Schema([])),
+                'expectedType' => null,
+                'nullable' => true,
+                'shouldHaveDefaultValueNull' => true,
+            ],
         ];
     }
 
@@ -99,7 +109,7 @@ class PropertyResolverTest extends TestCase
         string $name,
         Schema $schema,
         bool $required,
-        ClassReference|ScalarType|Types|string $type,
+        ClassReference|OneOfReference|ScalarType|Types|string $type,
         ?string $expectedType,
         bool $nullable,
         bool $shouldHaveDefaultValueNull
