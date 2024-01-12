@@ -7,8 +7,11 @@ namespace Reinfi\OpenApiModels\Test\Generator;
 use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\Method;
 use PHPUnit\Framework\TestCase;
+use Reinfi\OpenApiModels\Generator\ClassReference;
+use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\Types;
+use Reinfi\OpenApiModels\Model\ScalarType;
 
 class PropertyResolverTest extends TestCase
 {
@@ -68,6 +71,24 @@ class PropertyResolverTest extends TestCase
                 'nullable' => true,
                 'shouldHaveDefaultValueNull' => true,
             ],
+            [
+                'name' => 'property',
+                'schema' => new Schema([]),
+                'required' => false,
+                'type' => new ScalarType('int', new Schema([])),
+                'expectedType' => 'int',
+                'nullable' => true,
+                'shouldHaveDefaultValueNull' => true,
+            ],
+            [
+                'name' => 'property',
+                'schema' => new Schema([]),
+                'required' => false,
+                'type' => new ClassReference(OpenApiType::Schemas, 'Test4'),
+                'expectedType' => 'Test4',
+                'nullable' => true,
+                'shouldHaveDefaultValueNull' => true,
+            ],
         ];
     }
 
@@ -78,7 +99,7 @@ class PropertyResolverTest extends TestCase
         string $name,
         Schema $schema,
         bool $required,
-        Types|string $type,
+        ClassReference|ScalarType|Types|string $type,
         ?string $expectedType,
         bool $nullable,
         bool $shouldHaveDefaultValueNull

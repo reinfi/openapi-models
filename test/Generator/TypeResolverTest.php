@@ -7,6 +7,7 @@ namespace Reinfi\OpenApiModels\Test\Generator;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
+use DateTimeInterface;
 use DG\BypassFinals;
 use InvalidArgumentException;
 use Nette\PhpGenerator\PhpNamespace;
@@ -17,6 +18,7 @@ use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
+use Reinfi\OpenApiModels\Model\ScalarType;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
 
 class TypeResolverTest extends TestCase
@@ -131,9 +133,9 @@ class TypeResolverTest extends TestCase
 
         $namespace = new PhpNamespace('');
 
-        $schemaWithName = $this->createStub(SchemaWithName::class);
-        $schemaWithName->name = 'TestSchema';
-        $schemaWithName->openApiType = OpenApiType::Schemas;
+        $schemaWithName = new SchemaWithName(OpenApiType::Schemas, 'TestSchema', new Schema([
+            'type' => 'object',
+        ]));
 
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $reference)->willReturn(
@@ -152,6 +154,62 @@ class TypeResolverTest extends TestCase
         self::assertInstanceOf(ClassReference::class, $resolvedType);
         self::assertEquals(OpenApiType::Schemas, $resolvedType->openApiType);
         self::assertEquals('TestSchema', $resolvedType->name);
+    }
+
+    public function testItResolvesReferenceToScalarProperty(): void
+    {
+        $openApi = new OpenApi([]);
+        $reference = new Reference([
+            '$ref' => '#/components/schemas/Id',
+        ]);
+
+        $schemaWithName = new SchemaWithName(OpenApiType::Schemas, 'Id', new Schema([
+            'type' => 'integer',
+        ]));
+
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $reference)->willReturn(
+            $schemaWithName
+        );
+
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->never())->method('resolveNamespace');
+
+        $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
+
+        $resolvedType = $resolver->resolve($openApi, $reference);
+
+        self::assertInstanceOf(ScalarType::class, $resolvedType);
+        self::assertEquals('int', $resolvedType->name);
+    }
+
+    public function testItResolvesReferenceToScalarDateProperty(): void
+    {
+        $openApi = new OpenApi([]);
+        $reference = new Reference([
+            '$ref' => '#/components/schemas/Date',
+        ]);
+
+        $schemaWithName = new SchemaWithName(OpenApiType::Schemas, 'Date', new Schema([
+            'type' => 'string',
+            'format' => 'date',
+        ]));
+
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $referenceResolver->expects($this->once())->method('resolve')->with($openApi, $reference)->willReturn(
+            $schemaWithName
+        );
+
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->never())->method('resolveNamespace');
+
+        $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
+
+        $resolvedType = $resolver->resolve($openApi, $reference);
+
+        self::assertInstanceOf(ClassReference::class, $resolvedType);
+        self::assertEquals(OpenApiType::Schemas, $resolvedType->openApiType);
+        self::assertEquals(DateTimeInterface::class, $resolvedType->name);
     }
 
     public function testItThrowsExceptionIfUnknownType(): void

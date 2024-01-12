@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\InvalidDateFormatException;
 use Reinfi\OpenApiModels\Exception\PropertyNotFoundException;
+use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 use Reinfi\OpenApiModels\Generator\SerializableResolver;
 use Reinfi\OpenApiModels\Generator\SerializableType;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
@@ -30,8 +31,9 @@ class SerializableResolverTest extends TestCase
     public function testItReturnsExpectedValueIfSerializationIsNeeded(): void
     {
         $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
 
-        $resolver = new SerializableResolver($typeResolver);
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $class->addMethod('__construct')->addPromotedParameter('date')->setType(DateTimeInterface::class);
@@ -48,8 +50,9 @@ class SerializableResolverTest extends TestCase
     public function testItReturnNoneIfSerializationIsNotNeeded(): void
     {
         $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
 
-        $resolver = new SerializableResolver($typeResolver);
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $class->addMethod('__construct')->addPromotedParameter('date')->setType('string');
@@ -67,7 +70,9 @@ class SerializableResolverTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->never())->method('resolve');
 
-        $resolver = new SerializableResolver($typeResolver);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');
@@ -107,7 +112,9 @@ class SerializableResolverTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->exactly(2))->method('resolve')->willReturn(Types::Date, Types::DateTime);
 
-        $resolver = new SerializableResolver($typeResolver);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');
@@ -160,7 +167,9 @@ class SerializableResolverTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->exactly(2))->method('resolve')->willReturn(Types::Date, Types::DateTime);
 
-        $resolver = new SerializableResolver($typeResolver);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');
@@ -216,7 +225,9 @@ class SerializableResolverTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->exactly(3))->method('resolve')->willReturn(Types::OneOf, 'int', Types::Date);
 
-        $resolver = new SerializableResolver($typeResolver);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');
@@ -266,7 +277,9 @@ class SerializableResolverTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->exactly(2))->method('resolve')->willReturn(Types::Array, Types::Date);
 
-        $resolver = new SerializableResolver($typeResolver);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');
@@ -319,7 +332,9 @@ class SerializableResolverTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->exactly(2))->method('resolve')->willReturn(Types::Array, Types::DateTime);
 
-        $resolver = new SerializableResolver($typeResolver);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');
@@ -364,7 +379,9 @@ class SerializableResolverTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->never())->method('resolve');
 
-        $resolver = new SerializableResolver($typeResolver);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');
@@ -402,7 +419,9 @@ class SerializableResolverTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $typeResolver->expects($this->once())->method('resolve')->willReturn(Types::Object);
 
-        $resolver = new SerializableResolver($typeResolver);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+
+        $resolver = new SerializableResolver($typeResolver, $referenceResolver);
 
         $class = new ClassType('Test');
         $constructor = $class->addMethod('__construct');

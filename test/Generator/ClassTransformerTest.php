@@ -31,6 +31,7 @@ use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
+use Reinfi\OpenApiModels\Model\ScalarType;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
 
 class ClassTransformerTest extends TestCase
@@ -88,6 +89,95 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test', $classType->getName());
         self::assertCount(1, $namespace->getClasses());
         self::assertEquals('Test2', $classType->getExtends());
+    }
+
+    public function testItDoesNotTransformScalarProperty(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->once())->method('resolve')->with(
+            $openApi,
+            $this->isInstanceOf(Schema::class),
+        )->willReturn('string');
+
+        $arrayObjectResolver->expects($this->never())->method('resolve');
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+        );
+
+        $schema = new Schema([
+            'type' => 'string',
+        ]);
+
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
+
+        self::assertCount(0, $namespace->getClasses());
+    }
+
+    public function testItDoesNotTransformDateProperty(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $typeResolver->expects($this->once())->method('resolve')->with(
+            $openApi,
+            $this->isInstanceOf(Schema::class),
+        )->willReturn(Types::Date);
+
+        $arrayObjectResolver->expects($this->never())->method('resolve');
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+        );
+
+        $schema = new Schema([
+            'type' => 'string',
+            'format' => 'date',
+        ]);
+
+        $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
+
+        self::assertCount(0, $namespace->getClasses());
     }
 
     public function testItSetsDescription(): void
@@ -439,10 +529,10 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())->method('resolve');
 
-        $typeResolver->expects($this->exactly(3))->method('resolve')->with(
+        $typeResolver->expects($this->exactly(4))->method('resolve')->with(
             $openApi,
             $this->isInstanceOf(Schema::class),
-        )->willReturn(Types::Object, Types::Object, 'string');
+        )->willReturn(Types::Object, Types::Object, Types::Object, 'string');
 
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
@@ -665,7 +755,7 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('array', $parameter->getType());
     }
 
-    public function testItResolvesToDefaultArrayIfTypeOfItemsSchemaIsNullWithNUllableProperty(): void
+    public function testItResolvesToDefaultArrayIfTypeOfItemsSchemaIsNullWithNullableProperty(): void
     {
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('');
@@ -836,6 +926,73 @@ class ClassTransformerTest extends TestCase
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var string[] $values', $parameter->getComment());
+    }
+
+    public function testItResolvesScalarArrayTypesAsReference(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $parameter = new PromotedParameter('values');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+
+        $referenceResolver->expects($this->never())->method('resolve');
+
+        $serializableResolver->method('needsSerialization')->willReturn(SerializableType::None);
+
+        $typeResolver->expects($this->exactly(3))->method('resolve')->with(
+            $openApi,
+            $this->callback(
+                function (Schema|Reference $schema): bool {
+                    if ($schema instanceof Reference) {
+                        return $schema->getReference() === '#/components/schemas/Id';
+                    }
+
+                    return in_array($schema->type, ['object', 'array'], true);
+                }
+            ),
+        )->willReturn(Types::Object, Types::Array, new ScalarType('int', new Schema([])));
+
+        $propertyResolver->expects($this->once())->method('resolve')->willReturn($parameter);
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+        );
+
+        $schema = new Schema([
+            'type' => 'object',
+            'properties' => [
+                'values' => [
+                    'type' => 'array',
+                    'items' => [
+                        '$ref' => '#/components/schemas/Id',
+                    ],
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
+        $classes = $namespace->getClasses();
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(1, $classes);
+        self::assertEquals('array', $parameter->getType());
+        self::assertEquals('@var int[] $values', $parameter->getComment());
     }
 
     public function testItResolvesScalarArrayTypesWithNullableProperty(): void
@@ -1669,6 +1826,10 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+
+        $typeResolver->method('resolve')->willReturn(Types::Object, Types::Date);
+
+        $propertyResolver->method('resolve')->willReturn(new PromotedParameter('date'));
 
         $serializableResolver->expects($this->once())->method('needsSerialization')
             ->with($this->callback(static fn (ClassType $class): bool => $class->getName() === 'Test'))

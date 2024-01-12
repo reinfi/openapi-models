@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Api\Schema;
 
-readonly class Test3
+readonly class Test3Inline
 {
     public function __construct(
         public string $id,
-        /** @var Test1[] $tests */
-        public array $tests,
-        public Test3Inline $inline,
     ) {
     }
 }

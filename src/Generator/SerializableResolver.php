@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Generator;
 
 use cebe\openapi\spec\OpenApi;
+use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use DateTimeInterface;
 use IteratorAggregate;
@@ -21,7 +22,8 @@ use Reinfi\OpenApiModels\Exception\PropertyNotFoundException;
 readonly class SerializableResolver
 {
     public function __construct(
-        private TypeResolver $typeResolver
+        private TypeResolver $typeResolver,
+        private ReferenceResolver $referenceResolver,
     ) {
     }
 
@@ -94,16 +96,20 @@ readonly class SerializableResolver
 
         $method->addBody('return array_merge(get_object_vars($this), [');
         foreach ($promotedParameters as $parameter) {
-            $property = $schema->properties[$parameter->getName()] ?? null;
+            $property = $this->findPropertySchema($openApi, $schema, $parameter->getName());
 
-            if (! $property instanceof Schema) {
+            if ($property === null) {
                 throw new PropertyNotFoundException($parameter->getName());
+            }
+
+            if ($property instanceof Reference) {
+                $property = $this->referenceResolver->resolve($openApi, $property)->schema;
             }
 
             $type = $this->typeResolver->resolve($openApi, $property);
 
             switch ($type) {
-                case Types::Array :
+                case Types::Array:
                     $arrayMapFunction = sprintf(
                         'array_map(static fn (%2$s $date): string => $date->format(\'%3$s\'), $this->%1$s)',
                         $parameter->getName(),
@@ -120,7 +126,7 @@ readonly class SerializableResolver
                         $method->addBody(sprintf('    \'%1$s\' => %2$s,', $parameter->getName(), $arrayMapFunction));
                     }
                     break;
-                case Types::OneOf :
+                case Types::OneOf:
                     $method->addBody(sprintf(
                         '    \'%1$s\' => $this->%1$s instanceOf %2$s ? $this->%1$s->format(\'%3$s\') : $this->%1$s,',
                         $parameter->getName(),
@@ -128,7 +134,7 @@ readonly class SerializableResolver
                         $this->resolveFormat($configuration, $openApi, $property, $type, $parameter->getName())
                     ));
                     break;
-                default :
+                default:
                     $method->addBody(sprintf(
                         '    \'%1$s\' => $this->%1$s%2$s->format(\'%3$s\'),',
                         $parameter->getName(),
@@ -158,6 +164,34 @@ readonly class SerializableResolver
         }
 
         return false;
+    }
+
+    private function findPropertySchema(OpenApi $openApi, Schema $schema, string $name): Schema|Reference|null
+    {
+        $property = $schema->properties[$name] ?? null;
+
+        if ($property !== null) {
+            return $property;
+        }
+
+        if (is_array($schema->allOf) && count($schema->allOf) > 0) {
+            foreach ($schema->allOf as $allOfSchemaOrReference) {
+                if ($allOfSchemaOrReference instanceof Reference) {
+                    $allOfSchemaOrReference = $this->referenceResolver->resolve(
+                        $openApi,
+                        $allOfSchemaOrReference
+                    )->schema;
+                }
+
+                $property = $this->findPropertySchema($openApi, $allOfSchemaOrReference, $name);
+
+                if ($property !== null) {
+                    return $property;
+                }
+            }
+        }
+
+        return null;
     }
 
     private function addArrayObject(
