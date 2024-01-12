@@ -164,7 +164,7 @@ readonly class ClassTransformer
                 $imports
             );
             if ($arrayType !== null) {
-                $this->arrayObjectResolver->resolve($class, $constructor, $arrayType, $imports);
+                $this->arrayObjectResolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
             }
         }
 

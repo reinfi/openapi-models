@@ -13,6 +13,10 @@ use IteratorAggregate;
 use JsonSerializable;
 use Traversable;
 
+/**
+ * @implements ArrayAccess<int, DateTimeInterface>
+ * @implements IteratorAggregate<DateTimeInterface>
+ */
 readonly class Test8 implements IteratorAggregate, Countable, ArrayAccess, JsonSerializable
 {
     public function __construct(
