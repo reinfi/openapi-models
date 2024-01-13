@@ -1916,6 +1916,70 @@ class ClassTransformerTest extends TestCase
         );
     }
 
+    public function testItResolvesToEnum(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
+
+        $serializableResolver->method('needsSerialization')
+            ->willReturn(SerializableType::None);
+
+        $typeResolver->expects($this->once())
+            ->method('resolve')
+            ->with(
+                $openApi,
+                $this->callback(
+                    static fn (Schema $schema): bool => $schema->type === 'string' && count($schema->enum) === 3
+                ),
+            )->willReturn(Types::Enum);
+
+        $propertyResolver->expects($this->never())
+            ->method('resolve');
+
+        $arrayObjectResolver->expects($this->never())
+            ->method('resolve');
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+        );
+
+        $schema = new Schema([
+            'type' => 'string',
+            'enum' => ['green', 'red', 'white'],
+        ]);
+
+        $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
+
+        $classes = $namespace->getClasses();
+
+        self::assertCount(1, $classes);
+        self::assertArrayHasKey('Test', $classes);
+
+        $enum = $classes['Test'];
+        self::assertInstanceOf(EnumType::class, $enum);
+        self::assertCount(3, $enum->getCases());
+    }
+
     public function testItCallsSerialization(): void
     {
         $openApi = new OpenApi([]);
