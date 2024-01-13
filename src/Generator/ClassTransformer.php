@@ -65,89 +65,110 @@ readonly class ClassTransformer
         if ($schemaType === Types::Object || $schemaType === Types::AllOf) {
             $schemasForClass = $this->resolveSchemasForClass($openApi, $schema);
 
-            foreach ($schemasForClass as $schemaForClass) {
-                foreach ($schemaForClass->properties as $propertyName => $property) {
-                    $type = $this->typeResolver->resolve($openApi, $property);
+            $requiredProperties = array_reduce(
+                $schemasForClass,
+                static fn (array $requiredProperties, Schema $schema) => array_merge(
+                    $requiredProperties,
+                    $schema->required ?? []
+                ),
+                []
+            );
+            $properties = array_reduce(
+                $schemasForClass,
+                static fn (array $properties, Schema $schema) => array_merge($properties, $schema->properties ?? []),
+                []
+            );
 
-                    $parameter = $this->propertyResolver->resolve(
-                        $constructor,
+            uksort(
+                $properties,
+                static fn (string $propertyNameFirst, string $propertyNameSecond): int => in_array(
+                    $propertyNameSecond,
+                    $requiredProperties,
+                    true
+                ) <=> in_array($propertyNameFirst, $requiredProperties, true)
+            );
+
+            foreach ($properties as $propertyName => $property) {
+                $type = $this->typeResolver->resolve($openApi, $property);
+
+                $parameter = $this->propertyResolver->resolve(
+                    $constructor,
+                    $propertyName,
+                    $property,
+                    in_array($propertyName, $requiredProperties, true),
+                    $type
+                );
+
+                if ($type instanceof ClassReference) {
+                    $imports->addImport($type->name);
+                }
+
+                if ($type instanceof OneOfReference) {
+                    $property = $type->schema;
+                    $type = Types::OneOf;
+                }
+
+                if ($type === Types::Date || $type === Types::DateTime) {
+                    if ($configuration->dateTimeAsObject) {
+                        $imports->addImport(DateTimeInterface::class);
+                        $parameter->setType(DateTimeInterface::class);
+                    } else {
+                        $parameter->setType('string');
+                    }
+                }
+
+                if ($type === Types::Object && $property instanceof Schema) {
+                    $inlineType = $this->transformInlineObject(
+                        $configuration,
+                        $openApi,
+                        $name,
                         $propertyName,
                         $property,
-                        in_array($propertyName, $schemaForClass->required ?: [], true),
-                        $type
+                        $namespace,
+                        $imports
                     );
 
-                    if ($type instanceof ClassReference) {
-                        $imports->addImport($type->name);
+                    $parameter->setType($namespace->resolveName($inlineType));
+                }
+
+                if ($type === Types::Enum && $property instanceof Schema) {
+                    $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
+
+                    $parameter->setType($namespace->resolveName($enumType));
+                }
+
+                if ($type === Types::Array && $property instanceof Schema) {
+                    $arrayType = $this->resolveArrayType(
+                        $configuration,
+                        $openApi,
+                        $name,
+                        $propertyName,
+                        $parameter->isNullable(),
+                        $property,
+                        $namespace,
+                        $imports,
+                    );
+
+                    $parameter->setType('array');
+
+                    if ($arrayType !== null) {
+                        $parameter->addComment($arrayType->docType);
+                        $imports->addImport(...$arrayType->imports);
                     }
+                }
 
-                    if ($type instanceof OneOfReference) {
-                        $property = $type->schema;
-                        $type = Types::OneOf;
-                    }
+                if ($type === Types::OneOf && $property instanceof Schema) {
+                    $oneOfType = $this->transformOneOf(
+                        $configuration,
+                        $openApi,
+                        $name,
+                        $propertyName,
+                        $property->oneOf,
+                        $namespace,
+                        $imports
+                    );
 
-                    if ($type === Types::Date || $type === Types::DateTime) {
-                        if ($configuration->dateTimeAsObject) {
-                            $imports->addImport(DateTimeInterface::class);
-                            $parameter->setType(DateTimeInterface::class);
-                        } else {
-                            $parameter->setType('string');
-                        }
-                    }
-
-                    if ($type === Types::Object && $property instanceof Schema) {
-                        $inlineType = $this->transformInlineObject(
-                            $configuration,
-                            $openApi,
-                            $name,
-                            $propertyName,
-                            $property,
-                            $namespace,
-                            $imports
-                        );
-
-                        $parameter->setType($namespace->resolveName($inlineType));
-                    }
-
-                    if ($type === Types::Enum && $property instanceof Schema) {
-                        $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
-
-                        $parameter->setType($namespace->resolveName($enumType));
-                    }
-
-                    if ($type === Types::Array && $property instanceof Schema) {
-                        $arrayType = $this->resolveArrayType(
-                            $configuration,
-                            $openApi,
-                            $name,
-                            $propertyName,
-                            $parameter->isNullable(),
-                            $property,
-                            $namespace,
-                            $imports,
-                        );
-
-                        $parameter->setType('array');
-
-                        if ($arrayType !== null) {
-                            $parameter->addComment($arrayType->docType);
-                            $imports->addImport(...$arrayType->imports);
-                        }
-                    }
-
-                    if ($type === Types::OneOf && $property instanceof Schema) {
-                        $oneOfType = $this->transformOneOf(
-                            $configuration,
-                            $openApi,
-                            $name,
-                            $propertyName,
-                            $property->oneOf,
-                            $namespace,
-                            $imports
-                        );
-
-                        $parameter->setType($oneOfType);
-                    }
+                    $parameter->setType($oneOfType);
                 }
             }
         }

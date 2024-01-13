@@ -13,8 +13,8 @@ readonly class Test5 implements JsonSerializable
         public bool $ok,
         public Test1 $test,
         public int $money,
-        public ?DateTimeInterface $date = null,
         public string $fullName,
+        public ?DateTimeInterface $date = null,
     ) {
     }
 

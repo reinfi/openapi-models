@@ -12,9 +12,9 @@ readonly class Test4 implements JsonSerializable
     public function __construct(
         public string $id,
         public Test1|Test2|Test7|Test8 $whichTest,
+        public Test7|Test8 $oneOfReference,
         public Test1|Test4OneOfEnum1|null $oneOfEnum = null,
         public Test1|DateTimeInterface|null $oneOfDate = null,
-        public Test7|Test8 $oneOfReference,
     ) {
     }
 
