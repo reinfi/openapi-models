@@ -12,6 +12,7 @@ enum Types: string
     case Array = 'array';
     case Date = 'date';
     case DateTime = 'dateTime';
+    case Null = 'null';
     case Object = 'object';
     case Enum = 'enum';
 }
