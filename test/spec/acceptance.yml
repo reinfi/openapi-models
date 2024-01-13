@@ -172,6 +172,13 @@ components:
       type: integer
       format: double
 
+    Color:
+      type: string
+      enum:
+        - red
+        - green
+        - white
+
     Test7OrTest8:
       oneOf:
         - $ref: '#/components/schemas/Test7'

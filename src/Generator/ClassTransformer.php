@@ -200,6 +200,11 @@ readonly class ClassTransformer
             }
         }
 
+        if ($schemaType === Types::Enum) {
+            $namespace->removeClass($name);
+            $this->transformEnum($name, '', $schema, $namespace);
+        }
+
         $serializableType = $this->serializableResolver->needsSerialization($class);
         if ($serializableType !== SerializableType::None) {
             $this->serializableResolver->addSerialization(
