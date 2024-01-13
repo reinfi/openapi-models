@@ -77,6 +77,7 @@ readonly class TypeResolver
             },
             'array' => Types::Array,
             'object' => Types::Object,
+            'null' => Types::Null,
             default => throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type))
         };
     }

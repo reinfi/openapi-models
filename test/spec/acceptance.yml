@@ -79,6 +79,7 @@ components:
         - id
         - whichTest
         - oneOfReference
+        - oneOfNull
       properties:
         id:
           type: string
@@ -101,6 +102,10 @@ components:
               format: date
         oneOfReference:
           $ref: '#/components/schemas/Test7OrTest8'
+        oneOfNull:
+          oneOf:
+            - $ref: '#/components/schemas/Test1'
+            - type: 'null'
 
     Test5:
       allOf:

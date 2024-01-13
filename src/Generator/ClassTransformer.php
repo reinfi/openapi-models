@@ -53,7 +53,10 @@ readonly class ClassTransformer
 
         assert($schema instanceof Schema);
 
-        if (is_string($schemaType) || in_array($schemaType, [Types::Date, Types::DateTime, Types::OneOf])) {
+        if (is_string($schemaType) || in_array(
+            $schemaType,
+            [Types::Date, Types::DateTime, Types::OneOf, Types::Null]
+        )) {
             if ($class->getName() !== null) {
                 $namespace->removeClass($class->getName());
             }
@@ -167,6 +170,14 @@ readonly class ClassTransformer
                         $namespace,
                         $imports
                     );
+
+                    if (in_array('null', explode('|', $oneOfType))) {
+                        $parameter->setNullable();
+                        $oneOfType = join(
+                            '|',
+                            array_filter(explode('|', $oneOfType), static fn (string $type): bool => $type !== 'null')
+                        );
+                    }
 
                     $parameter->setType($oneOfType);
                 }
@@ -423,6 +434,7 @@ readonly class ClassTransformer
                             $namespace
                         )
                     ),
+                    Types::Null => 'null',
                     Types::DateTime, Types::Date => $configuration->dateTimeAsObject ? DateTimeInterface::class : 'string',
                     Types::AllOf, Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
                         $resolvedType->value
