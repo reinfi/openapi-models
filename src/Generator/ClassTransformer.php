@@ -309,6 +309,10 @@ readonly class ClassTransformer
             return null;
         }
 
+        if ($itemsSchema instanceof Schema && count($itemsSchema->properties) === 0) {
+            return null;
+        }
+
         $nullablePart = $nullable ? '|null' : '';
 
         $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema);
