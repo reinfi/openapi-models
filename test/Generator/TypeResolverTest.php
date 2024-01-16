@@ -84,6 +84,16 @@ class TypeResolverTest extends TestCase
             ],
             [
                 'schema' => new Schema([
+                    'properties' => [
+                        'id' => [
+                            'type' => 'string',
+                        ],
+                    ],
+                ]),
+                'expectedType' => Types::Object,
+            ],
+            [
+                'schema' => new Schema([
                     'type' => 'array',
                 ]),
                 'expectedType' => Types::Array,
