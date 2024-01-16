@@ -13,16 +13,16 @@ readonly class Test5 implements JsonSerializable
         public bool $ok,
         public Test1 $test,
         public int $money,
+        public DateTimeInterface $date,
         public string $fullName,
         public ?string $address,
-        public ?DateTimeInterface $date = null,
     ) {
     }
 
     public function jsonSerialize(): array
     {
         return array_merge(get_object_vars($this), [
-            'date' => $this->date?->format('Y-m-d'),
+            'date' => $this->date->format('Y-m-d'),
         ]);
     }
 }
