@@ -63,7 +63,7 @@ readonly class TypeResolver
             return Types::Enum;
         }
 
-        return match ($schema->type) {
+        $type = match ($schema->type) {
             'number' => match ($schema->format) {
                 'double', 'float' => 'float',
                 default => 'int'
@@ -78,8 +78,18 @@ readonly class TypeResolver
             'array' => Types::Array,
             'object' => Types::Object,
             'null' => Types::Null,
-            default => throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type))
+            default => null,
         };
+
+        if ($type === null) {
+            if (is_array($schema->properties) && count($schema->properties) > 0) {
+                return Types::Object;
+            }
+
+            throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type));
+        }
+
+        return $type;
     }
 
     private function isValidEnum(Schema $schema): bool

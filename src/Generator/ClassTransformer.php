@@ -8,6 +8,7 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use DateTimeInterface;
+use InvalidArgumentException;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Configuration\Configuration;
@@ -311,7 +312,12 @@ readonly class ClassTransformer
 
         $nullablePart = $nullable ? '|null' : '';
 
-        $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema);
+        try {
+            $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema);
+        } catch (InvalidArgumentException $exception) {
+            // Simply ignore any unknown types for array for now.
+            return null;
+        }
 
         if ($arrayType instanceof ScalarType) {
             $arrayType = $arrayType->name;
