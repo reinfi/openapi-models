@@ -42,6 +42,7 @@ components:
         - ok
         - test
         - money
+        - date
       properties:
         ok:
           type: boolean
@@ -60,6 +61,8 @@ components:
         - inline
       properties:
         id:
+          type: string
+        name:
           type: string
         tests:
           type: array

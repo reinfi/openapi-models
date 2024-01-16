@@ -22,8 +22,12 @@ readonly class Test6 implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return array_merge(get_object_vars($this), [
-            'dates' => $this->dates === null ? $this->dates : array_map(static fn (DateTimeInterface $date): string => $date->format('Y-m-d'), $this->dates),
-        ]);
+        return array_filter(
+            array_merge(get_object_vars($this), [
+                'dates' => $this->dates === null ? $this->dates : array_map(static fn (DateTimeInterface $date): string => $date->format('Y-m-d'), $this->dates),
+            ]),
+            static fn (mixed $value, string $key): bool => !(in_array($key, ['tests', 'dates'], true) && $value === null),
+            ARRAY_FILTER_USE_BOTH
+        );
     }
 }

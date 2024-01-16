@@ -25,14 +25,13 @@ use Reinfi\OpenApiModels\Generator\ClassTransformer;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
-use Reinfi\OpenApiModels\Generator\SerializableResolver;
-use Reinfi\OpenApiModels\Generator\SerializableType;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\ScalarType;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
+use Reinfi\OpenApiModels\Serialization\SerializableResolver;
 
 class ClassTransformerTest extends TestCase
 {
@@ -200,9 +199,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -241,9 +237,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -286,9 +279,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
@@ -355,9 +345,6 @@ class ClassTransformerTest extends TestCase
 
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -427,9 +414,6 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -476,9 +460,6 @@ class ClassTransformerTest extends TestCase
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $referenceResolver->expects($this->once())
             ->method('resolve')
@@ -564,9 +545,6 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -619,9 +597,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
@@ -685,9 +660,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
             ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
@@ -748,9 +720,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
             ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array);
@@ -805,9 +774,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
@@ -925,9 +891,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
             ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array, 'string');
@@ -985,9 +948,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
@@ -1060,9 +1020,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
             ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array, 'string');
@@ -1121,9 +1078,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
@@ -1184,9 +1138,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(5))
             ->method('resolve')
@@ -1256,9 +1207,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
             ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array, Types::Enum);
@@ -1319,9 +1267,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
@@ -1389,9 +1334,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(5))
             ->method('resolve')
@@ -1482,9 +1424,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->exactly(5))
             ->method('resolve')
@@ -1655,9 +1594,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $typeResolver->expects($this->exactly(6))
             ->method('resolve')
             ->with(
@@ -1807,9 +1743,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
             ->with(
@@ -1875,9 +1808,6 @@ class ClassTransformerTest extends TestCase
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
-
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
             ->with(
@@ -1929,9 +1859,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->once())
             ->method('resolve')
@@ -1993,9 +1920,6 @@ class ClassTransformerTest extends TestCase
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
-
-        $serializableResolver->method('needsSerialization')
-            ->willReturn(SerializableType::None);
 
         $typeResolver->expects($this->once())
             ->method('resolve')
@@ -2075,14 +1999,8 @@ class ClassTransformerTest extends TestCase
             ->willReturn(new PromotedParameter('date'));
 
         $serializableResolver->expects($this->once())
-            ->method('needsSerialization')
-            ->with($this->callback(static fn (ClassType $class): bool => $class->getName() === 'Test'))
-            ->willReturn(SerializableType::DateTime);
-
-        $serializableResolver->expects($this->once())
-            ->method('addSerialization')
+            ->method('resolve')
             ->with(
-                SerializableType::DateTime,
                 $this->configuration,
                 $openApi,
                 $schema,

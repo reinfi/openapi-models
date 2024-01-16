@@ -20,6 +20,7 @@ use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
+use Reinfi\OpenApiModels\Serialization\SerializableResolver;
 
 readonly class ClassTransformer
 {
@@ -207,18 +208,7 @@ readonly class ClassTransformer
             $this->transformEnum($name, '', $schema, $namespace);
         }
 
-        $serializableType = $this->serializableResolver->needsSerialization($class);
-        if ($serializableType !== SerializableType::None) {
-            $this->serializableResolver->addSerialization(
-                $serializableType,
-                $configuration,
-                $openApi,
-                $schema,
-                $namespace,
-                $class,
-                $constructor
-            );
-        }
+        $this->serializableResolver->resolve($configuration, $openApi, $schema, $namespace, $class, $constructor);
 
         return $class;
     }
