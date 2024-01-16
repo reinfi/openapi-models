@@ -14,6 +14,7 @@ readonly class Test5 implements JsonSerializable
         public Test1 $test,
         public int $money,
         public string $fullName,
+        public ?string $address,
         public ?DateTimeInterface $date = null,
     ) {
     }

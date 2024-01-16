@@ -113,9 +113,13 @@ components:
         - type: object
           required:
             - fullName
+            - address
           properties:
             fullName:
               type: string
+            address:
+              $ref: '#/components/schemas/NullableString'
+
 
     Test6:
       type: object
@@ -166,6 +170,10 @@ components:
     NullableDate:
       type: string
       format: date
+      nullable: true
+
+    NullableString:
+      type: string
       nullable: true
 
     Money:

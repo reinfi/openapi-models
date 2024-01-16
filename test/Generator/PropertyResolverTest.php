@@ -84,6 +84,17 @@ class PropertyResolverTest extends TestCase
             [
                 'name' => 'property',
                 'schema' => new Schema([]),
+                'required' => true,
+                'type' => new ScalarType('int', new Schema([
+                    'nullable' => true,
+                ])),
+                'expectedType' => 'int',
+                'nullable' => true,
+                'shouldHaveDefaultValueNull' => false,
+            ],
+            [
+                'name' => 'property',
+                'schema' => new Schema([]),
                 'required' => false,
                 'type' => new ClassReference(OpenApiType::Schemas, 'Test4'),
                 'expectedType' => 'Test4',

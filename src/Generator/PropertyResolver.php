@@ -28,6 +28,10 @@ readonly class PropertyResolver
 
         if ($type instanceof ClassReference || $type instanceof ScalarType) {
             $property->setType($type->name);
+
+            if ($type instanceof ScalarType && $type->schema->nullable) {
+                $property->setNullable();
+            }
         }
 
         if ($schema->nullable ?? false) {
