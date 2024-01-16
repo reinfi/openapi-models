@@ -10,6 +10,7 @@ use cebe\openapi\spec\Schema;
 use DateTimeInterface;
 use InvalidArgumentException;
 use Nette\PhpGenerator\ClassType;
+use Nette\PhpGenerator\Helpers;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
@@ -289,6 +290,24 @@ readonly class ClassTransformer
                 'int' => sprintf('Value%u', $enumValue),
                 default => ucfirst($enumValue),
             };
+
+            if (! Helpers::isIdentifier($enumCaseName)) {
+                $enumCaseNameParts = preg_split('/[^A-z0-9]+/', $enumCaseName);
+                if (! is_array($enumCaseNameParts)) {
+                    throw new InvalidArgumentException(
+                        sprintf('Value %s could not be converted to a enum name.', $enumValue)
+                    );
+                }
+
+                $enumCaseName = join(array_map(ucfirst(...), $enumCaseNameParts));
+
+                if (! Helpers::isIdentifier($enumCaseName)) {
+                    throw new InvalidArgumentException(
+                        sprintf('Value %s could not be converted to a enum name.', $enumValue)
+                    );
+                }
+            }
+
             $enum->addCase($enumCaseName, $enumValue);
         }
 
