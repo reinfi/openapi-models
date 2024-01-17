@@ -75,7 +75,8 @@ readonly class ClassTransformer
                 $schemasForClass,
                 static fn (array $requiredProperties, Schema $schema) => array_merge(
                     $requiredProperties,
-                    $schema->required ?? []
+                    // @phpstan-ignore-next-line Invalid definition in class.
+                    is_array($schema->required) ? $schema->required : []
                 ),
                 []
             );

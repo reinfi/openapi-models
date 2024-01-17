@@ -263,6 +263,58 @@ class ClassTransformerTest extends TestCase
         self::assertNull($classType->getComment());
     }
 
+    public function testItDoesNotFailIfRequiredIsNotArray(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+
+        $propertyResolver->method('resolve')
+            ->with($this->isInstanceOf(Method::class), 'id', $this->isInstanceOf(Schema::class), false, 'int')
+            ->willReturn(new PromotedParameter('test'));
+
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, 'int');
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+        );
+
+        $schema = new Schema([
+            'required' => true,
+            'properties' => [
+                'id' => [
+                    'type' => 'number',
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(1, $namespace->getClasses());
+    }
+
     public function testItTransformsSchemaWithScalarProperties(): void
     {
         $openApi = new OpenApi([]);
