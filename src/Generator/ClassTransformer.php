@@ -98,6 +98,10 @@ readonly class ClassTransformer
             foreach ($properties as $propertyName => $property) {
                 $type = $this->typeResolver->resolve($openApi, $property);
 
+                if ($type === Types::AllOf) {
+                    $type = $this->resolveAllOfToType($openApi, $property, $propertyName);
+                }
+
                 $parameter = $this->propertyResolver->resolve(
                     $constructor,
                     $propertyName,
@@ -497,5 +501,29 @@ readonly class ClassTransformer
         }
 
         return join('|', $resolvedTypes);
+    }
+
+    private function resolveAllOfToType(OpenApi $openApi, Schema $schema, string $propertyName): ClassReference|ScalarType|Types|string
+    {
+        // This actually only retrieves the first possible type.
+        foreach ($schema->allOf as $allOfSchema) {
+            try {
+                $type = $this->typeResolver->resolve($openApi, $allOfSchema);
+
+                if ($type instanceof ClassReference || $type instanceof ScalarType || is_string($type)) {
+                    return $type;
+                }
+
+                if (in_array($type, [Types::Date, Types::DateTime], true)) {
+                    return $type;
+                }
+            } catch (InvalidArgumentException $exception) {
+                // simply ignore it.
+            }
+        }
+
+        throw new InvalidArgumentException(
+            sprintf('Could not resolve type for allOf for property %s', $propertyName)
+        );
     }
 }
