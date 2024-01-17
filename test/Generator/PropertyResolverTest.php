@@ -65,6 +65,17 @@ class PropertyResolverTest extends TestCase
             ],
             [
                 'name' => 'property',
+                'schema' => new Schema([
+                    'nullable' => false,
+                ]),
+                'required' => true,
+                'type' => Types::Null,
+                'expectedType' => 'null',
+                'nullable' => false,
+                'shouldHaveDefaultValueNull' => false,
+            ],
+            [
+                'name' => 'property',
                 'schema' => new Schema([]),
                 'required' => false,
                 'type' => Types::Array,

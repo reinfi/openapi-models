@@ -43,6 +43,10 @@ readonly class PropertyResolver
                 ->setNullable();
         }
 
+        if ($type === Types::Null) {
+            $property->setType('null');
+        }
+
         return $property;
     }
 }
