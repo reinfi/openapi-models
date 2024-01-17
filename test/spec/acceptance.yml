@@ -219,10 +219,11 @@ components:
     SimpleObject2:
       type: object
       required:
-        - id
+        - date
       properties:
-        id:
+        date:
           type: string
+          format: date
 
     Color:
       type: string

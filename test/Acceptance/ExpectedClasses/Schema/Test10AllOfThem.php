@@ -4,11 +4,21 @@ declare(strict_types=1);
 
 namespace Api\Schema;
 
-readonly class Test10AllOfThem
+use DateTimeInterface;
+use JsonSerializable;
+
+readonly class Test10AllOfThem implements JsonSerializable
 {
     public function __construct(
         public string $name,
-        public string $id,
+        public DateTimeInterface $date,
     ) {
+    }
+
+    public function jsonSerialize(): array
+    {
+        return array_merge(get_object_vars($this), [
+            'date' => $this->date->format('Y-m-d'),
+        ]);
     }
 }
