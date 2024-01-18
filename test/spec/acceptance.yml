@@ -58,12 +58,17 @@ components:
       required:
         - id
         - tests
+        - dollar
         - inline
       properties:
         id:
           type: string
         name:
           type: string
+        dollar:
+          allOf:
+            - $ref: '#/components/schemas/Money'
+            - description: 'Your money is my money'
         tests:
           type: array
           items:
