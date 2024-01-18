@@ -113,6 +113,10 @@ class AllOfPropertySchemaResolver
             );
         }
 
+        if (count($resolvedTypes) === 0) {
+            throw new InvalidAllOfException($propertyName, 'no types found');
+        }
+
         if (count($resolvedTypes) === 1 && $hasSingleType) {
             return $resolvedTypes[0];
         }
