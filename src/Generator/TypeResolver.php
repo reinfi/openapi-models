@@ -21,12 +21,13 @@ readonly class TypeResolver
     }
 
     /**
-     * @return ($schema is Reference ? ClassReference|OneOfReference|ScalarType : string|Types)
+     * @return ($schema is Reference ? ClassReference|OneOfReference|ScalarType : ($throwException is true ? string|Types : string|Types|null))
      */
     public function resolve(
         OpenApi $openApi,
-        Schema|Reference $schema
-    ): ScalarType|ClassReference|OneOfReference|string|Types {
+        Schema|Reference $schema,
+        bool $throwException = true
+    ): ScalarType|ClassReference|OneOfReference|string|Types|null {
         if ($schema instanceof Reference) {
             $schemaWithName = $this->referenceResolver->resolve($openApi, $schema);
 
@@ -86,7 +87,9 @@ readonly class TypeResolver
                 return Types::Object;
             }
 
-            throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type));
+            if ($throwException) {
+                throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type));
+            }
         }
 
         return $type;

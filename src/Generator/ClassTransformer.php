@@ -30,6 +30,7 @@ readonly class ClassTransformer
         private ReferenceResolver $referenceResolver,
         private SerializableResolver $serializableResolver,
         private ArrayObjectResolver $arrayObjectResolver,
+        private AllOfPropertySchemaResolver $allOfPropertySchemaResolver,
     ) {
     }
 
@@ -63,6 +64,7 @@ readonly class ClassTransformer
             if ($class->getName() !== null) {
                 $namespace->removeClass($class->getName());
             }
+
             return $class;
         }
 
@@ -82,13 +84,19 @@ readonly class ClassTransformer
             );
             $properties = array_reduce(
                 $schemasForClass,
-                static fn (array $properties, Schema $schema) => array_merge($properties, $schema->properties ?? []),
+                static fn (array $properties, Schema $schema) => array_merge(
+                    $properties,
+                    $schema->properties ?? []
+                ),
                 []
             );
 
             uksort(
                 $properties,
-                static fn (string $propertyNameFirst, string $propertyNameSecond): int => in_array(
+                static fn (
+                    string $propertyNameFirst,
+                    string $propertyNameSecond
+                ): int => in_array(
                     $propertyNameSecond,
                     $requiredProperties,
                     true
@@ -97,6 +105,12 @@ readonly class ClassTransformer
 
             foreach ($properties as $propertyName => $property) {
                 $type = $this->typeResolver->resolve($openApi, $property);
+
+                if ($type === Types::AllOf) {
+                    $allOfType = $this->allOfPropertySchemaResolver->resolve($openApi, $property, $propertyName);
+                    $type = $allOfType->type;
+                    $property = $allOfType->schema;
+                }
 
                 $parameter = $this->propertyResolver->resolve(
                     $constructor,
@@ -179,7 +193,12 @@ readonly class ClassTransformer
                         $parameter->setNullable();
                         $oneOfType = join(
                             '|',
-                            array_filter(explode('|', $oneOfType), static fn (string $type): bool => $type !== 'null')
+                            array_filter(
+                                explode('|', $oneOfType),
+                                static fn (
+                                    string $type
+                                ): bool => $type !== 'null'
+                            )
                         );
                     }
 
@@ -235,7 +254,7 @@ readonly class ClassTransformer
                 function (Schema|Reference $schema) use ($openApi): Schema {
                     if ($schema instanceof Reference) {
                         return $this->referenceResolver->resolve($openApi, $schema)
-->schema;
+                            ->schema;
                     }
 
                     return $schema;
@@ -373,21 +392,20 @@ readonly class ClassTransformer
                 throw new UnsupportedTypeForArrayException('date or datetime in oneOf');
             }
 
-            return new ArrayType($oneOfArrayType, $nullable, sprintf(
-                '@var array<%s>%s $%s',
+            return new ArrayType(
                 $oneOfArrayType,
-                $nullablePart,
-                $propertyName
-            ));
+                $nullable,
+                sprintf('@var array<%s>%s $%s', $oneOfArrayType, $nullablePart, $propertyName)
+            );
         }
 
         if (in_array($arrayType, [Types::Date, Types::DateTime], true)) {
-            return new ArrayType(DateTimeInterface::class, $nullable, sprintf(
-                '@var array<%s>%s $%s',
+            return new ArrayType(
                 DateTimeInterface::class,
-                $nullablePart,
-                $propertyName
-            ), [DateTimeInterface::class]);
+                $nullable,
+                sprintf('@var array<%s>%s $%s', DateTimeInterface::class, $nullablePart, $propertyName),
+                [DateTimeInterface::class]
+            );
         }
 
         if ($arrayType === Types::Array) {
@@ -399,20 +417,19 @@ readonly class ClassTransformer
         }
 
         if ($arrayType instanceof ClassReference) {
-            return new ArrayType($arrayType, $nullable, sprintf(
-                '@var %s[]%s $%s',
-                $arrayType->name,
-                $nullablePart,
-                $propertyName
-            ), [$arrayType->name]);
+            return new ArrayType(
+                $arrayType,
+                $nullable,
+                sprintf('@var %s[]%s $%s', $arrayType->name, $nullablePart, $propertyName),
+                [$arrayType->name]
+            );
         }
 
-        return new ArrayType($arrayType, $nullable, sprintf(
-            '@var %s[]%s $%s',
-            $namespace->simplifyName($arrayType),
-            $nullablePart,
-            $propertyName
-        ));
+        return new ArrayType(
+            $arrayType,
+            $nullable,
+            sprintf('@var %s[]%s $%s', $namespace->simplifyName($arrayType), $nullablePart, $propertyName)
+        );
     }
 
     /**

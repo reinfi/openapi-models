@@ -12,7 +12,7 @@ readonly class Test2 implements JsonSerializable
     public function __construct(
         public bool $ok,
         public Test1 $test,
-        public int $money,
+        public float $money,
         public DateTimeInterface $date,
     ) {
     }

@@ -58,12 +58,17 @@ components:
       required:
         - id
         - tests
+        - dollar
         - inline
       properties:
         id:
           type: string
         name:
           type: string
+        dollar:
+          allOf:
+            - $ref: '#/components/schemas/Money'
+            - description: 'Your money is my money'
         tests:
           type: array
           items:
@@ -170,6 +175,31 @@ components:
           - $ref: '#/components/schemas/Test1'
           - $ref: '#/components/schemas/Test2'
 
+    Test10:
+      type: object
+      required:
+        - allOfThem
+        - allOfOneRefDateNullable
+        - allOfOneString
+        - allOfNullValue
+      properties:
+        allOfThem:
+          allOf:
+            - $ref: '#/components/schemas/SimpleObject'
+            - $ref: '#/components/schemas/SimpleObject2'
+        allOfOneRefDateNullable:
+          allOf:
+            - $ref: '#/components/schemas/NullableDate'
+            - description: 'Stupid Description'
+        allOfOneString:
+          allOf:
+            - type: string
+            - description: 'Foo Bar'
+        allOfNullValue:
+          allOf:
+            - type: 'null'
+            - description: 'Foo Bar'
+
     NullableDate:
       type: string
       format: date
@@ -180,8 +210,25 @@ components:
       nullable: true
 
     Money:
-      type: integer
+      type: number
       format: double
+
+    SimpleObject:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    SimpleObject2:
+      type: object
+      required:
+        - date
+      properties:
+        date:
+          type: string
+          format: date
 
     Color:
       type: string

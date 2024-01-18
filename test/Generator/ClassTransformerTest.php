@@ -19,6 +19,7 @@ use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
+use Reinfi\OpenApiModels\Generator\AllOfPropertySchemaResolver;
 use Reinfi\OpenApiModels\Generator\ArrayObjectResolver;
 use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
@@ -27,6 +28,7 @@ use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
+use Reinfi\OpenApiModels\Model\AllOfType;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\ScalarType;
@@ -54,6 +56,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -74,6 +77,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Reference([
@@ -104,6 +108,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -121,6 +126,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -149,6 +155,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -166,6 +173,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -195,6 +203,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -205,6 +214,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -234,6 +244,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -243,7 +254,8 @@ class ClassTransformerTest extends TestCase
             $typeResolver,
             $referenceResolver,
             $serializableResolver,
-            $arrayObjectResolver
+            $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -273,6 +285,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $propertyResolver->method('resolve')
             ->with($this->isInstanceOf(Method::class), 'id', $this->isInstanceOf(Schema::class), false, 'int')
@@ -291,6 +304,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -325,6 +339,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -342,6 +357,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -379,6 +395,7 @@ class ClassTransformerTest extends TestCase
         $propertyResolver = $this->createMock(PropertyResolver::class);
         $typeResolver = $this->createMock(TypeResolver::class);
         $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -404,6 +421,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -465,6 +483,7 @@ class ClassTransformerTest extends TestCase
 
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -472,6 +491,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -509,15 +529,21 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
 
         $referenceResolver->expects($this->once())
             ->method('resolve')
-            ->with($openApi, $this->callback(
-                static fn (Reference $reference): bool => $reference->getReference() === '#/components/schemas/Test2'
-            ))->willReturn(
+            ->with(
+                $openApi,
+                $this->callback(
+                    static fn (
+                        Reference $reference
+                    ): bool => $reference->getReference() === '#/components/schemas/Test2'
+                )
+            )->willReturn(
                 new SchemaWithName(
                     OpenApiType::Schemas,
                     'Test2',
@@ -541,6 +567,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -596,13 +623,15 @@ class ClassTransformerTest extends TestCase
 
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
             $referenceResolver,
             $serializableResolver,
-            $arrayObjectResolver
+            $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -643,6 +672,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -660,6 +690,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -705,6 +736,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -722,6 +754,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -768,6 +801,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -786,6 +820,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -823,6 +858,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -841,6 +877,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -881,13 +918,15 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array, Types::AnyOf);
+            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->willReturn(Types::Object, Types::Array, Types::AnyOf);
 
         $propertyResolver->expects($this->once())
             ->method('resolve')
@@ -899,6 +938,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -939,13 +979,15 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array, 'string');
+            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->willReturn(Types::Object, Types::Array, 'string');
 
         $propertyResolver->expects($this->once())
             ->method('resolve')
@@ -957,6 +999,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -997,6 +1040,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1026,6 +1070,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1068,13 +1113,15 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array, 'string');
+            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->willReturn(Types::Object, Types::Array, 'string');
 
         $propertyResolver->expects($this->once())
             ->method('resolve')
@@ -1086,6 +1133,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1127,13 +1175,15 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array, Types::Date);
+            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->willReturn(Types::Object, Types::Array, Types::Date);
 
         $propertyResolver->expects($this->once())
             ->method('resolve')
@@ -1145,6 +1195,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1187,6 +1238,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1208,6 +1260,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1255,13 +1308,15 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array, Types::Enum);
+            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->willReturn(Types::Object, Types::Array, Types::Enum);
 
         $propertyResolver->expects($this->once())
             ->method('resolve')
@@ -1273,6 +1328,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1316,6 +1372,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1343,6 +1400,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1383,6 +1441,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1424,6 +1483,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1473,6 +1533,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1514,6 +1575,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1569,6 +1631,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1605,6 +1668,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1642,6 +1706,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1680,6 +1745,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1734,6 +1800,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1760,6 +1827,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1791,6 +1859,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1799,7 +1868,11 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(static fn (Schema $schema): bool => in_array($schema->type, ['array', 'string'], true)),
+                $this->callback(static fn (Schema $schema): bool => in_array(
+                    $schema->type,
+                    ['array', 'string'],
+                    true
+                )),
             )->willReturn(Types::Array, 'string');
 
         $propertyResolver->expects($this->never())
@@ -1820,6 +1893,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1856,6 +1930,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1876,6 +1951,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1908,6 +1984,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1933,6 +2010,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -1969,6 +2047,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1994,6 +2073,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
         );
 
         $schema = new Schema([
@@ -2023,6 +2103,92 @@ class ClassTransformerTest extends TestCase
         self::assertArrayHasKey('StatusDanger', $enumCases);
     }
 
+    public function testItResolvesAllOf(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+        $parameter = new PromotedParameter('dollar');
+        $propertySchema = new Schema([
+            'type' => 'string',
+        ]);
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->with(
+                $openApi,
+                $this->callback(
+                    static fn (
+                        Schema $schema
+                    ): bool => $schema->type === 'object' || (is_array(
+                        $schema->allOf
+                    ) && count($schema->allOf) === 2)
+                ),
+            )->willReturn(Types::Object, Types::AllOf);
+
+        $propertyResolver->expects($this->once())
+            ->method('resolve')
+            ->with($this->isInstanceOf(Method::class), 'dollar', $propertySchema, false, 'string')
+            ->willReturn($parameter);
+
+        $arrayObjectResolver->expects($this->never())
+            ->method('resolve');
+
+        $allOfPropertySchemaResolver->expects($this->once())
+            ->method('resolve')
+            ->with(
+                $openApi,
+                $this->isInstanceOf(Schema::class),
+                'dollar'
+            )->willReturn(new AllOfType('string', $propertySchema));
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
+        );
+
+        $schema = new Schema([
+            'type' => 'object',
+            'properties' => [
+                'dollar' => [
+                    'allOf' => [
+                        $propertySchema,
+                        [
+                            'description' => 'Foo Bar',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
+
+        $classes = $namespace->getClasses();
+
+        self::assertCount(1, $classes);
+        self::assertArrayHasKey('Test', $classes);
+    }
+
     public function testItCallsSerialization(): void
     {
         $openApi = new OpenApi([]);
@@ -2043,6 +2209,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
 
         $typeResolver->method('resolve')
             ->willReturn(Types::Object, Types::Date);
@@ -2067,6 +2234,7 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
+            $allOfPropertySchemaResolver
         );
 
         $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));

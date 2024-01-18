@@ -8,13 +8,15 @@ use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\InvalidDateFormatException;
+use Reinfi\OpenApiModels\Generator\AllOfPropertySchemaResolver;
 use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
 
 class DateTimeFormatResolver
 {
     public function __construct(
-        private readonly TypeResolver $typeResolver
+        private readonly TypeResolver $typeResolver,
+        private readonly AllOfPropertySchemaResolver $allOfPropertySchemaResolver,
     ) {
     }
 
@@ -25,6 +27,18 @@ class DateTimeFormatResolver
         Types|string $type,
         string $parameterName
     ): string {
+        if ($type === Types::AllOf) {
+            $allOfType = $this->allOfPropertySchemaResolver->resolve($openApi, $schema, $parameterName);
+
+            return $this->resolveFormat(
+                $configuration,
+                $openApi,
+                $allOfType->schema,
+                $allOfType->type,
+                $parameterName
+            );
+        }
+
         if ($type === Types::OneOf) {
             foreach ($schema->oneOf as $oneOfSchema) {
                 $type = $this->typeResolver->resolve($openApi, $oneOfSchema);

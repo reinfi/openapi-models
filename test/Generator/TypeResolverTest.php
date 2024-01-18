@@ -295,4 +295,25 @@ class TypeResolverTest extends TestCase
 
         $resolver->resolve($openApi, $schema);
     }
+
+    public function testItReturnsNullIfExceptionShouldNotBeThrown(): void
+    {
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
+
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $namespaceResolver->expects($this->never())
+            ->method('resolveNamespace');
+
+        $resolver = new TypeResolver($referenceResolver, $namespaceResolver);
+
+        $openApi = new OpenApi([]);
+
+        $schema = new Schema([
+            'type' => 'unknown',
+        ]);
+
+        self::assertNull($resolver->resolve($openApi, $schema, false));
+    }
 }

@@ -7,15 +7,11 @@ namespace Api\Schema;
 use DateTimeInterface;
 use JsonSerializable;
 
-readonly class Test5 implements JsonSerializable
+readonly class Test10AllOfThem implements JsonSerializable
 {
     public function __construct(
-        public bool $ok,
-        public Test1 $test,
-        public float $money,
+        public string $name,
         public DateTimeInterface $date,
-        public string $fullName,
-        public ?string $address,
     ) {
     }
 
