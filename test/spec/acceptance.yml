@@ -200,6 +200,25 @@ components:
             - type: 'null'
             - description: 'Foo Bar'
 
+    Test11:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+      additionalProperties:
+        $ref: '#/components/schemas/Money'
+
+    Test12:
+      type: object
+      additionalProperties:
+        type: number
+
+    Test13:
+      type: object
+      additionalProperties: true
+
     NullableDate:
       type: string
       format: date
@@ -211,7 +230,7 @@ components:
 
     Money:
       type: number
-      format: double
+      format: float
 
     SimpleObject:
       type: object
