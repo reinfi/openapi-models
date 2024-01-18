@@ -44,7 +44,11 @@ readonly class ClassWriter
 
                 $filePath = sprintf('%s/%s.php', $outputDirectoryWithNamespace, $class->getName());
 
+
+
                 $classOnlyNamespace = new PhpNamespace($namespace->getName());
+                $classOnlyNamespace->add($class);
+
                 foreach ($namespace->getUses() as $use) {
                     if ($class instanceof ClassType && $use === $class->getExtends()) {
                         $classOnlyNamespace->addUse($use);
@@ -74,8 +78,6 @@ readonly class ClassWriter
                         }
                     }
                 }
-
-                $classOnlyNamespace->add($class);
 
                 file_put_contents(
                     $filePath,
