@@ -817,8 +817,11 @@ class ClassTransformerTest extends TestCase
         self::assertEquals(2, $enum->getCases()['Value2']->getValue());
     }
 
-    public function testItResolvesToDefaultArrayOfTypeIfItemsSchemaIsNull(): void
+    public function testItThrowsExceptionIfItemsSchemaIsNull(): void
     {
+        self::expectException(UnresolvedArrayTypeException::class);
+        self::expectExceptionMessage('Could not resolve array type, got type "missing type"');
+
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('');
         $parameter = new PromotedParameter('values');
@@ -860,7 +863,7 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $transformer->transform(
             $this->configuration,
             $openApi,
             'Test',
@@ -868,71 +871,6 @@ class ClassTransformerTest extends TestCase
             $namespace,
             new Imports($namespace)
         );
-        $classes = $namespace->getClasses();
-
-        self::assertEquals('Test', $classType->getName());
-        self::assertCount(1, $classes);
-        self::assertEquals('array', $parameter->getType());
-    }
-
-    public function testItResolvesToDefaultArrayIfTypeOfItemsSchemaIsNullWithNullableProperty(): void
-    {
-        $openApi = new OpenApi([]);
-        $namespace = new PhpNamespace('');
-        $parameter = new PromotedParameter('values');
-        $parameter->setNullable();
-
-        $propertyResolver = $this->createMock(PropertyResolver::class);
-        $typeResolver = $this->createMock(TypeResolver::class);
-        $referenceResolver = $this->createMock(ReferenceResolver::class);
-        $serializableResolver = $this->createMock(SerializableResolver::class);
-        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
-        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
-        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
-
-        $referenceResolver->expects($this->never())
-            ->method('resolve');
-
-        $typeResolver->expects($this->exactly(2))
-            ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array);
-
-        $propertyResolver->expects($this->once())
-            ->method('resolve')
-            ->willReturn($parameter);
-
-        $transformer = new ClassTransformer(
-            $propertyResolver,
-            $typeResolver,
-            $referenceResolver,
-            $serializableResolver,
-            $arrayObjectResolver,
-            $allOfPropertySchemaResolver,
-            $dictionaryResolver,
-        );
-
-        $schema = new Schema([
-            'properties' => [
-                'values' => [
-                    'type' => 'array',
-                    'nullable' => true,
-                ],
-            ],
-        ]);
-
-        $classType = $transformer->transform(
-            $this->configuration,
-            $openApi,
-            'Test',
-            $schema,
-            $namespace,
-            new Imports($namespace)
-        );
-        $classes = $namespace->getClasses();
-
-        self::assertEquals('Test', $classType->getName());
-        self::assertCount(1, $classes);
-        self::assertEquals('array', $parameter->getType());
     }
 
     public function testItThrowsExceptionIfTypeIsNotString(): void

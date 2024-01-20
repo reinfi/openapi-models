@@ -172,12 +172,10 @@ readonly class ClassTransformer
                         $imports,
                     );
 
-                    $parameter->setType('array');
+                    $parameter->setType('array')
+                        ->addComment($arrayType->docType);
 
-                    if ($arrayType !== null) {
-                        $parameter->addComment($arrayType->docType);
-                        $imports->addImport(...$arrayType->imports);
-                    }
+                    $imports->addImport(...$arrayType->imports);
                 }
 
                 if ($type === Types::OneOf && $property instanceof Schema) {
@@ -249,9 +247,8 @@ readonly class ClassTransformer
                 $namespace,
                 $imports
             );
-            if ($arrayType !== null) {
-                $this->arrayObjectResolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
-            }
+
+            $this->arrayObjectResolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
         }
 
         if ($schemaType === Types::Enum) {
@@ -364,10 +361,10 @@ readonly class ClassTransformer
         Schema $schema,
         PhpNamespace $namespace,
         Imports $imports,
-    ): ?ArrayType {
+    ): ArrayType {
         $itemsSchema = $schema->items;
         if ($itemsSchema === null) {
-            return null;
+            throw new UnresolvedArrayTypeException('missing type');
         }
 
         $nullablePart = $nullable ? '|null' : '';
@@ -375,8 +372,7 @@ readonly class ClassTransformer
         try {
             $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema);
         } catch (InvalidArgumentException $exception) {
-            // Simply ignore any unknown types for array for now.
-            return null;
+            throw new UnresolvedArrayTypeException('unknown type');
         }
 
         if ($arrayType instanceof ScalarType) {
@@ -570,9 +566,6 @@ readonly class ClassTransformer
                 $dictionarySchema,
                 $namespace,
                 $imports
-            ) ?: throw new UnsupportedTypeForDictionaryException(
-                $dictionaryType->value,
-                'Array type must be set for dictionary.'
             ),
             Types::AllOf => $this->transform(
                 $configuration,
