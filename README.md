@@ -46,6 +46,11 @@ If you like to store your configuration somewhere else you need to provide the f
 
 `php vendor/bin/openapi-models generate --config spec/openapi-models.php`
 
+## Types
+
+This library does not support `mixed` type from open-api specification. 
+Therefore, you always have to set a type in your specification.
+
 ## Date or DateTime
 
 The following schema has date/date-time properties.
