@@ -17,8 +17,9 @@ readonly class Test10AllOfThem implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return array_merge(get_object_vars($this), [
+        return [
+            'name' => $this->name,
             'date' => $this->date->format('Y-m-d'),
-        ]);
+        ];
     }
 }

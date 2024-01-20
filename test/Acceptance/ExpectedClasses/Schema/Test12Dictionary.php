@@ -8,7 +8,7 @@ readonly class Test12Dictionary
 {
     public function __construct(
         public string $key,
-        public int $value
+        public int $value,
     ) {
     }
 }

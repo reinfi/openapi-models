@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Api\Schema;
 
-readonly class Test13Dictionary
+readonly class Test13DictionaryValue
 {
     public function __construct(
-        public string $key,
-        public Test13DictionaryValue $value,
+        public string $id,
+        public ?string $name,
     ) {
     }
 }

@@ -26,10 +26,15 @@ readonly class Test1 implements JsonSerializable
     public function jsonSerialize(): array
     {
         return array_filter(
-            array_merge(get_object_vars($this), [
+            [
+                'id' => $this->id,
+                'email' => $this->email,
+                'admin' => $this->admin,
+                'changed' => $this->changed,
                 'date' => $this->date->format('Y-m-d'),
                 'dateTime' => $this->dateTime?->format('Y-m-d\TH:i:sP'),
-            ]),
+                'deleted' => $this->deleted,
+            ],
             static fn (mixed $value, string $key): bool => !(in_array($key, ['dateTime', 'deleted'], true) && $value === null),
             ARRAY_FILTER_USE_BOTH
         );

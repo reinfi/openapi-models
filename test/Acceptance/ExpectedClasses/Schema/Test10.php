@@ -19,8 +19,11 @@ readonly class Test10 implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return array_merge(get_object_vars($this), [
+        return [
+            'allOfThem' => $this->allOfThem,
             'allOfOneRefDateNullable' => $this->allOfOneRefDateNullable?->format('Y-m-d'),
-        ]);
+            'allOfOneString' => $this->allOfOneString,
+            'allOfNullValue' => $this->allOfNullValue,
+        ];
     }
 }

@@ -4,29 +4,30 @@ declare(strict_types=1);
 
 namespace Api\Schema;
 
-readonly class Test12
-{
-    /**
-     * @var Test12Dictionary[]
-     */
-    private array $dictionary;
+use JsonSerializable;
 
-    public function __construct(
-        Test12Dictionary ...$dictionaries
-    ) {
-        $this->dictionary = $dictionaries;
+readonly class Test12 implements JsonSerializable
+{
+    /** @var Test12Dictionary[] */
+    private array $dictionaries;
+
+    public function __construct(Test12Dictionary ...$dictionaries)
+    {
+        $this->dictionaries = $dictionaries;
     }
 
     public function jsonSerialize(): array
     {
-        return array_map(
-            fn (int $index): int => $this->dictionary[$index]->value,
-            array_flip(
-                array_map(
-                    static fn (Test13Dictionary $dictionary): string => $dictionary->key,
-                    $this->dictionary
+        return [
+            ...array_map(
+                fn (int $index): int => $this->dictionaries[$index]->value,
+                array_flip(
+                    array_map(
+                        static fn (Test12Dictionary $dictionary): string => $dictionary->key,
+                        $this->dictionaries
+                    )
                 )
-            ),
-        );
+            )
+        ];
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Serialization;
 
 use cebe\openapi\spec\OpenApi;
+use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 use IteratorAggregate;
 use JsonSerializable;
@@ -20,6 +21,7 @@ readonly class SerializableResolver
         private ParameterSerializationTypeResolver $parameterSerializationTypeResolver,
         private ArrayObjectSerialization $arrayObjectSerialization,
         private DateTimeSerializationResolver $dateTimeSerializationResolver,
+        private DictionarySerializationResolver $dictionarySerializationResolver,
     ) {
     }
 
@@ -38,7 +40,7 @@ readonly class SerializableResolver
             return;
         }
 
-        $parameters = $this->parameterSerializationTypeResolver->resolve($constructor);
+        $parameters = $this->parameterSerializationTypeResolver->resolve($class, $constructor);
 
         $notRequiredParameters = array_filter(
             $parameters,
@@ -51,7 +53,8 @@ readonly class SerializableResolver
 
         $hasNotRequiredParameter = count($notRequiredParameters) > 0;
         $hasDateTimeParameter = count($dateTimeParameters) > 0;
-        if (! $hasDateTimeParameter && ! $hasNotRequiredParameter) {
+        $isDictionary = ($schema->additionalProperties instanceof Reference || $schema->additionalProperties instanceof Schema);
+        if (! $hasDateTimeParameter && ! $hasNotRequiredParameter && ! $isDictionary) {
             return;
         }
 
@@ -61,40 +64,59 @@ readonly class SerializableResolver
         $method = $class->addMethod('jsonSerialize')
             ->setReturnType('array');
 
-        $dateTimeCodeParts = null;
-        if ($hasDateTimeParameter) {
-            $dateTimeCodeParts = $this->dateTimeSerializationResolver->resolve(
-                $configuration,
-                $openApi,
-                $schema,
-                $dateTimeParameters,
-                ! $hasNotRequiredParameter
-            );
+        /** @var string[] $parameterSerializeCodeParts */
+        $parameterSerializeCodeParts = [];
 
-            if (! $hasNotRequiredParameter) {
-                array_map(static fn (string $code) => $method->addBody($code), $dateTimeCodeParts);
-
-                return;
+        foreach ($parameters as $parameter) {
+            if ($parameter->type === SerializableType::Dictionary) {
+                array_push(
+                    $parameterSerializeCodeParts,
+                    ...$this->dictionarySerializationResolver->resolve($namespace, $parameter)
+                );
+                continue;
             }
+
+            $parameterSerializeCodeParts[] = match ($parameter->type) {
+                SerializableType::None => sprintf('\'%1$s\' => $this->%1$s,', $parameter->parameter->getName()),
+                SerializableType::DateTime => $this->dateTimeSerializationResolver->resolve(
+                    $configuration,
+                    $openApi,
+                    $schema,
+                    $parameter
+                ),
+            };
+        }
+
+        if (! $hasNotRequiredParameter) {
+            $method->addBody('return [');
+            array_map(fn (string $code) => $method->addBody($this->intend($code)), $parameterSerializeCodeParts);
+            $method->addBody('];');
+            return;
         }
 
         $method->addBody('return array_filter(');
+        $method->addBody($this->intend('['));
 
-        if (is_array($dateTimeCodeParts)) {
-            array_map(static fn (string $code) => $method->addBody(sprintf('    %s', $code)), $dateTimeCodeParts);
-        } else {
-            $method->addBody('    get_object_vars($this),');
-        }
+        array_map(fn (string $code) => $method->addBody($this->intend($code, 2)), $parameterSerializeCodeParts);
 
         $notRequiredParameterNames = array_map(
             static fn (ParameterSerializationType $serializationType): string => $serializationType->parameter->getName(),
             $notRequiredParameters
         );
 
+        $method->addBody($this->intend('],'));
+
         $method->addBody(
-            '    static fn (mixed $value, string $key): bool => !(in_array($key, [...?], true) && $value === null),',
+            $this->intend(
+                'static fn (mixed $value, string $key): bool => !(in_array($key, [...?], true) && $value === null),'
+            ),
             [$notRequiredParameterNames]
-        )->addBody('    ARRAY_FILTER_USE_BOTH')
+        )->addBody($this->intend('ARRAY_FILTER_USE_BOTH'))
             ->addBody(');');
+    }
+
+    private function intend(string $code, int $intends = 1): string
+    {
+        return sprintf('%s%s', join('', array_fill(0, $intends, '    ')), $code);
     }
 }

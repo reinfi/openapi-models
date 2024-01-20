@@ -217,7 +217,17 @@ components:
 
     Test13:
       type: object
-      additionalProperties: true
+      additionalProperties:
+        type: object
+        required:
+          - id
+          - name
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+            nullable: true
 
     NullableDate:
       type: string

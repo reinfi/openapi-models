@@ -21,7 +21,13 @@ readonly class Test3 implements JsonSerializable
     public function jsonSerialize(): array
     {
         return array_filter(
-            get_object_vars($this),
+            [
+                'id' => $this->id,
+                'dollar' => $this->dollar,
+                'tests' => $this->tests,
+                'inline' => $this->inline,
+                'name' => $this->name,
+            ],
             static fn (mixed $value, string $key): bool => !(in_array($key, ['name'], true) && $value === null),
             ARRAY_FILTER_USE_BOTH
         );

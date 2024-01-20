@@ -8,16 +8,14 @@ use JsonSerializable;
 
 readonly class Test11 implements JsonSerializable
 {
-    /**
-     * @var Test11Dictionary[]
-     */
-    private array $dictionary;
+    /** @var Test11Dictionary[] */
+    private array $dictionaries;
 
     public function __construct(
         public string $name,
-        Test11Dictionary ...$dictionaries
+        Test11Dictionary ...$dictionaries,
     ) {
-        $this->dictionary = $dictionaries;
+        $this->dictionaries = $dictionaries;
     }
 
     public function jsonSerialize(): array
@@ -25,13 +23,13 @@ readonly class Test11 implements JsonSerializable
         return [
             'name' => $this->name,
             ...array_map(
-                fn (int $index): mixed => $this->dictionary[$index]->value,
+                fn (int $index): float => $this->dictionaries[$index]->value,
                 array_flip(
                     array_map(
-                        static fn (Test13Dictionary $dictionary): string => $dictionary->key,
-                        $this->dictionary
+                        static fn (Test11Dictionary $dictionary): string => $dictionary->key,
+                        $this->dictionaries
                     )
-                ),
+                )
             )
         ];
     }
