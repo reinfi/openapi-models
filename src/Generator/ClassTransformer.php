@@ -554,12 +554,23 @@ readonly class ClassTransformer
         $dictionaryType = $this->typeResolver->resolve($openApi, $dictionarySchema);
 
         return match ($dictionaryType) {
-            Types::Null, Types::AllOf =>
+            Types::Null, Types::AnyOf =>
             throw new UnsupportedTypeForDictionaryException($dictionaryType->value),
-            Types::AnyOf, Types::Array =>
+            Types::Array =>
             throw new UnsupportedTypeForDictionaryException(
                 $dictionaryType->value,
                 'Will be implemented in the future.'
+            ),
+            Types::AllOf => $this->transform(
+                $configuration,
+                $openApi,
+                sprintf('%sDictionaryValue', $name),
+                $dictionarySchema,
+                $namespace,
+                $imports
+            )->getName() ?: throw new UnsupportedTypeForDictionaryException(
+                $dictionaryType->value,
+                'Class name is null'
             ),
             Types::Date, Types::DateTime => DateTimeInterface::class,
             Types::OneOf => $this->transformOneOf(
