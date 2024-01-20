@@ -229,6 +229,13 @@ components:
             type: string
             nullable: true
 
+    Test14:
+      type: object
+      additionalProperties:
+        allOf:
+          - $ref: '#/components/schemas/SimpleObject'
+          - $ref: '#/components/schemas/SimpleObject2'
+
     NullableDate:
       type: string
       format: date
