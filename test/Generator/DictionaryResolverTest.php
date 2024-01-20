@@ -9,6 +9,7 @@ use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Generator\DictionaryResolver;
+use Reinfi\OpenApiModels\Model\ArrayType;
 
 class DictionaryResolverTest extends TestCase
 {
@@ -81,5 +82,40 @@ class DictionaryResolverTest extends TestCase
 
         self::assertEquals('string', $constructor->getParameter('key')->getType());
         self::assertEquals('string', $constructor->getParameter('value')->getType());
+    }
+
+    public function testItResolvesDictionaryClassForArrayType(): void
+    {
+        $resolver = new DictionaryResolver();
+
+        $namespace = new PhpNamespace('Api');
+        $class = $namespace->addClass('Test');
+        $class->addMethod('__construct');
+
+        $resolver->resolve($namespace, 'Test', $class, new ArrayType('string', false, '@var string[] $value'));
+
+        $classes = $namespace->getClasses();
+
+        self::assertArrayHasKey('TestDictionary', $classes);
+
+        $dictionaryClass = $classes['TestDictionary'];
+
+        self::assertInstanceOf(ClassType::class, $dictionaryClass);
+        self::assertTrue($dictionaryClass->isReadOnly());
+        self::assertEquals('TestDictionary', $dictionaryClass->getName());
+
+        self::assertTrue($dictionaryClass->hasMethod('__construct'));
+
+        $constructor = $dictionaryClass->getMethod('__construct');
+
+        self::assertTrue($constructor->hasParameter('key'));
+        self::assertTrue($constructor->hasParameter('value'));
+
+        self::assertEquals('string', $constructor->getParameter('key')->getType());
+
+        $valueParameter = $constructor->getParameter('value');
+        self::assertEquals('array', $valueParameter->getType());
+        self::assertNotNull($valueParameter->getComment());
+        self::assertStringContainsString('@var string[] $value', $valueParameter->getComment());
     }
 }

@@ -29,15 +29,25 @@ class DictionarySerializationResolver
         }
 
         $dictionaryClassConstructor = $dictionaryClass->getMethod('__construct');
-        $valueType = $dictionaryClassConstructor->getParameter('value')
+        $valueParameter = $dictionaryClassConstructor->getParameter('value');
+        $valueType = $valueParameter
             ->getType();
 
         if (! is_string($valueType)) {
             throw new DictionarySerializeException();
         }
 
-        return [
+        $inlineArrayReturnType = null;
+
+        if ($valueType === 'array' && $valueParameter->getComment() !== null) {
+            if (preg_match('/^@var (?<type>.*)\[]/', $valueParameter->getComment(), $matches)) {
+                $inlineArrayReturnType = $this->intend(sprintf('/** @return %s[] */', $matches['type']));
+            }
+        }
+
+        return array_filter([
             '...array_map(',
+            $inlineArrayReturnType,
             $this->intend(
                 sprintf('fn (int $index): %s => $this->%s[$index]->value,', $namespace->simplifyName(
                     $valueType
@@ -56,7 +66,7 @@ class DictionarySerializationResolver
             $this->intend(')', 2),
             $this->intend(')'),
             ')',
-        ];
+        ]);
     }
 
     private function intend(string $code, int $intends = 1): string
