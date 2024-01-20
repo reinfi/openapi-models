@@ -22,9 +22,14 @@ readonly class Test4 implements JsonSerializable
     public function jsonSerialize(): array
     {
         return array_filter(
-            array_merge(get_object_vars($this), [
+            [
+                'id' => $this->id,
+                'whichTest' => $this->whichTest,
+                'oneOfReference' => $this->oneOfReference,
+                'oneOfNull' => $this->oneOfNull,
+                'oneOfEnum' => $this->oneOfEnum,
                 'oneOfDate' => $this->oneOfDate instanceOf DateTimeInterface ? $this->oneOfDate->format('Y-m-d') : $this->oneOfDate,
-            ]),
+            ],
             static fn (mixed $value, string $key): bool => !(in_array($key, ['oneOfEnum', 'oneOfDate'], true) && $value === null),
             ARRAY_FILTER_USE_BOTH
         );

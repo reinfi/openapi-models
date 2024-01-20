@@ -23,6 +23,7 @@ use Reinfi\OpenApiModels\Generator\AllOfPropertySchemaResolver;
 use Reinfi\OpenApiModels\Generator\ArrayObjectResolver;
 use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
+use Reinfi\OpenApiModels\Generator\DictionaryResolver;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
@@ -57,6 +58,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -78,6 +80,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver
         );
 
         $schema = new Reference([
@@ -109,6 +112,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -127,6 +131,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -156,6 +161,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -174,6 +180,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -204,6 +211,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -215,6 +223,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -245,6 +254,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -256,6 +266,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -286,6 +297,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $propertyResolver->method('resolve')
             ->with($this->isInstanceOf(Method::class), 'id', $this->isInstanceOf(Schema::class), false, 'int')
@@ -305,6 +317,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -340,6 +353,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -358,6 +372,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -396,6 +411,7 @@ class ClassTransformerTest extends TestCase
         $typeResolver = $this->createMock(TypeResolver::class);
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -422,6 +438,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -484,6 +501,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -492,6 +510,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -530,6 +549,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -568,6 +588,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -624,6 +645,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -632,6 +654,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -673,6 +696,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -691,6 +715,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -737,6 +762,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -755,6 +781,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -802,6 +829,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -821,6 +849,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -859,6 +888,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -878,6 +908,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -919,6 +950,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -939,6 +971,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -980,6 +1013,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1000,6 +1034,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1041,6 +1076,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1071,6 +1107,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1114,6 +1151,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1134,6 +1172,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1176,6 +1215,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1196,6 +1236,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1239,6 +1280,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1261,6 +1303,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1309,6 +1352,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1329,6 +1373,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1373,6 +1418,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1401,6 +1447,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1442,6 +1489,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1484,6 +1532,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1534,6 +1583,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1576,6 +1626,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1632,6 +1683,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1669,6 +1721,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1707,6 +1760,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1746,6 +1800,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1801,6 +1856,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1828,6 +1884,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1860,6 +1917,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1894,6 +1952,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1931,6 +1990,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1952,6 +2012,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -1985,6 +2046,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -2011,6 +2073,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -2048,6 +2111,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -2074,6 +2138,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -2118,6 +2183,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -2158,6 +2224,7 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $schema = new Schema([
@@ -2189,6 +2256,57 @@ class ClassTransformerTest extends TestCase
         self::assertArrayHasKey('Test', $classes);
     }
 
+    public function testItResolvesAdditionalProperties(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $schema = new Schema([
+            'type' => 'object',
+            'additionalProperties' => [
+                'type' => 'string',
+            ],
+        ]);
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+
+        $typeResolver->method('resolve')
+            ->willReturn(Types::Object, 'string');
+
+        $dictionaryResolver->expects($this->once())
+            ->method('resolve')
+            ->with($namespace, 'Test', $this->isInstanceOf(ClassType::class), 'string');
+
+        $serializableResolver->expects($this->once())
+            ->method('resolve')
+            ->with(
+                $this->configuration,
+                $openApi,
+                $schema,
+                $namespace,
+                $this->isInstanceOf(ClassType::class),
+                $this->isInstanceOf(Method::class)
+            );
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
+            $dictionaryResolver,
+        );
+
+        $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));
+    }
+
     public function testItCallsSerialization(): void
     {
         $openApi = new OpenApi([]);
@@ -2210,6 +2328,7 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $typeResolver->method('resolve')
             ->willReturn(Types::Object, Types::Date);
@@ -2234,7 +2353,8 @@ class ClassTransformerTest extends TestCase
             $referenceResolver,
             $serializableResolver,
             $arrayObjectResolver,
-            $allOfPropertySchemaResolver
+            $allOfPropertySchemaResolver,
+            $dictionaryResolver,
         );
 
         $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));

@@ -24,81 +24,66 @@ class DateTimeSerializationResolver
     ) {
     }
 
-    /**
-     * @param ParameterSerializationType[] $dateTimeParameters
-     *
-     * @return string[]
-     */
     public function resolve(
         Configuration $configuration,
         OpenApi $openApi,
         Schema $schema,
-        array $dateTimeParameters,
-        bool $withReturn
-    ): array {
-        $codeParts = [sprintf('%sarray_merge(get_object_vars($this), [', $withReturn ? 'return ' : '')];
+        ParameterSerializationType $dateTimeParameter,
+    ): string {
+        $parameter = $dateTimeParameter->parameter;
+        $property = $this->findPropertySchema($openApi, $schema, $parameter->getName());
 
-        foreach ($dateTimeParameters as $dateTimeParameter) {
-            $parameter = $dateTimeParameter->parameter;
-            $property = $this->findPropertySchema($openApi, $schema, $parameter->getName());
-
-            if ($property === null) {
-                throw new PropertyNotFoundException($parameter->getName());
-            }
-
-            if ($property instanceof Reference) {
-                $property = $this->referenceResolver->resolve($openApi, $property)
-->schema;
-            }
-
-            $type = $this->typeResolver->resolve($openApi, $property);
-
-            $dateTimeFormat = $this->dateTimeFormatResolver->resolveFormat(
-                $configuration,
-                $openApi,
-                $property,
-                $type,
-                $parameter->getName()
-            );
-
-            switch ($type) {
-                case Types::Array:
-                    $arrayMapFunction = sprintf(
-                        'array_map(static fn (%2$s $date): string => $date->format(\'%3$s\'), $this->%1$s)',
-                        $parameter->getName(),
-                        DateTimeInterface::class,
-                        $dateTimeFormat
-                    );
-                    if ($parameter->isNullable()) {
-                        $codeParts[] = sprintf(
-                            '    \'%1$s\' => $this->%1$s === null ? $this->%1$s : %2$s,',
-                            $parameter->getName(),
-                            $arrayMapFunction
-                        );
-                    } else {
-                        $codeParts[] = sprintf('    \'%1$s\' => %2$s,', $parameter->getName(), $arrayMapFunction);
-                    }
-                    break;
-                case Types::OneOf:
-                    $codeParts[] = sprintf(
-                        '    \'%1$s\' => $this->%1$s instanceOf %2$s ? $this->%1$s->format(\'%3$s\') : $this->%1$s,',
-                        $parameter->getName(),
-                        DateTimeInterface::class,
-                        $dateTimeFormat
-                    );
-                    break;
-                default:
-                    $codeParts[] = sprintf(
-                        '    \'%1$s\' => $this->%1$s%2$s->format(\'%3$s\'),',
-                        $parameter->getName(),
-                        $parameter->isNullable() ? '?' : '',
-                        $dateTimeFormat
-                    );
-            }
+        if ($property === null) {
+            throw new PropertyNotFoundException($parameter->getName());
         }
-        $codeParts[] = sprintf('])%s', $withReturn ? ';' : ',');
 
-        return $codeParts;
+        if ($property instanceof Reference) {
+            $property = $this->referenceResolver->resolve($openApi, $property)
+->schema;
+        }
+
+        $type = $this->typeResolver->resolve($openApi, $property);
+
+        $dateTimeFormat = $this->dateTimeFormatResolver->resolveFormat(
+            $configuration,
+            $openApi,
+            $property,
+            $type,
+            $parameter->getName()
+        );
+
+        switch ($type) {
+            case Types::Array:
+                $arrayMapFunction = sprintf(
+                    'array_map(static fn (%2$s $date): string => $date->format(\'%3$s\'), $this->%1$s)',
+                    $parameter->getName(),
+                    DateTimeInterface::class,
+                    $dateTimeFormat
+                );
+                if ($parameter->isNullable()) {
+                    return sprintf(
+                        '\'%1$s\' => $this->%1$s === null ? $this->%1$s : %2$s,',
+                        $parameter->getName(),
+                        $arrayMapFunction
+                    );
+                }
+                return sprintf('\'%1$s\' => %2$s,', $parameter->getName(), $arrayMapFunction);
+
+            case Types::OneOf:
+                return sprintf(
+                    '\'%1$s\' => $this->%1$s instanceOf %2$s ? $this->%1$s->format(\'%3$s\') : $this->%1$s,',
+                    $parameter->getName(),
+                    DateTimeInterface::class,
+                    $dateTimeFormat
+                );
+            default:
+                return sprintf(
+                    '\'%1$s\' => $this->%1$s%2$s->format(\'%3$s\'),',
+                    $parameter->getName(),
+                    $parameter->isNullable() ? '?' : '',
+                    $dateTimeFormat
+                );
+        }
     }
 
     private function findPropertySchema(OpenApi $openApi, Schema $schema, string $name): Schema|Reference|null

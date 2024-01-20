@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Serialization;
 
 use DateTimeInterface;
+use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\Parameter;
+use Nette\PhpGenerator\PromotedParameter;
 use Reinfi\OpenApiModels\Model\ParameterSerializationType;
 
 class ParameterSerializationTypeResolver
@@ -14,11 +16,11 @@ class ParameterSerializationTypeResolver
     /**
      * @return ParameterSerializationType[]
      */
-    public function resolve(Method $constructor): array
+    public function resolve(ClassType $classType, Method $constructor): array
     {
         return array_map(
             fn (Parameter $parameter): ParameterSerializationType => new ParameterSerializationType(
-                $this->resolveType($parameter),
+                $this->resolveType($constructor, $parameter, $classType->hasProperty($parameter->getName())),
                 $parameter,
                 ! $parameter->hasDefaultValue()
             ),
@@ -26,10 +28,18 @@ class ParameterSerializationTypeResolver
         );
     }
 
-    private function resolveType(Parameter $parameter): SerializableType
+    private function resolveType(Method $constructor, Parameter $parameter, bool $hasProperty): SerializableType
     {
         if ($this->isDateTime($parameter)) {
             return SerializableType::DateTime;
+        }
+
+        if ($parameter instanceof PromotedParameter) {
+            return SerializableType::None;
+        }
+
+        if ($constructor->isVariadic() && $hasProperty) {
+            return SerializableType::Dictionary;
         }
 
         return SerializableType::None;

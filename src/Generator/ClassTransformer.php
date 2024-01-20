@@ -15,6 +15,7 @@ use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
+use Reinfi\OpenApiModels\Exception\UnsupportedTypeForDictionaryException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
@@ -31,6 +32,7 @@ readonly class ClassTransformer
         private SerializableResolver $serializableResolver,
         private ArrayObjectResolver $arrayObjectResolver,
         private AllOfPropertySchemaResolver $allOfPropertySchemaResolver,
+        private DictionaryResolver $dictionaryResolver,
     ) {
     }
 
@@ -205,6 +207,31 @@ readonly class ClassTransformer
                     $parameter->setType($oneOfType);
                 }
             }
+        }
+
+        // $schema->additionalProperties === true could not be handled because this is the default.
+        // Has the benefit that all objects can be safely typed.
+        if ($schemaType === Types::Object && (
+            $schema->additionalProperties instanceof Schema
+                || $schema->additionalProperties instanceof Reference
+        )) {
+            $dictionarySchema = $schema->additionalProperties;
+
+            if ($dictionarySchema instanceof Reference) {
+                $dictionarySchema = $this->referenceResolver->resolve($openApi, $dictionarySchema)
+->schema;
+            }
+
+            $dictionaryType = $this->resolveDictionaryType(
+                $openApi,
+                $dictionarySchema,
+                $configuration,
+                $name,
+                $namespace,
+                $imports
+            );
+
+            $this->dictionaryResolver->resolve($namespace, $name, $class, $dictionaryType);
         }
 
         if ($schemaType === Types::Array) {
@@ -514,5 +541,47 @@ readonly class ClassTransformer
         }
 
         return join('|', $resolvedTypes);
+    }
+
+    private function resolveDictionaryType(
+        OpenApi $openApi,
+        Schema $dictionarySchema,
+        Configuration $configuration,
+        string $name,
+        PhpNamespace $namespace,
+        Imports $imports
+    ): string {
+        $dictionaryType = $this->typeResolver->resolve($openApi, $dictionarySchema);
+
+        return match ($dictionaryType) {
+            Types::Null, Types::AllOf =>
+            throw new UnsupportedTypeForDictionaryException($dictionaryType->value),
+            Types::AnyOf, Types::Array =>
+            throw new UnsupportedTypeForDictionaryException(
+                $dictionaryType->value,
+                'Will be implemented in the future.'
+            ),
+            Types::Date, Types::DateTime => DateTimeInterface::class,
+            Types::OneOf => $this->transformOneOf(
+                $configuration,
+                $openApi,
+                $name,
+                'DictionaryValue',
+                $dictionarySchema->oneOf,
+                $namespace,
+                $imports
+            ),
+            Types::Enum => $this->transformEnum($name, 'DictionaryValue', $dictionarySchema, $namespace),
+            Types::Object => $this->transformInlineObject(
+                $configuration,
+                $openApi,
+                $name,
+                'DictionaryValue',
+                $dictionarySchema,
+                $namespace,
+                $imports
+            ),
+            default => $dictionaryType,
+        };
     }
 }

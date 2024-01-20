@@ -21,8 +21,13 @@ readonly class Test5 implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return array_merge(get_object_vars($this), [
+        return [
+            'ok' => $this->ok,
+            'test' => $this->test,
+            'money' => $this->money,
             'date' => $this->date->format('Y-m-d'),
-        ]);
+            'fullName' => $this->fullName,
+            'address' => $this->address,
+        ];
     }
 }
