@@ -67,6 +67,9 @@ readonly class ClassWriter
 
                         if (str_contains($method->getBody(), $use)) {
                             $classOnlyNamespace->addUse($use);
+                            $method->setBody(
+                                str_replace($use, $namespace->simplifyName($use), $method->getBody())
+                            );
                         }
                     }
 

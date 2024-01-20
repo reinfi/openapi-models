@@ -231,6 +231,10 @@ readonly class ClassTransformer
                 $imports
             );
 
+            if ($dictionaryType instanceof ArrayType) {
+                $imports->addImport(...$dictionaryType->imports);
+            }
+
             $this->dictionaryResolver->resolve($namespace, $name, $class, $dictionaryType);
         }
 
@@ -550,16 +554,25 @@ readonly class ClassTransformer
         string $name,
         PhpNamespace $namespace,
         Imports $imports
-    ): string {
+    ): string|ArrayType {
         $dictionaryType = $this->typeResolver->resolve($openApi, $dictionarySchema);
 
         return match ($dictionaryType) {
             Types::Null, Types::AnyOf =>
             throw new UnsupportedTypeForDictionaryException($dictionaryType->value),
             Types::Array =>
-            throw new UnsupportedTypeForDictionaryException(
+            $this->resolveArrayType(
+                $configuration,
+                $openApi,
+                $name,
+                'value',
+                false,
+                $dictionarySchema,
+                $namespace,
+                $imports
+            ) ?: throw new UnsupportedTypeForDictionaryException(
                 $dictionaryType->value,
-                'Will be implemented in the future.'
+                'Array type must be set for dictionary.'
             ),
             Types::AllOf => $this->transform(
                 $configuration,

@@ -236,6 +236,13 @@ components:
           - $ref: '#/components/schemas/SimpleObject'
           - $ref: '#/components/schemas/SimpleObject2'
 
+    Test15:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: string
+
     NullableDate:
       type: string
       format: date
