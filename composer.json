@@ -31,7 +31,7 @@
         "ocramius/package-versions": "^2.8"
     },
     "require-dev": {
-        "symplify/easy-coding-standard": "^12.0",
+        "symplify/easy-coding-standard": "^12.1.8",
         "phpunit/phpunit": "^10.5",
         "phpstan/phpstan": "^1.10",
         "mikey179/vfsstream": "^1.6",
