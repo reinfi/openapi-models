@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Serialization;
 
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\Reference;
-use cebe\openapi\spec\Schema;
 use DateTimeInterface;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\PropertyNotFoundException;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;

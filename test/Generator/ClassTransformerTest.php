@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Test\Generator;
 
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\Reference;
-use cebe\openapi\spec\Schema;
 use DateTimeInterface;
 use DG\BypassFinals;
 use Nette\PhpGenerator\ClassType;
@@ -14,6 +11,9 @@ use Nette\PhpGenerator\EnumType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PromotedParameter;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\Schema;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;

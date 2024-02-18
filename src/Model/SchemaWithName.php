@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Model;
 
-use cebe\openapi\spec\Schema;
+use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
 
 readonly class SchemaWithName

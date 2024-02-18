@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Model;
 
-use cebe\openapi\spec\OpenApi;
 use Mthole\OpenApiMerge\FileHandling\File;
+use openapiphp\openapi\spec\OpenApi;
 
 readonly class ParserResult
 {

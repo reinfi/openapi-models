@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\Reference;
-use cebe\openapi\spec\RequestBody;
-use cebe\openapi\spec\Response;
-use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\PhpNamespace;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\RequestBody;
+use openapiphp\openapi\spec\Response;
+use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\OnlyJsonContentTypeSupported;
 use Reinfi\OpenApiModels\Model\Imports;

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\Reference;
-use cebe\openapi\spec\Schema;
 use DateTimeInterface;
 use InvalidArgumentException;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
 
@@ -88,7 +88,10 @@ readonly class TypeResolver
             }
 
             if ($throwException) {
-                throw new InvalidArgumentException(sprintf('Not implemented type "%s" found', $schema->type));
+                throw new InvalidArgumentException(sprintf(
+                    'Not implemented type "%s" found',
+                    is_array($schema->type) ? join(',', $schema->type) : $schema->type
+                ));
             }
         }
 

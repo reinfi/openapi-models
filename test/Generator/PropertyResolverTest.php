@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Test\Generator;
 
-use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\Method;
+use openapiphp\openapi\spec\Schema;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\OpenApiType;

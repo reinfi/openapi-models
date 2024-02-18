@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Test\Generator;
 
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\Reference;
 use InvalidArgumentException;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\Reference;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Exception\InvalidReferenceException;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
