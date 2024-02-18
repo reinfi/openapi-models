@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
-use cebe\openapi\spec\Reference;
-use cebe\openapi\spec\Schema;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PromotedParameter;
+use openapiphp\openapi\spec\Reference;
+use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
 

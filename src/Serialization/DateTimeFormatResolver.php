@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Serialization;
 
-use cebe\openapi\spec\OpenApi;
-use cebe\openapi\spec\Schema;
+use openapiphp\openapi\spec\OpenApi;
+use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\InvalidDateFormatException;
 use Reinfi\OpenApiModels\Generator\AllOfPropertySchemaResolver;

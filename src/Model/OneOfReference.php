@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Model;
 
-use cebe\openapi\spec\Schema;
+use openapiphp\openapi\spec\Schema;
 
 readonly class OneOfReference
 {
