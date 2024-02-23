@@ -11,6 +11,7 @@ use Nette\PhpGenerator\PhpNamespace;
 use openapiphp\openapi\spec\OpenApi;
 use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\NamespaceResolver;
@@ -29,7 +30,7 @@ class TypeResolverTest extends TestCase
         BypassFinals::enable();
     }
 
-    public static function TypeDataProvider(): array
+    public static function typeDataProvider(): array
     {
         return [
             [
@@ -123,9 +124,7 @@ class TypeResolverTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider TypeDataProvider
-     */
+    #[DataProvider('typeDataProvider')]
     public function testItResolvesType(Schema $schema, string|Types $expectedType): void
     {
         $referenceResolver = $this->createMock(ReferenceResolver::class);

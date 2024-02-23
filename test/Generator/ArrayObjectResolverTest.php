@@ -13,6 +13,7 @@ use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PhpNamespace;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Generator\ArrayObjectResolver;
 use Reinfi\OpenApiModels\Generator\ClassReference;
@@ -190,10 +191,9 @@ class ArrayObjectResolverTest extends TestCase
     }
 
     /**
-     * @dataProvider typingsInterfaceDataProvider
-     *
      * @param array<string>                 $expectedDocComments
      */
+    #[DataProvider('typingsInterfaceDataProvider')]
     public function testItAddsTypingsForInterfaces(string|ClassReference $arrayType, array $expectedDocComments): void
     {
         $namespace = new PhpNamespace('Api\Schema');
@@ -214,9 +214,7 @@ class ArrayObjectResolverTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider nullableDataProvider
-     */
+    #[DataProvider('nullableDataProvider')]
     public function testItAddsIteratorMethod(bool $nullable): void
     {
         $class = new ClassType();
@@ -247,9 +245,7 @@ class ArrayObjectResolverTest extends TestCase
         self::assertContains(ArrayIterator::class, $namespace->getUses());
     }
 
-    /**
-     * @dataProvider nullableDataProvider
-     */
+    #[DataProvider('nullableDataProvider')]
     public function testItAddsCountMethod(bool $nullable): void
     {
         $class = new ClassType();
@@ -300,7 +296,6 @@ class ArrayObjectResolverTest extends TestCase
 
     public function testItAddsOffsetGetMethod(): void
     {
-        $namespace = new PhpNamespace('');
         $class = new ClassType();
         $constructor = new Method('__construct');
         $namespace = new PhpNamespace('Api');

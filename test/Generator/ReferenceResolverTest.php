@@ -7,6 +7,7 @@ namespace Reinfi\OpenApiModels\Test\Generator;
 use InvalidArgumentException;
 use openapiphp\openapi\spec\OpenApi;
 use openapiphp\openapi\spec\Reference;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Exception\InvalidReferenceException;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
@@ -14,7 +15,7 @@ use Reinfi\OpenApiModels\Generator\ReferenceResolver;
 
 class ReferenceResolverTest extends TestCase
 {
-    public static function ReferenceDataProvider(): array
+    public static function referenceDataProvider(): array
     {
         return [
             [
@@ -28,9 +29,7 @@ class ReferenceResolverTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider ReferenceDataProvider
-     */
+    #[DataProvider('referenceDataProvider')]
     public function testItResolvesReference(string $reference, string $expectedName): void
     {
         $openApi = new OpenApi([

@@ -6,6 +6,7 @@ namespace Reinfi\OpenApiModels\Test\Generator;
 
 use Nette\PhpGenerator\Method;
 use openapiphp\openapi\spec\Schema;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
@@ -16,7 +17,7 @@ use Reinfi\OpenApiModels\Model\ScalarType;
 
 class PropertyResolverTest extends TestCase
 {
-    public static function ParameterDataProvider(): array
+    public static function parameterDataProvider(): array
     {
         return [
             [
@@ -124,9 +125,7 @@ class PropertyResolverTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider ParameterDataProvider
-     */
+    #[DataProvider('parameterDataProvider')]
     public function testItResolvesParameter(
         string $name,
         Schema $schema,
