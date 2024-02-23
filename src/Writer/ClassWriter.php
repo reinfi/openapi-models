@@ -5,18 +5,15 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Writer;
 
 use DirectoryIterator;
-use Nette\PhpGenerator\ClassType;
-use Nette\PhpGenerator\Helpers;
-use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
-use Nette\PhpGenerator\Property;
-use Nette\PhpGenerator\PsrPrinter;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 
 readonly class ClassWriter
 {
     public function __construct(
-        private PsrPrinter $printer
+        private FileNameResolver $fileNameResolver,
+        private SingleNamespaceResolver $singleNamespaceResolver,
+        private TemplateResolver $templateResolver,
     ) {
     }
 
@@ -35,59 +32,15 @@ readonly class ClassWriter
                     continue;
                 }
 
-                $namespaceShortName = Helpers::extractShortName($namespace->getName());
-                $outputDirectoryWithNamespace = sprintf('%s/%s', $configuration->outputPath, $namespaceShortName);
+                $filePath = $this->fileNameResolver->resolve($configuration, $namespace, $class);
 
-                if (! is_dir($outputDirectoryWithNamespace)) {
-                    mkdir($outputDirectoryWithNamespace);
+                if (! is_dir(dirname($filePath))) {
+                    mkdir(dirname($filePath));
                 }
 
-                $filePath = sprintf('%s/%s.php', $outputDirectoryWithNamespace, $class->getName());
+                $classOnlyNamespace = $this->singleNamespaceResolver->resolve($namespace, $class);
 
-                $classOnlyNamespace = new PhpNamespace($namespace->getName());
-                $classOnlyNamespace->add($class);
-
-                foreach ($namespace->getUses() as $use) {
-                    if ($class instanceof ClassType && $use === $class->getExtends()) {
-                        $classOnlyNamespace->addUse($use);
-                    }
-
-                    if ($class instanceof ClassType && in_array($use, $class->getImplements(), true)) {
-                        $classOnlyNamespace->addUse($use);
-                    }
-
-                    foreach ($class->getMethods() as $method) {
-                        if ($method->getReturnType() !== 'mixed' && $method->getReturnType(true)?->allows($use)) {
-                            $classOnlyNamespace->addUse($use);
-                        }
-
-                        foreach ($method->getParameters() as $parameter) {
-                            $this->resolveUsagesForParameterOrProperty($classOnlyNamespace, $use, $parameter);
-                        }
-
-                        if (str_contains($method->getBody(), $use)) {
-                            $classOnlyNamespace->addUse($use);
-                            $method->setBody(str_replace($use, $namespace->simplifyName($use), $method->getBody()));
-                        }
-                    }
-
-                    if ($class instanceof ClassType) {
-                        foreach ($class->getProperties() as $property) {
-                            $this->resolveUsagesForParameterOrProperty($classOnlyNamespace, $use, $property);
-                        }
-                    }
-                }
-
-                file_put_contents(
-                    $filePath,
-                    <<<TPL
-                <?php
-
-                declare(strict_types=1);
-
-                {$this->printer->printNamespace($classOnlyNamespace)}
-                TPL
-                );
+                file_put_contents($filePath, $this->templateResolver->resolve($classOnlyNamespace));
             }
         }
     }
@@ -113,29 +66,6 @@ readonly class ClassWriter
 
             if ($fileInfo->isFile()) {
                 unlink($fileInfo->getRealPath());
-            }
-        }
-    }
-
-    private function resolveUsagesForParameterOrProperty(
-        PhpNamespace $namespace,
-        string $use,
-        Parameter|Property $parameterOrProperty
-    ): void {
-        if ($parameterOrProperty->getType() === 'mixed') {
-            return;
-        }
-
-        if ($parameterOrProperty->getType(true)?->allows($use) || $parameterOrProperty->getType() === $use) {
-            $namespace->addUse($use);
-        }
-
-        if ($parameterOrProperty->getType() === 'array' && $parameterOrProperty->getComment() !== null) {
-            if (str_contains($parameterOrProperty->getComment(), $use)) {
-                $namespace->addUse($use);
-                $parameterOrProperty->setComment(
-                    str_replace($use, $namespace->simplifyName($use), $parameterOrProperty->getComment())
-                );
             }
         }
     }

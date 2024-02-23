@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use DI\ContainerBuilder;
 use Reinfi\OpenApiModels\Command\GenerateCommand;
+use Reinfi\OpenApiModels\Command\ValidateCommand;
 use Symfony\Component\Console\Application;
 
 if (is_dir($vendor = __DIR__ . '/../vendor')) {
@@ -31,4 +32,5 @@ $container = (new ContainerBuilder())->addDefinitions(__DIR__ . '/../config/cont
 $app = new Application();
 
 $app->add($container->get(GenerateCommand::class));
+$app->add($container->get(ValidateCommand::class));
 $app->run();
