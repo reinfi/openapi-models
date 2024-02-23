@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Test\Configuration;
 
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Configuration\ConfigurationBuilder;
@@ -33,9 +34,7 @@ class ConfigurationBuilderTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider configurationFileDataProvider
-     */
+    #[DataProvider('configurationFileDataProvider')]
     public function testItBuildsValidConfiguration(
         string $pathToConfiguration,
         ?Throwable $expectedException = null

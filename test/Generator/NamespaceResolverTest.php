@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Test\Generator;
 
 use Nette\PhpGenerator\PhpNamespace;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\NotRegisteredNamespaceException;
@@ -13,7 +14,7 @@ use Reinfi\OpenApiModels\Generator\OpenApiType;
 
 class NamespaceResolverTest extends TestCase
 {
-    public static function ResolveNamespaceDataProvider(): iterable
+    public static function resolveNamespaceDataProvider(): iterable
     {
         yield [
             'openApiType' => OpenApiType::Schemas,
@@ -64,13 +65,11 @@ class NamespaceResolverTest extends TestCase
         self::assertArrayHasKey(OpenApiType::Responses->value, $namespaces);
     }
 
-    /**
-     * @dataProvider ResolveNamespaceDataProvider
-     */
+    #[DataProvider('resolveNamespaceDataProvider')]
     public function testItResolvesNamespace(
         OpenApiType $openApiType,
         string $configurationNamespace,
-        string $expectedNameSpace
+        string $expectedNamespace
     ): void {
         $configuration = new Configuration([], '', $configurationNamespace);
 
@@ -80,7 +79,7 @@ class NamespaceResolverTest extends TestCase
 
         $namespace = $resolver->resolveNamespace($openApiType);
 
-        self::assertEquals($expectedNameSpace, $namespace->getName());
+        self::assertEquals($expectedNamespace, $namespace->getName());
     }
 
     public function testItThrowsExceptionIfNamespaceNotKnown(): void

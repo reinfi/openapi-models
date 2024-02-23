@@ -8,6 +8,7 @@ use DG\BypassFinals;
 use openapiphp\openapi\spec\OpenApi;
 use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Exception\InvalidAllOfException;
 use Reinfi\OpenApiModels\Generator\AllOfPropertySchemaResolver;
@@ -28,7 +29,7 @@ class AllOfPropertySchemaResolverTest extends TestCase
         BypassFinals::enable();
     }
 
-    public static function ResolverDataProvider(): iterable
+    public static function resolverDataProvider(): iterable
     {
         yield 'no allOf elements' => [
             'schema' => new Schema([
@@ -577,11 +578,10 @@ class AllOfPropertySchemaResolverTest extends TestCase
     }
 
     /**
-     * @dataProvider ResolverDataProvider
-     *
-     * @param array<Types|ClassReference|ScalarType|string|null>          $resolvedTypes
-     * @param array<SchemaWithName>          $referenceSchemas
+     * @param array<Types|ClassReference|ScalarType|string|null> $resolvedTypes
+     * @param array<SchemaWithName> $referenceSchemas
      */
+    #[DataProvider('resolverDataProvider')]
     public function testItResolvesAllOfProperty(
         Schema $schema,
         array $resolvedTypes,
