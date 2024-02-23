@@ -33,18 +33,20 @@ class ClassWriterTest extends TestCase
         $singleNamespaceResolver = $this->createMock(SingleNamespaceResolver::class);
         $templateResolver = $this->createMock(TemplateResolver::class);
 
-        $fileNameResolver->expects($this->exactly(2))->method('resolve')->willReturn(
-            sprintf('%s/Schema/ClassFirst.php', $this->outputDir->url()),
-            sprintf('%s/Response/ClassSecond.php', $this->outputDir->url()),
-        );
+        $fileNameResolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->willReturn(
+                sprintf('%s/Schema/ClassFirst.php', $this->outputDir->url()),
+                sprintf('%s/Response/ClassSecond.php', $this->outputDir->url()),
+            );
 
-        $singleNamespaceResolver->expects($this->exactly(2))->method('resolve')->willReturn(
-            new PhpNamespace('Combined')
-        );
+        $singleNamespaceResolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->willReturn(new PhpNamespace('Combined'));
 
-        $templateResolver->expects($this->exactly(2))->method('resolve')->willReturn(
-            'ClassFirst', 'ClassSecond'
-        );
+        $templateResolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->willReturn('ClassFirst', 'ClassSecond');
 
         $writer = new ClassWriter($fileNameResolver, $singleNamespaceResolver, $templateResolver);
 
@@ -73,17 +75,17 @@ class ClassWriterTest extends TestCase
         $singleNamespaceResolver = $this->createMock(SingleNamespaceResolver::class);
         $templateResolver = $this->createMock(TemplateResolver::class);
 
-        $fileNameResolver->expects($this->once())->method('resolve')->willReturn(
-            sprintf('%s/Schema/ClassFirst.php', $this->outputDir->url()),
-        );
+        $fileNameResolver->expects($this->once())
+            ->method('resolve')
+            ->willReturn(sprintf('%s/Schema/ClassFirst.php', $this->outputDir->url()));
 
-        $singleNamespaceResolver->expects($this->once())->method('resolve')->willReturn(
-            new PhpNamespace('Combined')
-        );
+        $singleNamespaceResolver->expects($this->once())
+            ->method('resolve')
+            ->willReturn(new PhpNamespace('Combined'));
 
-        $templateResolver->expects($this->once())->method('resolve')->willReturn(
-            'ClassFirst'
-        );
+        $templateResolver->expects($this->once())
+            ->method('resolve')
+            ->willReturn('ClassFirst');
 
         $writer = new ClassWriter($fileNameResolver, $singleNamespaceResolver, $templateResolver);
 
@@ -103,6 +105,5 @@ class ClassWriterTest extends TestCase
         self::assertInstanceOf(vfsStreamFile::class, $classFile);
 
         self::assertEquals('ClassFirst', $classFile->getContent());
-
     }
 }

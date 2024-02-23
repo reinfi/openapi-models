@@ -13,9 +13,9 @@ use Reinfi\OpenApiModels\Writer\TemplateResolver;
 class Validator
 {
     public function __construct(
-        private FileNameResolver $fileNameResolver,
-        private SingleNamespaceResolver $singleNamespaceResolver,
-        private TemplateResolver $templateResolver,
+        private readonly FileNameResolver $fileNameResolver,
+        private readonly SingleNamespaceResolver $singleNamespaceResolver,
+        private readonly TemplateResolver $templateResolver,
     ) {
     }
 

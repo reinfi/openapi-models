@@ -9,7 +9,7 @@ class ValidationResult
     /**
      * @var ValidationFile[]
      */
-    private array $files;
+    private array $files = [];
 
     public function add(ValidationFile $file): void
     {
