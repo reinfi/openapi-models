@@ -2,16 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Writer;
+namespace Reinfi\OpenApiModels\Test\Writer;
 
 use DG\BypassFinals;
 use Nette\PhpGenerator\PhpNamespace;
-use Nette\PhpGenerator\PsrPrinter;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
+use org\bovigo\vfs\vfsStreamFile;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Writer\ClassWriter;
+use Reinfi\OpenApiModels\Writer\FileNameResolver;
+use Reinfi\OpenApiModels\Writer\SingleNamespaceResolver;
+use Reinfi\OpenApiModels\Writer\TemplateResolver;
 
 class ClassWriterTest extends TestCase
 {
@@ -26,12 +29,24 @@ class ClassWriterTest extends TestCase
 
     public function testItWritesClasses(): void
     {
-        $printer = $this->createMock(PsrPrinter::class);
-        $printer->expects($this->exactly(2))
-            ->method('printNamespace')
-            ->willReturn('here comes class contents');
+        $fileNameResolver = $this->createMock(FileNameResolver::class);
+        $singleNamespaceResolver = $this->createMock(SingleNamespaceResolver::class);
+        $templateResolver = $this->createMock(TemplateResolver::class);
 
-        $writer = new ClassWriter($printer);
+        $fileNameResolver->expects($this->exactly(2))->method('resolve')->willReturn(
+            sprintf('%s/Schema/ClassFirst.php', $this->outputDir->url()),
+            sprintf('%s/Response/ClassSecond.php', $this->outputDir->url()),
+        );
+
+        $singleNamespaceResolver->expects($this->exactly(2))->method('resolve')->willReturn(
+            new PhpNamespace('Combined')
+        );
+
+        $templateResolver->expects($this->exactly(2))->method('resolve')->willReturn(
+            'ClassFirst', 'ClassSecond'
+        );
+
+        $writer = new ClassWriter($fileNameResolver, $singleNamespaceResolver, $templateResolver);
 
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
@@ -46,36 +61,48 @@ class ClassWriterTest extends TestCase
             'responses' => $secondNamespace,
         ]);
 
-        self::assertCount(2, $this->outputDir->getChildren());
+        self::assertCount(2, $this->outputDir->getChildren(), 'two directories should be created');
+        foreach ($this->outputDir->getChildren() as $vfsStreamContent) {
+            self::assertCount(1, $vfsStreamContent->getChildren(), 'one file should exist in directory');
+        }
     }
 
-    public function testItCopiesUseStatements(): void
+    public function testFileContentMatches(): void
     {
-        $printer = $this->createMock(PsrPrinter::class);
-        $printer->expects($this->once())
-            ->method('printNamespace')
-            ->with($this->callback(
-                static fn (PhpNamespace $namespace): bool => count($namespace->getClasses()) === 1 && count(
-                    $namespace->getUses()
-                ) === 1
-            ))
-            ->willReturn('here comes class contents');
+        $fileNameResolver = $this->createMock(FileNameResolver::class);
+        $singleNamespaceResolver = $this->createMock(SingleNamespaceResolver::class);
+        $templateResolver = $this->createMock(TemplateResolver::class);
 
-        $writer = new ClassWriter($printer);
+        $fileNameResolver->expects($this->once())->method('resolve')->willReturn(
+            sprintf('%s/Schema/ClassFirst.php', $this->outputDir->url()),
+        );
+
+        $singleNamespaceResolver->expects($this->once())->method('resolve')->willReturn(
+            new PhpNamespace('Combined')
+        );
+
+        $templateResolver->expects($this->once())->method('resolve')->willReturn(
+            'ClassFirst'
+        );
+
+        $writer = new ClassWriter($fileNameResolver, $singleNamespaceResolver, $templateResolver);
 
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $namespace = new PhpNamespace('Schema');
-        $namespace->addUse('ClassSecond');
-        $class = $namespace->addClass('ClassFirst');
-        $class->addMethod('__construct')
-            ->addPromotedParameter('second')
-            ->setType('ClassSecond');
+        $namespace->addClass('ClassFirst');
 
         $writer->write($configuration, [
             'schemas' => $namespace,
         ]);
 
-        self::assertCount(1, $this->outputDir->getChildren());
+        $schemaDirectory = $this->outputDir->getChild('Schema');
+        self::assertInstanceOf(vfsStreamDirectory::class, $schemaDirectory);
+
+        $classFile = $schemaDirectory->getChild('ClassFirst.php');
+        self::assertInstanceOf(vfsStreamFile::class, $classFile);
+
+        self::assertEquals('ClassFirst', $classFile->getContent());
+
     }
 }

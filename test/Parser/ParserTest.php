@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Parser;
+namespace Reinfi\OpenApiModels\Test\Parser;
 
 use DG\BypassFinals;
 use InvalidArgumentException;
