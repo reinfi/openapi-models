@@ -27,8 +27,6 @@ Use composer to install it as development dependency.
 
 Default configuration file is `openapi-models.php`. 
 
-To generate your files just run `php vendor/bin/openapi-models generate`.
-
 Your configuration file should return an array with the following settings:
 
 ```php
@@ -42,9 +40,19 @@ return [
 ];
 ```
 
+### Generate
+
+To generate your files just run `php vendor/bin/openapi-models generate`.
+
 If you like to store your configuration somewhere else you need to provide the file name to the command.
 
 `php vendor/bin/openapi-models generate --config spec/openapi-models.php`
+
+### Validate
+
+To validate your files, i.e. if the specification matches the generated files, you can run `php vendor/bin/openapi-models validate`.
+
+Make sure you use the same configuration file as used for the generate command. 
 
 ## Types
 
