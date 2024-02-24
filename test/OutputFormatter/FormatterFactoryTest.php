@@ -47,9 +47,6 @@ class FormatterFactoryTest extends TestCase
     {
         $factory = new FormatterFactory();
 
-        self::assertInstanceOf(
-            $expectedClass,
-            $factory->create($type)
-        );
+        self::assertInstanceOf($expectedClass, $factory->create($type));
     }
 }
