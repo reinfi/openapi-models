@@ -37,4 +37,17 @@ class ValidationResultTest extends TestCase
         $result->add(new ValidationFile('', '', ValidationFileResult::Differs));
         self::assertCount(2, $result->getInvalidFiles());
     }
+
+    public function testItReturnsInvalidFilesWithFilter(): void
+    {
+        $result = new ValidationResult();
+
+        $result->add(new ValidationFile('', '', ValidationFileResult::Ok));
+        $result->add(new ValidationFile('', '', ValidationFileResult::NotExisting));
+        $result->add(new ValidationFile('', '', ValidationFileResult::Differs));
+
+        self::assertCount(0, $result->getInvalidFiles(ValidationFileResult::Ok));
+        self::assertCount(1, $result->getInvalidFiles(ValidationFileResult::NotExisting));
+        self::assertCount(1, $result->getInvalidFiles(ValidationFileResult::Differs));
+    }
 }

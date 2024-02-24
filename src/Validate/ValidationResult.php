@@ -16,6 +16,11 @@ class ValidationResult
         $this->files[] = $file;
     }
 
+    public function countFiles(): int
+    {
+        return count($this->files);
+    }
+
     public function isValid(): bool
     {
         foreach ($this->files as $file) {
@@ -30,11 +35,22 @@ class ValidationResult
     /**
      * @return ValidationFile[]
      */
-    public function getInvalidFiles(): array
+    public function getInvalidFiles(ValidationFileResult $filter = null): array
     {
+        if ($filter === null) {
+            return array_filter(
+                $this->files,
+                static fn (ValidationFile $file): bool => ! $file->validationResult->isValid()
+            );
+        }
+
+        if ($filter === ValidationFileResult::Ok) {
+            return [];
+        }
+
         return array_filter(
             $this->files,
-            static fn (ValidationFile $file): bool => ! $file->validationResult->isValid()
+            static fn (ValidationFile $file): bool => $file->validationResult === $filter
         );
     }
 }

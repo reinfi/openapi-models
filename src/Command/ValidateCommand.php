@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Command;
 
 use MichaelPetri\TypedInput\TypedInput;
-use PackageVersions\Versions;
 use Reinfi\OpenApiModels\Configuration\ConfigurationBuilder;
 use Reinfi\OpenApiModels\Generator\ClassGenerator;
+use Reinfi\OpenApiModels\OutputFormatter\FormatterFactory;
 use Reinfi\OpenApiModels\Parser\Parser;
-use Reinfi\OpenApiModels\Validate\ValidationFile;
-use Reinfi\OpenApiModels\Validate\ValidationFileResult;
 use Reinfi\OpenApiModels\Validate\Validator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,6 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class ValidateCommand extends Command
 {
     public function __construct(
+        private readonly FormatterFactory $formatterFactory,
         private readonly ConfigurationBuilder $configurationBuilder,
         private readonly Parser $parser,
         private readonly ClassGenerator $classGenerator,
@@ -40,15 +39,18 @@ class ValidateCommand extends Command
             'configuration file to use',
             'openapi-models.php'
         );
+
+        $this->addOption(
+            'output-format',
+            'o',
+            InputOption::VALUE_REQUIRED,
+            'Change output style (default, junit)'
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $typedInput = TypedInput::fromInput($input);
-
-        $io = new SymfonyStyle($input, $output);
-
-        $io->info(sprintf('OpenApi-Models - Version %s', Versions::getVersion(Versions::rootPackageName())));
 
         $configuration = $this->configurationBuilder->buildFromFile(
             $typedInput->getOption('config')
@@ -61,31 +63,11 @@ class ValidateCommand extends Command
 
         $validationResult = $this->validator->validate($configuration, $namespaces);
 
-        if ($validationResult->isValid()) {
-            $io->success('Validation successful');
-
-            return self::SUCCESS;
-        }
-
-        $io->section('Validation Result');
-        $io->table(
-            ['Class', 'Message', 'Path'],
-            array_map(
-                static fn (ValidationFile $file): array => [
-                    $file->className,
-                    match ($file->validationResult) {
-                        ValidationFileResult::Ok => 'Ok',
-                        ValidationFileResult::NotExisting => 'File is missing',
-                        ValidationFileResult::Differs => 'Content differs',
-                    },
-                    $file->filePath,
-                ],
-                $validationResult->getInvalidFiles()
-            )
+        $outputFormatter = $this->formatterFactory->create(
+            $typedInput->getOption('output-format')
+                ->asNonEmptyStringOrNull()
         );
 
-        $io->error('Validation failed, see errors above.');
-
-        return self::FAILURE;
+        return $outputFormatter->formatOutput($validationResult, new SymfonyStyle($input, $output));
     }
 }
