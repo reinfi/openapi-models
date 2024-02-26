@@ -49,6 +49,8 @@ class JUnitFormatter implements OutputFormatterInterface
             $xml .= '</testcase>';
         }
 
+        $xml .= '</testsuite>';
+
         $output->write($xml);
 
         return $result->isValid() ? Command::SUCCESS : Command::FAILURE;
