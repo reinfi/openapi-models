@@ -13,15 +13,18 @@ use JsonSerializable;
 use Traversable;
 
 /**
- * @implements ArrayAccess<int, Test1|Test2>
- * @implements IteratorAggregate<Test1|Test2>
+ * @implements ArrayAccess<int, Test1|Test2|int[]>
+ * @implements IteratorAggregate<Test1|Test2|int[]>
  */
 readonly class Test9 implements IteratorAggregate, Countable, ArrayAccess, JsonSerializable
 {
-    /** @var array<Test1|Test2> $items */
+    /** @var array<Test1|Test2|int[]> $items */
     private array $items;
 
-    public function __construct(Test1|Test2 ...$items)
+    /**
+     * @param Test1|Test2|int[] ...$items
+     */
+    public function __construct(Test1|Test2|array ...$items)
     {
         $this->items = $items;
     }
@@ -41,7 +44,10 @@ readonly class Test9 implements IteratorAggregate, Countable, ArrayAccess, JsonS
         return isset($this->items[$offset]);
     }
 
-    public function offsetGet(mixed $offset): Test1|Test2|null
+    /**
+     * @return Test1|Test2|int[]|null
+     */
+    public function offsetGet(mixed $offset): Test1|Test2|array|null
     {
         return $this->items[$offset] ?? null;
     }

@@ -41,6 +41,20 @@ class SingleNamespaceResolver
                     $classOnlyNamespace->addUse($use);
                     $method->setBody(str_replace($use, $namespace->simplifyName($use), $method->getBody()));
                 }
+
+                if ($method->getComment() !== null && str_contains($method->getComment(), $use)) {
+                    $classOnlyNamespace->addUse($use);
+                    $method->setComment(str_replace($use, $namespace->simplifyName($use), $method->getComment()));
+                }
+
+                if ($method->getReturnType(true)?->allows('array') && $method->getComment() !== null) {
+                    if (str_contains($method->getComment(), $use)) {
+                        $namespace->addUse($use);
+                        $method->setComment(
+                            str_replace($use, $namespace->simplifyName($use), $method->getComment())
+                        );
+                    }
+                }
             }
 
             if ($class instanceof ClassType) {
