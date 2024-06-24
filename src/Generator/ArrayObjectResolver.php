@@ -51,7 +51,11 @@ class ArrayObjectResolver
         if ($arrayType->type instanceof ClassReference) {
             $type = $namespace->simplifyType($arrayType->type->name);
         } elseif ($arrayType->type instanceof OneOfType) {
-            $type = $namespace->simplifyType($arrayType->type->nativeType());
+            if ($arrayType->type->requiresPhpDoc()) {
+                $type = $namespace->simplifyType($arrayType->type->phpDocType());
+            } else {
+                $type = $namespace->simplifyType($arrayType->type->nativeType());
+            }
         } else {
             $type = join(
                 '|',
@@ -88,6 +92,10 @@ class ArrayObjectResolver
             $parameter->setType($arrayType->type->name);
         } elseif ($arrayType->type instanceof OneOfType) {
             $parameter->setType($arrayType->type->nativeType());
+
+            if ($arrayType->type->requiresPhpDoc()) {
+                $constructor->addComment(sprintf('@param %s ...$%s', $arrayType->type->phpDocType(), 'items'));
+            }
         } else {
             $parameter->setType($arrayType->type);
         }
@@ -159,6 +167,10 @@ class ArrayObjectResolver
             $method->setReturnType($arrayType->type->name);
         } elseif ($arrayType->type instanceof OneOfType) {
             $method->setReturnType($arrayType->type->nativeType());
+
+            if ($arrayType->type->requiresPhpDoc()) {
+                $method->addComment(sprintf('@return %s|null', $arrayType->type->phpDocType()));
+            }
         } else {
             $method->setReturnType($arrayType->type);
         }
