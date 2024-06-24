@@ -58,7 +58,7 @@ class SingleNamespaceResolver
         string $use,
         Parameter|Property $parameterOrProperty
     ): void {
-        if ($parameterOrProperty->getType() === 'mixed') {
+        if ($parameterOrProperty->getType() === 'mixed' || $parameterOrProperty->getType() === null) {
             return;
         }
 
@@ -66,7 +66,10 @@ class SingleNamespaceResolver
             $namespace->addUse($use);
         }
 
-        if ($parameterOrProperty->getType() === 'array' && $parameterOrProperty->getComment() !== null) {
+        if (in_array(
+            'array',
+            explode('|', $parameterOrProperty->getType())
+        ) && $parameterOrProperty->getComment() !== null) {
             if (str_contains($parameterOrProperty->getComment(), $use)) {
                 $namespace->addUse($use);
                 $parameterOrProperty->setComment(

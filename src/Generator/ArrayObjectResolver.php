@@ -16,6 +16,7 @@ use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
+use Reinfi\OpenApiModels\Model\OneOfType;
 use Traversable;
 
 class ArrayObjectResolver
@@ -49,6 +50,8 @@ class ArrayObjectResolver
     {
         if ($arrayType->type instanceof ClassReference) {
             $type = $namespace->simplifyType($arrayType->type->name);
+        } elseif ($arrayType->type instanceof OneOfType) {
+            $type = $namespace->simplifyType($arrayType->type->nativeType());
         } else {
             $type = join(
                 '|',
@@ -73,7 +76,9 @@ class ArrayObjectResolver
             return $constructor->addPromotedParameter('items')
                 ->setType('array')
                 ->setNullable()
-                ->setVisibility(ClassLike::VisibilityPrivate)->addComment($arrayType->docType);
+                ->setVisibility(ClassLike::VisibilityPrivate)->addComment(
+                    sprintf('@var %s|null $%s', $arrayType->docType, 'items')
+                );
         }
 
         $constructor->setVariadic();
@@ -81,13 +86,17 @@ class ArrayObjectResolver
 
         if ($arrayType->type instanceof ClassReference) {
             $parameter->setType($arrayType->type->name);
+        } elseif ($arrayType->type instanceof OneOfType) {
+            $parameter->setType($arrayType->type->nativeType());
         } else {
             $parameter->setType($arrayType->type);
         }
 
         $class->addProperty($parameter->getName())
             ->setType('array')
-            ->setVisibility(ClassLike::VisibilityPrivate)->addComment($arrayType->docType);
+            ->setVisibility(ClassLike::VisibilityPrivate)->addComment(
+                sprintf('@var %s $%s', $arrayType->docType, $parameter->getName())
+            );
 
         $constructor->addBody('$this->? = $?;', [$parameter->getName(), $parameter->getName()]);
 
@@ -148,6 +157,8 @@ class ArrayObjectResolver
 
         if ($arrayType->type instanceof ClassReference) {
             $method->setReturnType($arrayType->type->name);
+        } elseif ($arrayType->type instanceof OneOfType) {
+            $method->setReturnType($arrayType->type->nativeType());
         } else {
             $method->setReturnType($arrayType->type);
         }

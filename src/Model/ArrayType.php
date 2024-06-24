@@ -9,7 +9,7 @@ use Reinfi\OpenApiModels\Generator\ClassReference;
 readonly class ArrayType
 {
     public function __construct(
-        public ClassReference|string $type,
+        public ClassReference|string|OneOfType $type,
         public bool $nullable,
         public string $docType,
         /** @var string[] $imports */
