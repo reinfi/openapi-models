@@ -20,6 +20,7 @@ use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\OneOfReference;
+use Reinfi\OpenApiModels\Model\OneOfType;
 use Reinfi\OpenApiModels\Model\ScalarType;
 use Reinfi\OpenApiModels\Serialization\SerializableResolver;
 
@@ -173,7 +174,14 @@ readonly class ClassTransformer
                     );
 
                     $parameter->setType('array')
-                        ->addComment($arrayType->docType);
+                        ->addComment(
+                            sprintf(
+                                '@var %s%s $%s',
+                                $arrayType->docType,
+                                $parameter->isNullable() ? '|null' : '',
+                                $parameter->getName()
+                            )
+                        );
 
                     $imports->addImport(...$arrayType->imports);
                 }
@@ -189,20 +197,23 @@ readonly class ClassTransformer
                         $imports
                     );
 
-                    if (in_array('null', explode('|', $oneOfType))) {
+                    if ($oneOfType->containsType('null')) {
                         $parameter->setNullable();
-                        $oneOfType = join(
-                            '|',
-                            array_filter(
-                                explode('|', $oneOfType),
-                                static fn (
-                                    string $type
-                                ): bool => $type !== 'null'
+                        $oneOfType = $oneOfType->removeType('null');
+                    }
+
+                    $parameter->setType($oneOfType->nativeType());
+
+                    if ($oneOfType->requiresPhpDoc()) {
+                        $parameter->addComment(
+                            sprintf(
+                                '@var %s%s $%s',
+                                $oneOfType->phpDocType(),
+                                $parameter->isNullable() ? '|null' : '',
+                                $parameter->getName()
                             )
                         );
                     }
-
-                    $parameter->setType($oneOfType);
                 }
             }
         }
@@ -367,8 +378,6 @@ readonly class ClassTransformer
             throw new UnresolvedArrayTypeException('missing type');
         }
 
-        $nullablePart = $nullable ? '|null' : '';
-
         try {
             $arrayType = $this->typeResolver->resolve($openApi, $itemsSchema);
         } catch (InvalidArgumentException $exception) {
@@ -415,22 +424,18 @@ readonly class ClassTransformer
                 $imports
             );
 
-            if (str_contains($oneOfArrayType, DateTimeInterface::class)) {
+            if ($oneOfArrayType->containsType(DateTimeInterface::class)) {
                 throw new UnsupportedTypeForArrayException('date or datetime in oneOf');
             }
 
-            return new ArrayType(
-                $oneOfArrayType,
-                $nullable,
-                sprintf('@var array<%s>%s $%s', $oneOfArrayType, $nullablePart, $propertyName)
-            );
+            return new ArrayType($oneOfArrayType, $nullable, sprintf('array<%s>', $oneOfArrayType->phpDocType()));
         }
 
         if (in_array($arrayType, [Types::Date, Types::DateTime], true)) {
             return new ArrayType(
                 DateTimeInterface::class,
                 $nullable,
-                sprintf('@var array<%s>%s $%s', DateTimeInterface::class, $nullablePart, $propertyName),
+                sprintf('array<%s>', DateTimeInterface::class),
                 [DateTimeInterface::class]
             );
         }
@@ -444,19 +449,10 @@ readonly class ClassTransformer
         }
 
         if ($arrayType instanceof ClassReference) {
-            return new ArrayType(
-                $arrayType,
-                $nullable,
-                sprintf('@var %s[]%s $%s', $arrayType->name, $nullablePart, $propertyName),
-                [$arrayType->name]
-            );
+            return new ArrayType($arrayType, $nullable, sprintf('%s[]', $arrayType->name), [$arrayType->name]);
         }
 
-        return new ArrayType(
-            $arrayType,
-            $nullable,
-            sprintf('@var %s[]%s $%s', $namespace->simplifyName($arrayType), $nullablePart, $propertyName)
-        );
+        return new ArrayType($arrayType, $nullable, sprintf('%s[]', $namespace->simplifyName($arrayType)));
     }
 
     /**
@@ -470,7 +466,7 @@ readonly class ClassTransformer
         array $oneOf,
         PhpNamespace $namespace,
         Imports $imports,
-    ): string {
+    ): OneOfType {
         $resolvedTypes = [];
 
         $countInlineObjects = 0;
@@ -501,7 +497,17 @@ readonly class ClassTransformer
                     ),
                     Types::Null => 'null',
                     Types::DateTime, Types::Date => $configuration->dateTimeAsObject ? DateTimeInterface::class : 'string',
-                    Types::AllOf, Types::OneOf, Types::AnyOf, Types::Array => throw new UnsupportedTypeForOneOfException(
+                    Types::Array => $this->resolveArrayType(
+                        $configuration,
+                        $openApi,
+                        $parentName,
+                        $propertyName,
+                        false,
+                        $oneOfElement,
+                        $namespace,
+                        $imports
+                    ),
+                    Types::AllOf, Types::OneOf, Types::AnyOf => throw new UnsupportedTypeForOneOfException(
                         $resolvedType->value
                     ),
                     default => $resolvedType,
@@ -514,18 +520,15 @@ readonly class ClassTransformer
                 if ($reference instanceof OneOfReference) {
                     $resolvedTypes = array_merge(
                         $resolvedTypes,
-                        explode(
-                            '|',
-                            $this->transformOneOf(
-                                $configuration,
-                                $openApi,
-                                $parentName,
-                                $propertyName,
-                                $reference->schema->oneOf,
-                                $namespace,
-                                $imports
-                            )
-                        )
+                        $this->transformOneOf(
+                            $configuration,
+                            $openApi,
+                            $parentName,
+                            $propertyName,
+                            $reference->schema->oneOf,
+                            $namespace,
+                            $imports
+                        )->types
                     );
                 }
 
@@ -540,7 +543,7 @@ readonly class ClassTransformer
             }
         }
 
-        return join('|', $resolvedTypes);
+        return new OneOfType($resolvedTypes);
     }
 
     private function resolveDictionaryType(
@@ -550,7 +553,7 @@ readonly class ClassTransformer
         string $name,
         PhpNamespace $namespace,
         Imports $imports
-    ): string|ArrayType {
+    ): string|ArrayType|OneOfType {
         $dictionaryType = $this->typeResolver->resolve($openApi, $dictionarySchema);
 
         return match ($dictionaryType) {

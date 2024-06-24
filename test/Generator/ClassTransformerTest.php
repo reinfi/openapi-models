@@ -18,7 +18,6 @@ use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
-use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Generator\AllOfPropertySchemaResolver;
 use Reinfi\OpenApiModels\Generator\ArrayObjectResolver;
 use Reinfi\OpenApiModels\Generator\ClassReference;
@@ -1777,71 +1776,6 @@ class ClassTransformerTest extends TestCase
         self::assertArrayHasKey('Test', $classes);
         self::assertArrayHasKey('TestReference1', $classes);
         self::assertEquals('TestReference1|Test2', $referenceParameter->getType());
-    }
-
-    public function testItThrowsExceptionIfOneOfContainerUnsupportedType(): void
-    {
-        self::expectException(UnsupportedTypeForOneOfException::class);
-        self::expectExceptionMessage('Type "array" is currently not supported for oneOf definition');
-
-        $openApi = new OpenApi([]);
-        $namespace = new PhpNamespace('');
-        $referenceParameter = new PromotedParameter('reference');
-
-        $propertyResolver = $this->createMock(PropertyResolver::class);
-        $typeResolver = $this->createMock(TypeResolver::class);
-        $referenceResolver = $this->createMock(ReferenceResolver::class);
-        $serializableResolver = $this->createMock(SerializableResolver::class);
-        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
-        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
-        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
-
-        $referenceResolver->expects($this->never())
-            ->method('resolve');
-        $typeResolver->expects($this->exactly(3))
-            ->method('resolve')
-            ->with(
-                $openApi,
-                $this->callback(function (Schema $schema): bool {
-                    if (is_array($schema->oneOf) && count($schema->oneOf) === 2) {
-                        return true;
-                    }
-
-                    return $schema->type === 'object' || $schema->type === 'array';
-                }),
-            )->willReturn(Types::Object, Types::OneOf, Types::Array);
-
-        $propertyResolver->expects($this->once())
-            ->method('resolve')
-            ->willReturn($referenceParameter);
-
-        $transformer = new ClassTransformer(
-            $propertyResolver,
-            $typeResolver,
-            $referenceResolver,
-            $serializableResolver,
-            $arrayObjectResolver,
-            $allOfPropertySchemaResolver,
-            $dictionaryResolver,
-        );
-
-        $schema = new Schema([
-            'type' => 'object',
-            'properties' => [
-                'reference' => [
-                    'oneOf' => [
-                        [
-                            'type' => 'array',
-                        ],
-                        [
-                            '$ref' => '#/components/schemas/Test2',
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-
-        $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));
     }
 
     public function testItResolvesToArrayObject(): void

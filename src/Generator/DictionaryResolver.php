@@ -8,6 +8,7 @@ use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Model\ArrayType;
+use Reinfi\OpenApiModels\Model\OneOfType;
 
 class DictionaryResolver
 {
@@ -15,7 +16,7 @@ class DictionaryResolver
         PhpNamespace $namespace,
         string $className,
         ClassType $class,
-        string|ArrayType $dictionaryType,
+        string|ArrayType|OneOfType $dictionaryType,
     ): void {
         $dictionaryClass = $this->resolveDictionaryClass($namespace, $className, $dictionaryType);
         $dictionaryClassName = $dictionaryClass->getName();
@@ -37,7 +38,7 @@ class DictionaryResolver
     private function resolveDictionaryClass(
         PhpNamespace $namespace,
         string $className,
-        string|ArrayType $dictionaryType
+        string|ArrayType|OneOfType $dictionaryType
     ): ClassType {
         $dictionaryClass = $namespace->addClass(sprintf('%sDictionary', $className))
             ->setReadOnly();
@@ -50,7 +51,11 @@ class DictionaryResolver
         if ($dictionaryType instanceof ArrayType) {
             $constructor->addPromotedParameter('value')
                 ->setType('array')
-                ->setComment($dictionaryType->docType);
+                ->setComment(sprintf('@var %s $%s', $dictionaryType->docType, 'value'));
+        } elseif ($dictionaryType instanceof OneOfType) {
+            $constructor->addPromotedParameter('value')
+                ->setType($dictionaryType->nativeType())
+                ->setComment($dictionaryType->phpDocType());
         } else {
             $constructor->addPromotedParameter('value')
                 ->setType($namespace->resolveName($dictionaryType));

@@ -285,6 +285,27 @@ components:
         - $ref: '#/components/schemas/Test7'
         - $ref: '#/components/schemas/Test8'
 
+    Test16OneOfArray:
+      type: object
+      required:
+        - requiredValue
+      properties:
+        requiredValue:
+          oneOf:
+            - $ref: '#/components/schemas/Test7'
+            - type: array
+              items:
+                type: string
+        noneRequiredValue:
+          oneOf:
+            - $ref: '#/components/schemas/Test8'
+            - type: array
+              items:
+                type: string
+            - type: array
+              items:
+                type: integer
+
   requestBodies:
     RequestBody1:
       content:
