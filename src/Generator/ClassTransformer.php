@@ -440,8 +440,23 @@ readonly class ClassTransformer
             );
         }
 
-        if ($arrayType === Types::Array) {
-            throw new UnsupportedTypeForArrayException('array', 'You can use a reference to resolve this issue.');
+        if ($arrayType === Types::Array && $itemsSchema instanceof Schema) {
+            $innerArrayType = $this->resolveArrayType(
+                $configuration,
+                $openApi,
+                $parentName,
+                $propertyName,
+                $itemsSchema->nullable ?? false,
+                $itemsSchema,
+                $namespace,
+                $imports
+            );
+
+            if ($innerArrayType->type === DateTimeInterface::class) {
+                throw new UnsupportedTypeForArrayException('date', 'This is not possible in a nested array.');
+            }
+
+            return new ArrayType('array', $nullable, sprintf('array<%s>', $innerArrayType->docType));
         }
 
         if ($arrayType instanceof Types) {
