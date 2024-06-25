@@ -17,6 +17,8 @@ readonly class Test6 implements JsonSerializable
         public ?array $tests = null,
         /** @var array<DateTimeInterface>|null $dates */
         public ?array $dates = null,
+        /** @var array<string[]>|null $arrayOfArray */
+        public ?array $arrayOfArray = null,
     ) {
     }
 
@@ -28,8 +30,9 @@ readonly class Test6 implements JsonSerializable
                 'states' => $this->states,
                 'tests' => $this->tests,
                 'dates' => $this->dates === null ? $this->dates : array_map(static fn (DateTimeInterface $date): string => $date->format('Y-m-d'), $this->dates),
+                'arrayOfArray' => $this->arrayOfArray,
             ],
-            static fn (mixed $value, string $key): bool => !(in_array($key, ['tests', 'dates'], true) && $value === null),
+            static fn (mixed $value, string $key): bool => !(in_array($key, ['tests', 'dates', 'arrayOfArray'], true) && $value === null),
             ARRAY_FILTER_USE_BOTH
         );
     }

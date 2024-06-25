@@ -1846,67 +1846,6 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test', $classType->getName());
     }
 
-    public function testItThrowsExceptionIfArrayInArrayTypeIsUsed(): void
-    {
-        self::expectException(UnsupportedTypeForArrayException::class);
-        self::expectExceptionMessage(
-            'Type "array" is currently not supported for array definition. You can use a reference to resolve this issue.'
-        );
-
-        $openApi = new OpenApi([]);
-        $namespace = new PhpNamespace('');
-
-        $propertyResolver = $this->createMock(PropertyResolver::class);
-        $typeResolver = $this->createMock(TypeResolver::class);
-        $referenceResolver = $this->createMock(ReferenceResolver::class);
-        $serializableResolver = $this->createMock(SerializableResolver::class);
-        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
-        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
-        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
-
-        $referenceResolver->expects($this->never())
-            ->method('resolve');
-
-        $typeResolver->expects($this->exactly(2))
-            ->method('resolve')
-            ->with(
-                $openApi,
-                $this->callback(static fn (Schema $schema): bool => $schema->type === 'array'),
-            )->willReturn(Types::Array, Types::Array);
-
-        $propertyResolver->expects($this->never())
-            ->method('resolve');
-
-        $transformer = new ClassTransformer(
-            $propertyResolver,
-            $typeResolver,
-            $referenceResolver,
-            $serializableResolver,
-            $arrayObjectResolver,
-            $allOfPropertySchemaResolver,
-            $dictionaryResolver,
-        );
-
-        $schema = new Schema([
-            'type' => 'array',
-            'items' => [
-                'type' => 'array',
-                'items' => [
-                    'type' => 'string',
-                ],
-            ],
-        ]);
-
-        $transformer->transform(
-            $this->configuration,
-            $openApi,
-            'Test',
-            $schema,
-            $namespace,
-            new Imports($namespace)
-        );
-    }
-
     public function testItResolvesToEnum(): void
     {
         $openApi = new OpenApi([]);
