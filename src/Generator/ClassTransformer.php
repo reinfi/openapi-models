@@ -13,6 +13,7 @@ use openapiphp\openapi\spec\OpenApi;
 use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Exception\InvalidEnumSchema;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForDictionaryException;
@@ -334,11 +335,27 @@ readonly class ClassTransformer
             'number' => 'int',
             default => 'string'
         });
-        foreach ($schema->enum as $enumValue) {
+
+        $enumVarNames = isset($schema->{'x-enum-varnames'}) ? $schema->{'x-enum-varnames'} : null;
+        $enumVarDescriptions = isset($schema->{'x-enum-descriptions'}) ? $schema->{'x-enum-descriptions'} : null;
+
+        if (is_array($enumVarNames) && count($schema->enum) !== count($enumVarNames)) {
+            throw new InvalidEnumSchema($enumName, 'x-enum-varnames count does not match enum count');
+        }
+
+        if (is_array($enumVarDescriptions) && count($schema->enum) !== count($enumVarDescriptions)) {
+            throw new InvalidEnumSchema($enumName, 'x-enum-descriptions count does not match enum count');
+        }
+
+        foreach ($schema->enum as $index => $enumValue) {
             $enumCaseName = match ($enum->getType()) {
                 'int' => sprintf('Value%u', $enumValue),
                 default => ucfirst($enumValue),
             };
+
+            if (is_array($enumVarNames)) {
+                $enumCaseName = (string) $enumVarNames[$index];
+            }
 
             if (! Helpers::isIdentifier($enumCaseName)) {
                 $enumCaseNameParts = preg_split('/[^A-z0-9]+/', $enumCaseName);
@@ -357,7 +374,11 @@ readonly class ClassTransformer
                 }
             }
 
-            $enum->addCase($enumCaseName, $enumValue);
+            $enumCase = $enum->addCase($enumCaseName, $enumValue);
+
+            if (is_array($enumVarDescriptions)) {
+                $enumCase->addComment((string) $enumVarDescriptions[$index]);
+            }
         }
 
         return $enumName;
