@@ -299,6 +299,21 @@ components:
         - green
         - white
 
+    ColorXNames:
+      type: string
+      enum:
+        - red
+        - green
+        - white
+      x-enum-varnames:
+        - Rose
+        - Apple
+        - Snow
+      x-enum-descriptions:
+        - A wonderful red like a rose
+        - Just as green as an apple
+        - Like the white snow on the mountains
+
     Test7OrTest8:
       oneOf:
         - $ref: '#/components/schemas/Test7'
