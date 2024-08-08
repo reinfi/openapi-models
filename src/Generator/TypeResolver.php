@@ -64,7 +64,12 @@ readonly class TypeResolver
             return Types::Enum;
         }
 
-        $type = match ($schema->type) {
+        $schemaType = $schema->type;
+        if (is_array($schema->type) && count($schema->type) == 2 && in_array("null", $schema->type)) {
+            $schemaType = current( array_filter($schema->type, fn ($x) => $x !== 'null'));
+        }
+
+        $type = match ($schemaType) {
             'number' => match ($schema->format) {
                 'double', 'float' => 'float',
                 default => 'int'
