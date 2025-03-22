@@ -21,6 +21,7 @@ readonly class TypeResolver
     }
 
     /**
+     * @phpstan-assert Schema $schema when return type is string|Types|null
      * @return ($schema is Reference ? ClassReference|OneOfReference|ScalarType : ($throwException is true ? string|Types : string|Types|null))
      */
     public function resolve(
