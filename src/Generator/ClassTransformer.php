@@ -49,7 +49,7 @@ readonly class ClassTransformer
         $class = $namespace->addClass($name)
             ->setReadOnly();
 
-        if ($schema instanceof Schema && is_string($schema->description) && strlen($schema->description) > 0) {
+        if ($schema instanceof Schema && $schema->description !== null && $schema->description !== '') {
             $class->addComment($schema->description);
         }
 
@@ -59,11 +59,10 @@ readonly class ClassTransformer
             return $this->resolveReferenceForClass($class, $schemaType, $imports);
         }
 
-        assert($schema instanceof Schema);
-
         if (is_string($schemaType) || in_array(
             $schemaType,
-            [Types::Date, Types::DateTime, Types::OneOf, Types::Null]
+            [Types::Date, Types::DateTime, Types::OneOf, Types::Null],
+            true
         )) {
             if ($class->getName() !== null) {
                 $namespace->removeClass($class->getName());
@@ -81,7 +80,6 @@ readonly class ClassTransformer
                 $schemasForClass,
                 static fn (array $requiredProperties, Schema $schema) => array_merge(
                     $requiredProperties,
-                    // @phpstan-ignore-next-line Invalid definition in class.
                     is_array($schema->required) ? $schema->required : []
                 ),
                 []
@@ -108,6 +106,13 @@ readonly class ClassTransformer
             );
 
             foreach ($properties as $propertyName => $property) {
+                if (! $property instanceof Schema && ! $property instanceof Reference) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Property "%s" must be an instance of Schema or Reference',
+                        $name
+                    ));
+                }
+
                 $type = $this->typeResolver->resolve($openApi, $property);
 
                 if ($type === Types::AllOf) {
@@ -142,7 +147,7 @@ readonly class ClassTransformer
                     }
                 }
 
-                if ($type === Types::Object && $property instanceof Schema) {
+                if ($type === Types::Object) {
                     $inlineType = $this->transformInlineObject(
                         $configuration,
                         $openApi,
@@ -156,13 +161,13 @@ readonly class ClassTransformer
                     $parameter->setType($namespace->resolveName($inlineType));
                 }
 
-                if ($type === Types::Enum && $property instanceof Schema) {
+                if ($type === Types::Enum) {
                     $enumType = $this->transformEnum($name, $propertyName, $property, $namespace);
 
                     $parameter->setType($namespace->resolveName($enumType));
                 }
 
-                if ($type === Types::Array && $property instanceof Schema) {
+                if ($type === Types::Array) {
                     $arrayType = $this->resolveArrayType(
                         $configuration,
                         $openApi,
@@ -187,7 +192,7 @@ readonly class ClassTransformer
                     $imports->addImport(...$arrayType->imports);
                 }
 
-                if ($type === Types::OneOf && $property instanceof Schema) {
+                if ($type === Types::OneOf) {
                     $oneOfType = $this->transformOneOf(
                         $configuration,
                         $openApi,
@@ -229,7 +234,7 @@ readonly class ClassTransformer
 
             if ($dictionarySchema instanceof Reference) {
                 $dictionarySchema = $this->referenceResolver->resolve($openApi, $dictionarySchema)
-->schema;
+                    ->schema;
             }
 
             $dictionaryType = $this->resolveDictionaryType(
@@ -336,7 +341,9 @@ readonly class ClassTransformer
             default => 'string'
         });
 
+        // @phpstan-ignore-next-line
         $enumVarNames = isset($schema->{'x-enum-varnames'}) ? $schema->{'x-enum-varnames'} : null;
+        // @phpstan-ignore-next-line
         $enumVarDescriptions = isset($schema->{'x-enum-descriptions'}) ? $schema->{'x-enum-descriptions'} : null;
 
         if (is_array($enumVarNames) && count($schema->enum) !== count($enumVarNames)) {
@@ -348,13 +355,28 @@ readonly class ClassTransformer
         }
 
         foreach ($schema->enum as $index => $enumValue) {
+            if (! is_string($enumValue) && ! is_int($enumValue)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Enum value must be string or integer, got %s',
+                    gettype($enumValue)
+                ));
+            }
+
             $enumCaseName = match ($enum->getType()) {
-                'int' => sprintf('Value%u', $enumValue),
-                default => ucfirst($enumValue),
+                'int' => sprintf('Value%u', (int) $enumValue),
+                default => ucfirst((string) $enumValue),
             };
 
             if (is_array($enumVarNames)) {
-                $enumCaseName = (string) $enumVarNames[$index];
+                $varName = $enumVarNames[$index];
+                if (! is_string($varName)) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Enum var name at index %d must be a string, got %s',
+                        $index,
+                        gettype($varName)
+                    ));
+                }
+                $enumCaseName = $varName;
             }
 
             if (! Helpers::isIdentifier($enumCaseName)) {
@@ -377,7 +399,15 @@ readonly class ClassTransformer
             $enumCase = $enum->addCase($enumCaseName, $enumValue);
 
             if (is_array($enumVarDescriptions)) {
-                $enumCase->addComment((string) $enumVarDescriptions[$index]);
+                $description = $enumVarDescriptions[$index];
+                if (! is_string($description)) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Enum description at index %d must be a string, got %s',
+                        $index,
+                        gettype($description)
+                    ));
+                }
+                $enumCase->addComment($description);
             }
         }
 
@@ -414,7 +444,7 @@ readonly class ClassTransformer
             $arrayType = Types::OneOf;
         }
 
-        if ($arrayType === Types::Object && $itemsSchema instanceof Schema) {
+        if ($arrayType === Types::Object) {
             $arrayType = $namespace->resolveName(
                 $this->transformInlineObject(
                     $configuration,
@@ -428,13 +458,13 @@ readonly class ClassTransformer
             );
         }
 
-        if ($arrayType === Types::Enum && $itemsSchema instanceof Schema) {
+        if ($arrayType === Types::Enum) {
             $arrayType = $namespace->resolveName(
                 $this->transformEnum($parentName, $propertyName, $itemsSchema, $namespace)
             );
         }
 
-        if ($arrayType === Types::OneOf && $itemsSchema instanceof Schema && is_array($itemsSchema->oneOf)) {
+        if ($arrayType === Types::OneOf && is_array($itemsSchema->oneOf)) {
             $oneOfArrayType = $this->transformOneOf(
                 $configuration,
                 $openApi,
@@ -461,7 +491,7 @@ readonly class ClassTransformer
             );
         }
 
-        if ($arrayType === Types::Array && $itemsSchema instanceof Schema) {
+        if ($arrayType === Types::Array) {
             $innerArrayType = $this->resolveArrayType(
                 $configuration,
                 $openApi,

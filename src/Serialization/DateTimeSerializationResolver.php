@@ -39,7 +39,7 @@ class DateTimeSerializationResolver
 
         if ($property instanceof Reference) {
             $property = $this->referenceResolver->resolve($openApi, $property)
-->schema;
+                ->schema;
         }
 
         $type = $this->typeResolver->resolve($openApi, $property);

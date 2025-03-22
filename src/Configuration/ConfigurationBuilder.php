@@ -24,19 +24,57 @@ readonly class ConfigurationBuilder
         }
 
         if (! is_array($configurationValues)) {
-            throw new InvalidArgumentException(
-                sprintf('Configuration file "%s" does not return an array', $configurationFile)
-            );
+            throw new InvalidArgumentException('Configuration must be an array');
+        }
+
+        // Assign and validate paths
+        $paths = $configurationValues['paths'] ?? [];
+        if (! is_array($paths)) {
+            throw new InvalidArgumentException('Paths must be an array');
+        }
+        $paths = array_filter($paths, fn ($path) => is_string($path));
+        if (count($paths) !== count($paths)) {
+            throw new InvalidArgumentException('All paths must be strings');
+        }
+
+        // Assign and validate outputPath
+        $outputPath = $configurationValues['outputPath'] ?? '';
+        if (! is_string($outputPath)) {
+            throw new InvalidArgumentException('Output path must be a string');
+        }
+
+        // Assign and validate namespace
+        $namespace = $configurationValues['namespace'] ?? '';
+        if (! is_string($namespace)) {
+            throw new InvalidArgumentException('Namespace must be a string');
+        }
+
+        // Assign and validate clearOutputDirectory
+        $clearOutputDirectory = (bool) ($configurationValues['clearOutputDirectory'] ?? false);
+
+        // Assign and validate dateTimeAsObject
+        $dateTimeAsObject = (bool) ($configurationValues['dateTimeAsObject'] ?? false);
+
+        // Assign and validate dateFormat
+        $dateFormat = $configurationValues['dateFormat'] ?? 'Y-m-d';
+        if (! is_string($dateFormat)) {
+            throw new InvalidArgumentException('Date format must be a string');
+        }
+
+        // Assign and validate dateTimeFormat
+        $dateTimeFormat = $configurationValues['dateTimeFormat'] ?? DateTimeInterface::RFC3339;
+        if (! is_string($dateTimeFormat)) {
+            throw new InvalidArgumentException('Date time format must be a string');
         }
 
         $configuration = new Configuration(
-            $configurationValues['paths'] ?? [],
-            $configurationValues['outputPath'] ?? '',
-            $configurationValues['namespace'] ?? '',
-            (bool) ($configurationValues['clearOutputDirectory'] ?? false),
-            (bool) ($configurationValues['dateTimeAsObject'] ?? false),
-            $configurationValues['dateFormat'] ?? 'Y-m-d',
-            $configurationValues['dateTimeFormat'] ?? DateTimeInterface::RFC3339,
+            $paths,
+            $outputPath,
+            $namespace,
+            $clearOutputDirectory,
+            $dateTimeAsObject,
+            $dateFormat,
+            $dateTimeFormat,
         );
 
         $this->validate($configuration);

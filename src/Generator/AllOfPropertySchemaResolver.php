@@ -62,6 +62,7 @@ class AllOfPropertySchemaResolver
                 );
             }
 
+            // @phpstan-ignore-next-line This is an invalid phpstan error.
             if ($allOfSchema instanceof Reference) {
                 if ($type instanceof ScalarType) {
                     $hasSingleType = true;
@@ -76,7 +77,7 @@ class AllOfPropertySchemaResolver
                     continue;
                 }
 
-                if (in_array($referenceType, [Types::AllOf, Types::OneOf, Types::AnyOf])) {
+                if (in_array($referenceType, [Types::AllOf, Types::OneOf, Types::AnyOf], true)) {
                     throw new InvalidAllOfException(
                         $propertyName,
                         sprintf('found type "%s" which is not allowed', $referenceType->value)
@@ -129,7 +130,6 @@ class AllOfPropertySchemaResolver
             ...array_map(
                 static fn (AllOfType $allOfType) => is_array(
                     $allOfType->schema->required
-                    // @phpstan-ignore-next-line Invalid definition in class.
                 ) ? $allOfType->schema->required : [],
                 $resolvedTypes
             )

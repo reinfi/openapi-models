@@ -34,7 +34,7 @@ readonly class PropertyResolver
             }
         }
 
-        if ($schema->nullable ?? false) {
+        if ($schema instanceof Schema && ($schema->nullable ?? false)) {
             $property->setNullable();
         }
 

@@ -39,7 +39,7 @@ readonly class Parser
     }
 
     /**
-     * @param list<File> $files
+     * @param array<array-key, File> $files
      */
     private function mergeFiles(array $files): ParserResult
     {
