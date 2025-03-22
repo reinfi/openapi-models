@@ -8,7 +8,7 @@ use Exception;
 
 class UnsupportedTypeForArrayException extends Exception
 {
-    public function __construct(string $type, string $additionalMessage = null)
+    public function __construct(string $type, ?string $additionalMessage = null)
     {
         if ($additionalMessage !== null) {
             parent::__construct(
