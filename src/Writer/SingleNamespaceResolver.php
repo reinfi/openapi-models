@@ -29,7 +29,8 @@ class SingleNamespaceResolver
             }
 
             foreach ($class->getMethods() as $method) {
-                if ($method->getReturnType() !== 'mixed' && $method->getReturnType(true)?->allows($use)) {
+                $returnType = $method->getReturnType(true);
+                if ($method->getReturnType() !== 'mixed' && $returnType !== null && $returnType->allows($use)) {
                     $classOnlyNamespace->addUse($use);
                 }
 
@@ -47,7 +48,7 @@ class SingleNamespaceResolver
                     $method->setComment(str_replace($use, $namespace->simplifyName($use), $method->getComment()));
                 }
 
-                if ($method->getReturnType(true)?->allows('array') && $method->getComment() !== null) {
+                if ($returnType !== null && $returnType->allows('array') && $method->getComment() !== null) {
                     if (str_contains($method->getComment(), $use)) {
                         $namespace->addUse($use);
                         $method->setComment(
@@ -76,13 +77,15 @@ class SingleNamespaceResolver
             return;
         }
 
-        if ($parameterOrProperty->getType(true)?->allows($use) || $parameterOrProperty->getType() === $use) {
+        $type = $parameterOrProperty->getType(true);
+        if ($type !== null && $type->allows($use) || $parameterOrProperty->getType() === $use) {
             $namespace->addUse($use);
         }
 
         if (in_array(
             'array',
-            explode('|', $parameterOrProperty->getType())
+            explode('|', $parameterOrProperty->getType()),
+            true
         ) && $parameterOrProperty->getComment() !== null) {
             if (str_contains($parameterOrProperty->getComment(), $use)) {
                 $namespace->addUse($use);

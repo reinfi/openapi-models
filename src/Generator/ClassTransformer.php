@@ -61,7 +61,8 @@ readonly class ClassTransformer
 
         if (is_string($schemaType) || in_array(
             $schemaType,
-            [Types::Date, Types::DateTime, Types::OneOf, Types::Null]
+            [Types::Date, Types::DateTime, Types::OneOf, Types::Null],
+            true
         )) {
             if ($class->getName() !== null) {
                 $namespace->removeClass($class->getName());
@@ -340,7 +341,9 @@ readonly class ClassTransformer
             default => 'string'
         });
 
+        // @phpstan-ignore-next-line
         $enumVarNames = isset($schema->{'x-enum-varnames'}) ? $schema->{'x-enum-varnames'} : null;
+        // @phpstan-ignore-next-line
         $enumVarDescriptions = isset($schema->{'x-enum-descriptions'}) ? $schema->{'x-enum-descriptions'} : null;
 
         if (is_array($enumVarNames) && count($schema->enum) !== count($enumVarNames)) {

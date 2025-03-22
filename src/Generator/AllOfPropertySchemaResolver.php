@@ -77,7 +77,7 @@ class AllOfPropertySchemaResolver
                     continue;
                 }
 
-                if (in_array($referenceType, [Types::AllOf, Types::OneOf, Types::AnyOf])) {
+                if (in_array($referenceType, [Types::AllOf, Types::OneOf, Types::AnyOf], true)) {
                     throw new InvalidAllOfException(
                         $propertyName,
                         sprintf('found type "%s" which is not allowed', $referenceType->value)

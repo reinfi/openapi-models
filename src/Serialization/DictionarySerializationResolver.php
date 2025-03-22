@@ -40,7 +40,7 @@ class DictionarySerializationResolver
         $inlineArrayReturnType = null;
 
         if ($valueType === 'array' && $valueParameter->getComment() !== null) {
-            if (preg_match('/^@var (?<type>.*)\[]/', $valueParameter->getComment(), $matches)) {
+            if (preg_match('/^@var (?<type>.*)\[]/', $valueParameter->getComment(), $matches) === 1) {
                 $inlineArrayReturnType = $this->intend(sprintf('/** @return %s[] */', $matches['type']));
             }
         }
@@ -66,7 +66,7 @@ class DictionarySerializationResolver
             $this->intend(')', 2),
             $this->intend(')'),
             ')',
-        ]);
+        ], static fn (?string $code): bool => $code !== null);
     }
 
     private function intend(string $code, int $intends = 1): string

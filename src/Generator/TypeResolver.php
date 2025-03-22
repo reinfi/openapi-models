@@ -34,7 +34,7 @@ readonly class TypeResolver
 
             $referenceType = $this->resolve($openApi, $schemaWithName->schema);
 
-            if (in_array($referenceType, [Types::Date, Types::DateTime])) {
+            if (in_array($referenceType, [Types::Date, Types::DateTime], true)) {
                 return new ClassReference($schemaWithName->openApiType, DateTimeInterface::class);
             }
 
