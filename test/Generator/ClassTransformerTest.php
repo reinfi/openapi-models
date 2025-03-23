@@ -41,7 +41,7 @@ class ClassTransformerTest extends TestCase
 
     protected function setUp(): void
     {
-        BypassFinals::enable();
+        BypassFinals::enable(bypassReadOnly: false);
 
         $this->configuration = new Configuration([], '', '');
     }

@@ -26,7 +26,7 @@ class AllOfPropertySchemaResolverTest extends TestCase
 {
     protected function setUp(): void
     {
-        BypassFinals::enable();
+        BypassFinals::enable(bypassReadOnly: false);
     }
 
     public static function resolverDataProvider(): iterable

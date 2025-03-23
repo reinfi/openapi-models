@@ -20,13 +20,15 @@ class ParserTest extends TestCase
 
     protected function setUp(): void
     {
-        BypassFinals::enable();
+        BypassFinals::enable(bypassReadOnly: false);
 
         $this->inputRoot = vfsStream::setup('input');
     }
 
     public function testItMergesDirectoriesAndFiles(): void
     {
+        // BypassFinals::enable();
+
         $openApiMerger = $this->createMock(OpenApiMerge::class);
         $openApiMerger
             ->expects($this->once())
@@ -55,11 +57,13 @@ class ParserTest extends TestCase
         $parserResult = $parser->parse($configuration);
 
         self::assertCount(4, $parserResult->parsedFiles);
-        self::assertContainsOnly(File::class, $parserResult->parsedFiles);
+        self::assertContainsOnlyInstancesOf(File::class, $parserResult->parsedFiles);
     }
 
     public function testItThrowsExceptionIfNoFilesFound(): void
     {
+        BypassFinals::enable();
+
         self::expectException(InvalidArgumentException::class);
 
         $openApiMerger = $this->createMock(OpenApiMerge::class);
