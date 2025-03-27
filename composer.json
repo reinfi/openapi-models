@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "php": "~8.2.0 || ~8.3.0 || ~8.4.0",
+        "php": "~8.3.0 || ~8.4.0",
         "nette/php-generator": "^4.1",
         "symfony/console": "^6.0 | ^7.0",
         "php-di/php-di": "^7.0",

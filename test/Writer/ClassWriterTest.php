@@ -65,7 +65,7 @@ class ClassWriterTest extends TestCase
 
         $children = $this->outputDir->getChildren();
         self::assertCount(2, $children, 'two directories should be created');
-        
+
         foreach ($children as $child) {
             self::assertInstanceOf(vfsStreamDirectory::class, $child);
             $subChildren = $child->getChildren();

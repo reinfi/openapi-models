@@ -16,12 +16,6 @@ parameters:
         - message: '#Method [a-zA-Z0-9\\_]+::[a-zA-Z0-9\\_]+\(\) return type has no value type specified in iterable type#'
           paths:
             - test/*
-        - message: '#Call to method method\(\) on an unknown class PHPUnit\\Framework\\MockObject\\Builder\\InvocationMocker#'
-          paths:
-            - test/*
-        - message: '#Cannot call method [a-zA-Z0-9]+\(\) on mixed#'
-          paths:
-            - test/*
     strictRules:
     		disallowedLooseComparison: true
     		booleansInConditions: true

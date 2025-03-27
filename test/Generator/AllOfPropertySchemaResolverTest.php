@@ -600,7 +600,7 @@ class AllOfPropertySchemaResolverTest extends TestCase
         if (count($resolvedTypes) > 0) {
             $typeResolver->expects($this->exactly(count($resolvedTypes)))
                 ->method('resolve')
-                ->willReturn(...$resolvedTypes);
+                ->willReturnOnConsecutiveCalls(...array_values($resolvedTypes));
         } else {
             $typeResolver->expects($this->never())
                 ->method('resolve');
@@ -609,7 +609,7 @@ class AllOfPropertySchemaResolverTest extends TestCase
         if (count($referenceSchemas) > 0) {
             $referenceResolver->expects($this->exactly(count($referenceSchemas)))
                 ->method('resolve')
-                ->willReturn(...$referenceSchemas);
+                ->willReturnOnConsecutiveCalls(...array_values($referenceSchemas));
         } else {
             $referenceResolver->expects($this->never())
                 ->method('resolve');

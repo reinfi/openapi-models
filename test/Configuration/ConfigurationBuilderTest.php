@@ -7,7 +7,6 @@ namespace Reinfi\OpenApiModels\Test\Configuration;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Configuration\ConfigurationBuilder;
 use Throwable;
 
