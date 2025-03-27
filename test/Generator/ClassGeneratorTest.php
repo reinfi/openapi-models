@@ -52,8 +52,8 @@ class ClassGeneratorTest extends TestCase
             ->with(
                 $configuration,
                 $openApi,
-                $this->callback(static fn (string $name): bool => in_array($name, ['Test1', 'Test2'], true)),
-                $this->isInstanceOf(Schema::class),
+                self::callback(static fn (string $name): bool => in_array($name, ['Test1', 'Test2'], true)),
+                self::isInstanceOf(Schema::class),
                 $namespace
             )->willReturn(new ClassType());
 
@@ -98,7 +98,7 @@ class ClassGeneratorTest extends TestCase
                 $configuration,
                 $openApi,
                 'Test1',
-                $this->isInstanceOf(Schema::class),
+                self::isInstanceOf(Schema::class),
                 $namespace
             )->willReturn(new ClassType());
 
@@ -143,7 +143,7 @@ class ClassGeneratorTest extends TestCase
                 $configuration,
                 $openApi,
                 'Test1',
-                $this->isInstanceOf(Schema::class),
+                self::isInstanceOf(Schema::class),
                 $namespace
             )->willReturn(new ClassType());
 
@@ -188,7 +188,7 @@ class ClassGeneratorTest extends TestCase
                 $configuration,
                 $openApi,
                 'Test1',
-                $this->isInstanceOf(Reference::class),
+                self::isInstanceOf(Reference::class),
                 $namespace
             )->willReturn(new ClassType());
 
@@ -238,7 +238,7 @@ class ClassGeneratorTest extends TestCase
                 $configuration,
                 $openApi,
                 'Test1',
-                $this->isInstanceOf(Schema::class),
+                self::isInstanceOf(Schema::class),
                 $namespace
             )->willReturn(new ClassType());
 
@@ -325,7 +325,7 @@ class ClassGeneratorTest extends TestCase
                 $configuration,
                 $openApi,
                 'Test1',
-                $this->isInstanceOf(Schema::class),
+                self::isInstanceOf(Schema::class),
                 $namespace
             )->willReturn(new ClassType());
 

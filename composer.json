@@ -36,7 +36,8 @@
         "phpstan/phpstan": "^2.1",
         "mikey179/vfsstream": "^1.6",
         "dg/bypass-finals": "^1.5",
-        "phpstan/phpstan-strict-rules": "^2.0"
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0"
     },
     "bin": [
         "bin/openapi-models"

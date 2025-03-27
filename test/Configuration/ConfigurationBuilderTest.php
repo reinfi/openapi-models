@@ -65,12 +65,12 @@ class ConfigurationBuilderTest extends TestCase
     ): void {
         if ($expectedException !== null) {
             self::expectException($expectedException::class);
+        } else {
+            self::expectNotToPerformAssertions();
         }
 
         $builder = new ConfigurationBuilder();
 
-        $configuration = $builder->buildFromFile($pathToConfiguration);
-
-        self::assertInstanceOf(Configuration::class, $configuration);
+        $builder->buildFromFile($pathToConfiguration);
     }
 }

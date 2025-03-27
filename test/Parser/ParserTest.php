@@ -62,8 +62,6 @@ class ParserTest extends TestCase
 
     public function testItThrowsExceptionIfNoFilesFound(): void
     {
-        BypassFinals::enable();
-
         self::expectException(InvalidArgumentException::class);
 
         $openApiMerger = $this->createMock(OpenApiMerge::class);
