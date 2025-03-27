@@ -35,7 +35,7 @@ class ValidationResult
     /**
      * @return ValidationFile[]
      */
-    public function getInvalidFiles(ValidationFileResult $filter = null): array
+    public function getInvalidFiles(?ValidationFileResult $filter = null): array
     {
         if ($filter === null) {
             return array_filter(
