@@ -7,7 +7,6 @@ namespace Reinfi\OpenApiModels\Test\Configuration;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Configuration\ConfigurationBuilder;
 use Throwable;
 
@@ -65,12 +64,12 @@ class ConfigurationBuilderTest extends TestCase
     ): void {
         if ($expectedException !== null) {
             self::expectException($expectedException::class);
+        } else {
+            self::expectNotToPerformAssertions();
         }
 
         $builder = new ConfigurationBuilder();
 
-        $configuration = $builder->buildFromFile($pathToConfiguration);
-
-        self::assertInstanceOf(Configuration::class, $configuration);
+        $builder->buildFromFile($pathToConfiguration);
     }
 }

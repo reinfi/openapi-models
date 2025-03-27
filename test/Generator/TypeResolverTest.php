@@ -27,7 +27,7 @@ class TypeResolverTest extends TestCase
 {
     protected function setUp(): void
     {
-        BypassFinals::enable();
+        BypassFinals::enable(bypassReadOnly: false);
     }
 
     public static function typeDataProvider(): array

@@ -9,9 +9,8 @@ use Reinfi\OpenApiModels\Generator\OpenApiType;
 
 class NotRegisteredNamespaceException extends Exception
 {
-    public function __construct(
-        OpenApiType $openApiType
-    ) {
+    public function __construct(OpenApiType $openApiType)
+    {
         parent::__construct(
             sprintf('No namespace is registered for open api type %s', $openApiType->value)
         );

@@ -8,9 +8,8 @@ use Exception;
 
 class PropertyNotFoundException extends Exception
 {
-    public function __construct(
-        string $propertyName
-    ) {
+    public function __construct(string $propertyName)
+    {
         parent::__construct(sprintf('Property "%s" was not found in schema', $propertyName));
     }
 }

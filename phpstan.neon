@@ -1,10 +1,21 @@
 includes:
     - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/phpstan/phpstan-phpunit/rules.neon
 parameters:
     level: max
     paths:
         - src
+        - test
+    excludePaths:
+        analyse:
+            - %currentWorkingDirectory%/test/Acceptance/ExpectedClasses
+            - %currentWorkingDirectory%/test/output
     treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        - message: '#Method [a-zA-Z0-9\\_]+::[a-zA-Z0-9\\_]+\(\) return type has no value type specified in iterable type#'
+          paths:
+            - test/*
     strictRules:
     		disallowedLooseComparison: true
     		booleansInConditions: true

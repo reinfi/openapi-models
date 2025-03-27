@@ -41,7 +41,7 @@ class ClassTransformerTest extends TestCase
 
     protected function setUp(): void
     {
-        BypassFinals::enable();
+        BypassFinals::enable(bypassReadOnly: false);
 
         $this->configuration = new Configuration([], '', '');
     }
@@ -66,7 +66,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->isInstanceOf(Reference::class),
+                self::isInstanceOf(Reference::class),
             )->willReturn(new ClassReference(OpenApiType::Schemas, 'Test2'));
 
         $arrayObjectResolver->expects($this->never())
@@ -118,7 +118,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->once())
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn('string');
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn('string');
 
         $arrayObjectResolver->expects($this->never())
             ->method('resolve');
@@ -167,7 +167,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->once())
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Date);
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Date);
 
         $arrayObjectResolver->expects($this->never())
             ->method('resolve');
@@ -299,7 +299,7 @@ class ClassTransformerTest extends TestCase
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
 
         $propertyResolver->method('resolve')
-            ->with($this->isInstanceOf(Method::class), 'id', $this->isInstanceOf(Schema::class), false, 'int')
+            ->with(self::isInstanceOf(Method::class), 'id', self::isInstanceOf(Schema::class), false, 'int')
             ->willReturn(new PromotedParameter('test'));
 
         $referenceResolver->expects($this->never())
@@ -307,7 +307,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, 'int');
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, 'int');
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -362,7 +362,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, 'int', 'string');
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, 'int', 'string');
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -417,7 +417,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(
                 Types::Object,
                 Types::DateTime,
                 Types::Date
@@ -487,7 +487,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(
                 Types::Object,
                 Types::Date,
                 Types::DateTime
@@ -557,7 +557,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(
+                self::callback(
                     static fn (
                         Reference $reference
                     ): bool => $reference->getReference() === '#/components/schemas/Test2'
@@ -578,7 +578,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, 'int', 'string');
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, 'int', 'string');
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -638,7 +638,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->isInstanceOf(Schema::class),
+                self::isInstanceOf(Schema::class),
             )->willReturn(Types::Object, Types::Object, Types::Object, 'string');
 
         $serializableResolver = $this->createMock(SerializableResolver::class);
@@ -705,7 +705,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -771,7 +771,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -838,7 +838,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(2))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array);
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Array);
 
         $propertyResolver->expects($this->once())
             ->method('resolve')
@@ -894,7 +894,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->with($openApi, self::isInstanceOf(Schema::class))
             ->willReturn(Types::Object, Types::Array, Types::AnyOf);
 
         $propertyResolver->expects($this->once())
@@ -957,7 +957,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->with($openApi, self::isInstanceOf(Schema::class))
             ->willReturn(Types::Object, Types::Array, 'string');
 
         $propertyResolver->expects($this->once())
@@ -1022,7 +1022,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(
+                self::callback(
                     function (Schema|Reference $schema): bool {
                         if ($schema instanceof Reference) {
                             return $schema->getReference() === '#/components/schemas/Id';
@@ -1095,7 +1095,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->with($openApi, self::isInstanceOf(Schema::class))
             ->willReturn(Types::Object, Types::Array, 'string');
 
         $propertyResolver->expects($this->once())
@@ -1159,7 +1159,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->with($openApi, self::isInstanceOf(Schema::class))
             ->willReturn(Types::Object, Types::Array, Types::Date);
 
         $propertyResolver->expects($this->once())
@@ -1226,7 +1226,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->isInstanceOf(Schema::class),
+                self::isInstanceOf(Schema::class),
             )->willReturn(Types::Object, Types::Array, Types::Object, Types::Object, 'string');
 
         $propertyResolver->expects($this->exactly(2))
@@ -1296,7 +1296,7 @@ class ClassTransformerTest extends TestCase
 
         $typeResolver->expects($this->exactly(3))
             ->method('resolve')
-            ->with($openApi, $this->isInstanceOf(Schema::class))
+            ->with($openApi, self::isInstanceOf(Schema::class))
             ->willReturn(Types::Object, Types::Array, Types::Enum);
 
         $propertyResolver->expects($this->once())
@@ -1364,7 +1364,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(function (Schema|Reference $schema): bool {
+                self::callback(function (Schema|Reference $schema): bool {
                     if ($schema instanceof Reference) {
                         return $schema->getReference() === '#/components/schemas/Test2';
                     }
@@ -1435,7 +1435,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(function (Schema|Reference $schema): bool {
+                self::callback(function (Schema|Reference $schema): bool {
                     if ($schema instanceof Reference) {
                         return in_array(
                             $schema->getReference(),
@@ -1529,7 +1529,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(function (Schema|Reference $schema): bool {
+                self::callback(function (Schema|Reference $schema): bool {
                     if ($schema instanceof Reference) {
                         return in_array(
                             $schema->getReference(),
@@ -1628,7 +1628,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(function (Schema|Reference $schema): bool {
+                self::callback(function (Schema|Reference $schema): bool {
                     if ($schema instanceof Reference) {
                         return $schema->getReference() === '#/components/schemas/Test1';
                     }
@@ -1706,7 +1706,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(function (Schema|Reference $schema): bool {
+                self::callback(function (Schema|Reference $schema): bool {
                     if ($schema instanceof Reference) {
                         return $schema->getReference() === '#/components/schemas/Test2';
                     }
@@ -1798,7 +1798,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(static fn (Schema $schema): bool => in_array(
+                self::callback(static fn (Schema $schema): bool => in_array(
                     $schema->type,
                     ['array', 'string'],
                     true
@@ -1811,10 +1811,10 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver->expects($this->once())
             ->method('resolve')
             ->with(
-                $this->isInstanceOf(ClassType::class),
-                $this->isInstanceOf(Method::class),
-                $this->callback(static fn (ArrayType $arrayType): bool => $arrayType->type === 'string'),
-                $this->isInstanceOf(Imports::class),
+                self::isInstanceOf(ClassType::class),
+                self::isInstanceOf(Method::class),
+                self::callback(static fn (ArrayType $arrayType): bool => $arrayType->type === 'string'),
+                self::isInstanceOf(Imports::class),
             );
 
         $transformer = new ClassTransformer(
@@ -1866,7 +1866,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(
+                self::callback(
                     static fn (Schema $schema): bool => $schema->type === 'string' && count($schema->enum) === 3
                 ),
             )->willReturn(Types::Enum);
@@ -1931,7 +1931,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(
+                self::callback(
                     static fn (Schema $schema): bool => $schema->type === 'string' && count($schema->enum) === 2
                 ),
             )->willReturn(Types::Enum);
@@ -2003,7 +2003,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->callback(
+                self::callback(
                     static fn (
                         Schema $schema
                     ): bool => $schema->type === 'object' || (is_array(
@@ -2014,7 +2014,7 @@ class ClassTransformerTest extends TestCase
 
         $propertyResolver->expects($this->once())
             ->method('resolve')
-            ->with($this->isInstanceOf(Method::class), 'dollar', $propertySchema, false, 'string')
+            ->with(self::isInstanceOf(Method::class), 'dollar', $propertySchema, false, 'string')
             ->willReturn($parameter);
 
         $arrayObjectResolver->expects($this->never())
@@ -2024,7 +2024,7 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with(
                 $openApi,
-                $this->isInstanceOf(Schema::class),
+                self::isInstanceOf(Schema::class),
                 'dollar'
             )->willReturn(new AllOfType('string', $propertySchema));
 
@@ -2092,7 +2092,7 @@ class ClassTransformerTest extends TestCase
 
         $dictionaryResolver->expects($this->once())
             ->method('resolve')
-            ->with($namespace, 'Test', $this->isInstanceOf(ClassType::class), 'string');
+            ->with($namespace, 'Test', self::isInstanceOf(ClassType::class), 'string');
 
         $serializableResolver->expects($this->once())
             ->method('resolve')
@@ -2101,8 +2101,8 @@ class ClassTransformerTest extends TestCase
                 $openApi,
                 $schema,
                 $namespace,
-                $this->isInstanceOf(ClassType::class),
-                $this->isInstanceOf(Method::class)
+                self::isInstanceOf(ClassType::class),
+                self::isInstanceOf(Method::class)
             );
 
         $transformer = new ClassTransformer(
@@ -2154,8 +2154,8 @@ class ClassTransformerTest extends TestCase
                 $openApi,
                 $schema,
                 $namespace,
-                $this->isInstanceOf(ClassType::class),
-                $this->isInstanceOf(Method::class)
+                self::isInstanceOf(ClassType::class),
+                self::isInstanceOf(Method::class)
             );
 
         $transformer = new ClassTransformer(

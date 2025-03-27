@@ -63,9 +63,13 @@ class ClassWriterTest extends TestCase
             'responses' => $secondNamespace,
         ]);
 
-        self::assertCount(2, $this->outputDir->getChildren(), 'two directories should be created');
-        foreach ($this->outputDir->getChildren() as $vfsStreamContent) {
-            self::assertCount(1, $vfsStreamContent->getChildren(), 'one file should exist in directory');
+        $children = $this->outputDir->getChildren();
+        self::assertCount(2, $children, 'two directories should be created');
+
+        foreach ($children as $child) {
+            self::assertInstanceOf(vfsStreamDirectory::class, $child);
+            $subChildren = $child->getChildren();
+            self::assertCount(1, $subChildren, 'one file should exist in directory');
         }
     }
 
