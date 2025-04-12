@@ -380,6 +380,11 @@ readonly class ClassTransformer
             }
 
             if (! Helpers::isIdentifier($enumCaseName)) {
+                if (is_numeric($enumCaseName)) {
+                  $formatter = new \NumberFormatter('en', \NumberFormatter::SPELLOUT);
+                  $enumCaseName = $formatter->format(intval($enumCaseName));
+                }
+
                 $enumCaseNameParts = preg_split('/[^A-z0-9]+/', $enumCaseName);
                 if (! is_array($enumCaseNameParts)) {
                     throw new InvalidArgumentException(
