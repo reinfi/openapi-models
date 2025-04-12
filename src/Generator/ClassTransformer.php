@@ -390,6 +390,18 @@ readonly class ClassTransformer
             }
 
             if (! Helpers::isIdentifier($enumCaseName)) {
+                if (is_numeric($enumCaseName)) {
+                    $formatter = new NumberFormatter('en', NumberFormatter::SPELLOUT);
+                    $enumCaseName = $formatter->format((int) $enumCaseName);
+
+                    if (! is_string($enumCaseName)) {
+                        throw new InvalidArgumentException(sprintf(
+                            'Enum case name must be string , got %s',
+                            gettype($enumCaseName)
+                        ));
+                    }
+                }
+
                 $enumCaseNameParts = preg_split('/[^A-z0-9]+/', $enumCaseName);
                 if (! is_array($enumCaseNameParts)) {
                     throw new InvalidArgumentException(

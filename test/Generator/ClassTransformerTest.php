@@ -750,6 +750,73 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('negative', $enum->getCases()['Negative']->getValue());
     }
 
+    public function testItResolvesEnumWithNames(): void
+    {
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+
+        $propertyResolver->method('resolve')
+            ->willReturn(new PromotedParameter('test'));
+
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
+            $dictionaryResolver,
+        );
+
+        $schema = new Schema([
+            'properties' => [
+                'state' => [
+                    'type' => 'string',
+                    'enum' => ['StringName', 'IntegerName'],
+                    'x-enum-varnames' => ['String', '1'],
+                ],
+            ],
+        ]);
+
+        $classType = $transformer->transform(
+            $this->configuration,
+            $openApi,
+            'Test',
+            $schema,
+            $namespace,
+            new Imports($namespace)
+        );
+        $classes = $namespace->getClasses();
+
+        self::assertEquals('Test', $classType->getName());
+        self::assertCount(2, $classes);
+        self::assertArrayHasKey('TestState', $classes);
+
+        $enum = $classes['TestState'];
+        self::assertInstanceOf(EnumType::class, $enum);
+        self::assertEquals('string', $enum->getType());
+        self::assertCount(2, $enum->getCases());
+        self::assertArrayHasKey('String', $enum->getCases());
+        self::assertArrayHasKey('One', $enum->getCases());
+        self::assertEquals('StringName', $enum->getCases()['String']->getValue());
+        self::assertEquals('IntegerName', $enum->getCases()['One']->getValue());
+    }
+
     public function testItResolvesEnumOfIntegers(): void
     {
         $openApi = new OpenApi([]);
