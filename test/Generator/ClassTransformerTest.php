@@ -810,10 +810,10 @@ class ClassTransformerTest extends TestCase
         self::assertInstanceOf(EnumType::class, $enum);
         self::assertEquals('int', $enum->getType());
         self::assertCount(2, $enum->getCases());
-        self::assertArrayHasKey('Value1', $enum->getCases());
-        self::assertArrayHasKey('Value2', $enum->getCases());
-        self::assertEquals(1, $enum->getCases()['Value1']->getValue());
-        self::assertEquals(2, $enum->getCases()['Value2']->getValue());
+        self::assertArrayHasKey('One', $enum->getCases());
+        self::assertArrayHasKey('Two', $enum->getCases());
+        self::assertEquals(1, $enum->getCases()['One']->getValue());
+        self::assertEquals(2, $enum->getCases()['Two']->getValue());
     }
 
     public function testItThrowsExceptionIfItemsSchemaIsNull(): void
