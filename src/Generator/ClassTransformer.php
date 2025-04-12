@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Helpers;
 use Nette\PhpGenerator\PhpNamespace;
+use NumberFormatter;
 use openapiphp\openapi\spec\OpenApi;
 use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
@@ -363,9 +364,18 @@ readonly class ClassTransformer
             }
 
             $enumCaseName = match ($enum->getType()) {
-                'int' => sprintf('Value%u', (int) $enumValue),
-                default => ucfirst((string) $enumValue),
+                'int' => (new NumberFormatter('en', NumberFormatter::SPELLOUT))->format((int) $enumValue),
+                default => (string) $enumValue,
             };
+
+            if (! is_string($enumCaseName)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Enum case name must be string , got %s',
+                    gettype($enumCaseName)
+                ));
+            }
+
+            $enumCaseName = ucfirst($enumCaseName);
 
             if (is_array($enumVarNames)) {
                 $varName = $enumVarNames[$index];
@@ -381,8 +391,15 @@ readonly class ClassTransformer
 
             if (! Helpers::isIdentifier($enumCaseName)) {
                 if (is_numeric($enumCaseName)) {
-                  $formatter = new \NumberFormatter('en', \NumberFormatter::SPELLOUT);
-                  $enumCaseName = $formatter->format(intval($enumCaseName));
+                    $formatter = new NumberFormatter('en', NumberFormatter::SPELLOUT);
+                    $enumCaseName = $formatter->format((int) $enumCaseName);
+
+                    if (! is_string($enumCaseName)) {
+                        throw new InvalidArgumentException(sprintf(
+                            'Enum case name must be string , got %s',
+                            gettype($enumCaseName)
+                        ));
+                    }
                 }
 
                 $enumCaseNameParts = preg_split('/[^A-z0-9]+/', $enumCaseName);
