@@ -62,6 +62,7 @@ readonly class SerializableResolver
         $class->setImplements([...$class->getImplements(), JsonSerializable::class]);
 
         $method = $class->addMethod('jsonSerialize')
+            ->addComment('@return array<string, mixed>')
             ->setReturnType('array');
 
         /** @var string[] $parameterSerializeCodeParts */
