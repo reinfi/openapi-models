@@ -74,7 +74,9 @@ class ArrayObjectSerialization
         bool $isDateTime
     ): void {
         $parameter = $constructor->getParameter('items');
+
         $method = $class->addMethod('jsonSerialize')
+            ->addComment(sprintf('@return %1$s[]', $parameter->getType()))
             ->setReturnType('array')
             ->setReturnNullable($parameter->isNullable());
 
