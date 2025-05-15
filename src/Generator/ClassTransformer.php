@@ -356,7 +356,7 @@ readonly class ClassTransformer
         }
 
         foreach ($schema->enum as $index => $enumValue) {
-            if ($enumValue === NULL) {
+            if ($enumValue === null) {
                 continue;
             }
 
