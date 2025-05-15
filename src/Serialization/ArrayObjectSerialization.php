@@ -76,7 +76,7 @@ class ArrayObjectSerialization
         $parameter = $constructor->getParameter('items');
 
         $method = $class->addMethod('jsonSerialize')
-            ->addComment(sprintf('@return %1$s[]', $parameter->getType()))
+            ->addComment(sprintf('@return array<%1$s>', $parameter->getType()))
             ->setReturnType('array')
             ->setReturnNullable($parameter->isNullable());
 

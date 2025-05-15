@@ -16,6 +16,9 @@ readonly class Test15 implements JsonSerializable
         $this->dictionaries = $dictionaries;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return [

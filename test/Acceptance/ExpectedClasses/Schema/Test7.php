@@ -13,8 +13,8 @@ use JsonSerializable;
 use Traversable;
 
 /**
- * @implements ArrayAccess<int, Test1>
- * @implements IteratorAggregate<Test1>
+ * @implements \ArrayAccess<int, Test1>
+ * @implements \IteratorAggregate<Test1>
  */
 readonly class Test7 implements IteratorAggregate, Countable, ArrayAccess, JsonSerializable
 {
@@ -56,6 +56,9 @@ readonly class Test7 implements IteratorAggregate, Countable, ArrayAccess, JsonS
         throw new BadMethodCallException('Object is readOnly');
     }
 
+    /**
+     * @return array<Test1>
+     */
     public function jsonSerialize(): array
     {
         return $this->items;

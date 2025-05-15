@@ -46,32 +46,32 @@ class ArrayObjectResolverTest extends TestCase
         yield [
             'arrayType' => 'string',
             'expectedDocComments' => [
-                '@implements ArrayAccess<int, string>',
-                '@implements IteratorAggregate<string>',
+                '@implements \ArrayAccess<int, string>',
+                '@implements \IteratorAggregate<string>',
             ],
         ];
 
         yield [
             'arrayType' => 'Api\Schema\Test1',
             'expectedDocComments' => [
-                '@implements ArrayAccess<int, Test1>',
-                '@implements IteratorAggregate<Test1>',
+                '@implements \ArrayAccess<int, Test1>',
+                '@implements \IteratorAggregate<Test1>',
             ],
         ];
 
         yield [
             'arrayType' => 'DateTimeInterface',
             'expectedDocComments' => [
-                '@implements ArrayAccess<int, DateTimeInterface>',
-                '@implements IteratorAggregate<DateTimeInterface>',
+                '@implements \ArrayAccess<int, DateTimeInterface>',
+                '@implements \IteratorAggregate<DateTimeInterface>',
             ],
         ];
 
         yield [
             'arrayType' => 'Api\Schema\Test1|Api\Schema\Test2',
             'expectedDocComments' => [
-                '@implements ArrayAccess<int, Test1|Test2>',
-                '@implements IteratorAggregate<Test1|Test2>',
+                '@implements \ArrayAccess<int, Test1|Test2>',
+                '@implements \IteratorAggregate<Test1|Test2>',
             ],
         ];
     }
