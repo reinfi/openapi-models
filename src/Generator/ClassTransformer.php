@@ -356,6 +356,10 @@ readonly class ClassTransformer
         }
 
         foreach ($schema->enum as $index => $enumValue) {
+            if ($enumValue === NULL) {
+                continue;
+            }
+
             if (! is_string($enumValue) && ! is_int($enumValue)) {
                 throw new InvalidArgumentException(sprintf(
                     'Enum value must be string or integer, got %s',
