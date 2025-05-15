@@ -15,6 +15,9 @@ readonly class RequestBody1 implements JsonSerializable
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return array_filter(
@@ -22,8 +25,7 @@ readonly class RequestBody1 implements JsonSerializable
                 'id' => $this->id,
                 'test' => $this->test,
             ],
-            static fn (mixed $value, string $key): bool => !(in_array($key, ['test'], true) && $value === null),
-            ARRAY_FILTER_USE_BOTH
+            static fn (mixed $value): bool => $value === null
         );
     }
 }

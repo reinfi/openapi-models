@@ -14,8 +14,8 @@ use JsonSerializable;
 use Traversable;
 
 /**
- * @implements ArrayAccess<int, DateTimeInterface>
- * @implements IteratorAggregate<DateTimeInterface>
+ * @implements \ArrayAccess<int, DateTimeInterface>
+ * @implements \IteratorAggregate<DateTimeInterface>
  */
 readonly class Test8 implements IteratorAggregate, Countable, ArrayAccess, JsonSerializable
 {
@@ -55,6 +55,9 @@ readonly class Test8 implements IteratorAggregate, Countable, ArrayAccess, JsonS
         throw new BadMethodCallException('Object is readOnly');
     }
 
+    /**
+     * @return array<array>
+     */
     public function jsonSerialize(): ?array
     {
         return $this->items === null ? $this->items : array_map(static fn (DateTimeInterface $date): string => $date->format('Y-m-d'), $this->items);

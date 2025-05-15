@@ -17,6 +17,9 @@ readonly class Test2 implements JsonSerializable
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return [
