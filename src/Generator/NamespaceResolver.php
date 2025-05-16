@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Generator;
 
 use Nette\PhpGenerator\PhpNamespace;
+use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\NotRegisteredNamespaceException;
 
@@ -15,15 +16,27 @@ class NamespaceResolver
      */
     private array $openApiTypeToNamespace = [];
 
-    /**
-     * @return array<value-of<OpenApiType>, PhpNamespace>
-     */
-    public function getNamespaces(): array
+    public function resolveNamespace(OpenApiType $openApiType, Schema $schema): PhpNamespace
     {
-        return $this->openApiTypeToNamespace;
+        // @phpstan-ignore-next-line
+        $xPhpNamespace = $schema->{'x-php-namespace'} ?? null;
+        $openApiNamespace = $this->resolveOpenApiTypeNamespace($openApiType);
+
+        if (! is_string($xPhpNamespace)) {
+            return clone $openApiNamespace;
+        }
+
+        return new PhpNamespace($openApiNamespace->getName() . '\\' . $xPhpNamespace);
     }
 
-    public function resolveNamespace(OpenApiType $openApiType): PhpNamespace
+    public function initialize(Configuration $configuration): void
+    {
+        foreach (OpenApiType::cases() as $openApiType) {
+            $this->openApiTypeToNamespace[$openApiType->value] = $this->buildNamespace($configuration, $openApiType);
+        }
+    }
+
+    private function resolveOpenApiTypeNamespace(OpenApiType $openApiType): PhpNamespace
     {
         $namespace = $this->openApiTypeToNamespace[$openApiType->value] ?? null;
 
@@ -32,13 +45,6 @@ class NamespaceResolver
         }
 
         return $namespace;
-    }
-
-    public function initialize(Configuration $configuration): void
-    {
-        foreach (OpenApiType::cases() as $openApiType) {
-            $this->openApiTypeToNamespace[$openApiType->value] = $this->buildNamespace($configuration, $openApiType);
-        }
     }
 
     private function buildNamespace(Configuration $configuration, OpenApiType $openApiType): PhpNamespace

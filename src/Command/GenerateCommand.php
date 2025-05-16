@@ -70,12 +70,12 @@ class GenerateCommand extends Command
             $parserResult->parsedFiles
         ));
 
-        $namespaces = $this->classGenerator->generate($parserResult->openApi, $configuration);
+        $models = $this->classGenerator->generate($parserResult->openApi, $configuration);
 
-        $this->classWriter->write($configuration, $namespaces);
+        $this->classWriter->write($configuration, $models);
 
-        foreach ($namespaces as $namespace) {
-            $this->outputNamespace($io, $namespace);
+        foreach ($models as $model) {
+            $this->outputNamespace($io, $model->namespace);
         }
 
         $io->success('Finished');
