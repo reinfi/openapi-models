@@ -48,4 +48,19 @@ class FileNameResolverTest extends TestCase
 
         self::assertInstanceOf(vfsStreamDirectory::class, $this->outputDir->getChild('Schema'));
     }
+
+    public function testItResolvesWithBaseNamespaceAndNestedSubNamespace(): void
+    {
+        $resolver = new FileNameResolver();
+
+        $configuration = new Configuration([], $this->outputDir->url(), 'Base');
+        $namespace = new PhpNamespace('Base\\Sub\\Nested');
+        $class = $namespace->addClass('MyClass');
+
+        $expectedPath = sprintf('%s/Sub/Nested/MyClass.php', $this->outputDir->url());
+        $actualPath = $resolver->resolve($configuration, $namespace, $class);
+
+        self::assertEquals($expectedPath, $actualPath);
+        self::assertInstanceOf(vfsStreamDirectory::class, $this->outputDir->getChild('Sub') ->getChild('Nested'));
+    }
 }
