@@ -40,8 +40,8 @@ class DictionarySerializationResolver
         $inlineArrayReturnType = null;
 
         if ($valueType === 'array' && $valueParameter->getComment() !== null) {
-            if (preg_match('/^@var (?<type>.*)\[]/', $valueParameter->getComment(), $matches) === 1) {
-                $inlineArrayReturnType = $this->intend(sprintf('/** @return %s[] */', $matches['type']));
+            if (preg_match('/^@var array<(?<type>.*)>/', $valueParameter->getComment(), $matches) === 1) {
+                $inlineArrayReturnType = $this->intend(sprintf('/** @return array<%s> */', $matches['type']));
             }
         }
 

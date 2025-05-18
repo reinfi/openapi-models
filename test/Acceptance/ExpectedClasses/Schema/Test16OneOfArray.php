@@ -9,9 +9,9 @@ use JsonSerializable;
 readonly class Test16OneOfArray implements JsonSerializable
 {
     public function __construct(
-        /** @var Test7|string[] $requiredValue */
+        /** @var Test7|array<string> $requiredValue */
         public Test7|array $requiredValue,
-        /** @var Test8|string[]|int[]|null $noneRequiredValue */
+        /** @var Test8|array<string>|array<int>|null $noneRequiredValue */
         public Test8|array|null $noneRequiredValue = null,
     ) {
     }
