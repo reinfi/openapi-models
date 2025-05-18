@@ -8,7 +8,7 @@ readonly class Test15Dictionary
 {
     public function __construct(
         public string $key,
-        /** @var string[] $value */
+        /** @var array<string> $value */
         public array $value,
     ) {
     }
