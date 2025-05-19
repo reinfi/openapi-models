@@ -181,8 +181,6 @@ readonly class ClassTransformer
                         $propertyName,
                         $parameter->isNullable(),
                         $property,
-                        $namespace,
-                        $imports,
                     );
 
                     $parameter->setType('array')
@@ -207,8 +205,6 @@ readonly class ClassTransformer
                         $name,
                         $propertyName,
                         $property->oneOf,
-                        $namespace,
-                        $imports
                     );
 
                     if ($oneOfType->containsType('null')) {
@@ -273,8 +269,6 @@ readonly class ClassTransformer
                 'items',
                 $schema->nullable ?? false,
                 $schema,
-                $namespace,
-                $imports
             );
 
             $this->arrayObjectResolver->resolve($class, $constructor, $arrayType, $imports, $namespace);
@@ -464,8 +458,6 @@ readonly class ClassTransformer
         string $propertyName,
         bool $nullable,
         Schema $schema,
-        PhpNamespace $namespace,
-        Imports $imports,
     ): ArrayType {
         $itemsSchema = $schema->items;
         if ($itemsSchema === null) {
@@ -500,12 +492,12 @@ readonly class ClassTransformer
             $classModel->addInlineModel($inlineObject);
             $classModel->imports->addImport($inlineObject->namespace->resolveName($inlineObject->className));
 
-            $arrayType = $namespace->resolveName($inlineObject->className);
+            $arrayType = $inlineObject->namespace->resolveName($inlineObject->className);
         }
 
         if ($arrayType === Types::Enum) {
-            $arrayType = $namespace->resolveName(
-                $this->transformEnum($parentName, $propertyName, $itemsSchema, $namespace)
+            $arrayType = $classModel->namespace->resolveName(
+                $this->transformEnum($parentName, $propertyName, $itemsSchema, $classModel->namespace)
             );
         }
 
@@ -518,8 +510,6 @@ readonly class ClassTransformer
                 $parentName,
                 $propertyName,
                 $itemsSchema->oneOf,
-                $namespace,
-                $imports
             );
 
             if ($oneOfArrayType->containsType(DateTimeInterface::class)) {
@@ -548,8 +538,6 @@ readonly class ClassTransformer
                 $propertyName,
                 $itemsSchema->nullable ?? false,
                 $itemsSchema,
-                $namespace,
-                $imports
             );
 
             if ($innerArrayType->type === DateTimeInterface::class) {
@@ -567,7 +555,7 @@ readonly class ClassTransformer
             return new ArrayType($arrayType, $nullable, sprintf('%s[]', $arrayType->name), [$arrayType->name]);
         }
 
-        return new ArrayType($arrayType, $nullable, sprintf('%s[]', $namespace->simplifyName($arrayType)));
+        return new ArrayType($arrayType, $nullable, sprintf('%s[]', $classModel->namespace->simplifyName($arrayType)));
     }
 
     /**
@@ -581,8 +569,6 @@ readonly class ClassTransformer
         string $parentName,
         string $propertyName,
         array $oneOf,
-        PhpNamespace $namespace,
-        Imports $imports,
     ): OneOfType {
         $resolvedTypes = [];
 
@@ -605,17 +591,17 @@ readonly class ClassTransformer
                     $classModel->addInlineModel($inlineObject);
                     $classModel->imports->addImport($inlineObject->namespace->resolveName($inlineObject->className));
 
-                    $resolvedTypes[] = $namespace->resolveName($inlineObject->className);
+                    $resolvedTypes[] = $classModel->namespace->resolveName($inlineObject->className);
                     continue;
                 }
 
                 $resolvedTypes[] = match ($resolvedType) {
-                    Types::Enum => $namespace->resolveName(
+                    Types::Enum => $classModel->namespace->resolveName(
                         $this->transformEnum(
                             $parentName,
                             $propertyName . ++$countInlineObjects,
                             $oneOfElement,
-                            $namespace
+                            $classModel->namespace
                         )
                     ),
                     Types::Null => 'null',
@@ -629,8 +615,6 @@ readonly class ClassTransformer
                         $propertyName,
                         false,
                         $oneOfElement,
-                        $namespace,
-                        $imports
                     ),
                     Types::AllOf, Types::OneOf, Types::AnyOf => throw new UnsupportedTypeForOneOfException(
                         $resolvedType->value
@@ -653,8 +637,6 @@ readonly class ClassTransformer
                             $parentName,
                             $propertyName,
                             $reference->schema->oneOf,
-                            $namespace,
-                            $imports
                         )->types
                     );
                 }
@@ -664,7 +646,7 @@ readonly class ClassTransformer
                 }
 
                 if ($reference instanceof ClassReference) {
-                    $imports->addImport($reference->name);
+                    $classModel->imports->addImport($reference->name);
                     $resolvedTypes[] = $reference->name;
                 }
             }
@@ -698,8 +680,6 @@ readonly class ClassTransformer
                 'value',
                 false,
                 $dictionarySchema,
-                $namespace,
-                $imports
             ),
             Types::AllOf => $this->transform(
                 $configuration,
@@ -717,8 +697,6 @@ readonly class ClassTransformer
                 $name,
                 'DictionaryValue',
                 $dictionarySchema->oneOf,
-                $namespace,
-                $imports
             ),
             Types::Enum => $this->transformEnum($name, 'DictionaryValue', $dictionarySchema, $namespace),
             Types::Object => $this->transformInlineObject(
