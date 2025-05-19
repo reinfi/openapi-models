@@ -10,6 +10,8 @@ use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamFile;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Model\ClassModel;
+use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Validate\Validator;
 use Reinfi\OpenApiModels\Writer\FileNameResolver;
 use Reinfi\OpenApiModels\Writer\SingleNamespaceResolver;
@@ -47,7 +49,7 @@ class ValidatorTest extends TestCase
         $this->outputDir->addChild($schemaDirectory);
 
         $namespace = new PhpNamespace('Schema');
-        $namespace->addClass('Foo');
+        $class = $namespace->addClass('Foo');
 
         $fileNameResolver = $this->createMock(FileNameResolver::class);
         $singleNamespaceResolver = $this->createMock(SingleNamespaceResolver::class);
@@ -68,7 +70,7 @@ class ValidatorTest extends TestCase
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $result = $validator->validate($configuration, [
-            'Schema' => $namespace,
+            new ClassModel($namespace, $class, new Imports($namespace)),
         ]);
 
         self::assertTrue($result->isValid());
@@ -78,7 +80,7 @@ class ValidatorTest extends TestCase
     public function testItIsNotValidIfClassDoesNotExists(): void
     {
         $namespace = new PhpNamespace('Schema');
-        $namespace->addClass('Foo');
+        $class = $namespace->addClass('Foo');
 
         $fileNameResolver = $this->createMock(FileNameResolver::class);
         $singleNamespaceResolver = $this->createMock(SingleNamespaceResolver::class);
@@ -98,7 +100,7 @@ class ValidatorTest extends TestCase
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $result = $validator->validate($configuration, [
-            'Schema' => $namespace,
+            new ClassModel($namespace, $class, new Imports($namespace)),
         ]);
 
         self::assertFalse($result->isValid());
@@ -112,7 +114,7 @@ class ValidatorTest extends TestCase
         $this->outputDir->addChild($schemaDirectory);
 
         $namespace = new PhpNamespace('Schema');
-        $namespace->addClass('Foo');
+        $class = $namespace->addClass('Foo');
 
         $fileNameResolver = $this->createMock(FileNameResolver::class);
         $singleNamespaceResolver = $this->createMock(SingleNamespaceResolver::class);
@@ -133,7 +135,7 @@ class ValidatorTest extends TestCase
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $result = $validator->validate($configuration, [
-            'Schema' => $namespace,
+            new ClassModel($namespace, $class, new Imports($namespace)),
         ]);
 
         self::assertFalse($result->isValid());

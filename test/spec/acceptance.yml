@@ -262,6 +262,16 @@ components:
         items:
           type: string
 
+    TestNamespace:
+      type: object
+      x-php-namespace: Test
+      description: Test object to be in a different namespace
+      required:
+        - id
+      properties:
+        id:
+          type: number
+
     NullableDate:
       type: string
       format: date
@@ -313,6 +323,14 @@ components:
         - A wonderful red like a rose
         - Just as green as an apple
         - Like the white snow on the mountains
+
+    ColorNamespace:
+      type: string
+      x-php-namespace: Enums
+      enum:
+        - red
+        - green
+        - white
 
     Test7OrTest8:
       oneOf:

@@ -127,6 +127,8 @@ readonly class ClassGenerator
                         $classModel->class->addComment($component->description);
                     }
 
+                    $classModel->imports->copyImports();
+
                     $models[] = $classModel;
                 }
             }

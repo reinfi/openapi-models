@@ -3,10 +3,9 @@
 declare(strict_types=1);
 
 return [
-    #'paths' => [__DIR__ . '/../spec/chatbot.yaml'],
     'paths' => [__DIR__ . '/../spec/acceptance.yml'],
     'outputPath' => __DIR__ . '/../output',
     'namespace' => 'Api',
-    'clearOutputDirectory' => false,
+    'clearOutputDirectory' => true,
     'dateTimeAsObject' => true,
 ];

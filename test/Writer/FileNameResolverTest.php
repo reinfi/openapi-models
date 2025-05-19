@@ -61,6 +61,8 @@ class FileNameResolverTest extends TestCase
         $actualPath = $resolver->resolve($configuration, $namespace, $class);
 
         self::assertEquals($expectedPath, $actualPath);
-        self::assertInstanceOf(vfsStreamDirectory::class, $this->outputDir->getChild('Sub') ->getChild('Nested'));
+        $subDirectory = $this->outputDir->getChild('Sub');
+        self::assertInstanceOf(vfsStreamDirectory::class, $subDirectory);
+        self::assertInstanceOf(vfsStreamDirectory::class, $subDirectory->getChild('Nested'));
     }
 }

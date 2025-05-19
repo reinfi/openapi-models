@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Test\Writer;
 
 use DG\BypassFinals;
+use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamFile;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Model\ClassModel;
+use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Writer\ClassWriter;
 use Reinfi\OpenApiModels\Writer\FileNameResolver;
 use Reinfi\OpenApiModels\Writer\SingleNamespaceResolver;
@@ -53,15 +56,18 @@ class ClassWriterTest extends TestCase
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $firstNamespace = new PhpNamespace('Schema');
-        $firstNamespace->addClass('ClassFirst');
+        $firstClass = new ClassType('ClassFirst');
+        $firstNamespace->add($firstClass);
+        $firstImports = new Imports($firstNamespace);
+        $firstModel = new ClassModel($firstNamespace, $firstClass, $firstImports);
 
         $secondNamespace = new PhpNamespace('Response');
-        $secondNamespace->addClass('ClassSecond');
+        $secondClass = new ClassType('ClassSecond');
+        $secondNamespace->add($secondClass);
+        $secondImports = new Imports($secondNamespace);
+        $secondModel = new ClassModel($secondNamespace, $secondClass, $secondImports);
 
-        $writer->write($configuration, [
-            'schemas' => $firstNamespace,
-            'responses' => $secondNamespace,
-        ]);
+        $writer->write($configuration, [$firstModel, $secondModel]);
 
         $children = $this->outputDir->getChildren();
         self::assertCount(2, $children, 'two directories should be created');
@@ -96,11 +102,12 @@ class ClassWriterTest extends TestCase
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $namespace = new PhpNamespace('Schema');
-        $namespace->addClass('ClassFirst');
+        $class = new ClassType('ClassFirst');
+        $namespace->add($class);
+        $imports = new Imports($namespace);
+        $model = new ClassModel($namespace, $class, $imports);
 
-        $writer->write($configuration, [
-            'schemas' => $namespace,
-        ]);
+        $writer->write($configuration, [$model]);
 
         $schemaDirectory = $this->outputDir->getChild('Schema');
         self::assertInstanceOf(vfsStreamDirectory::class, $schemaDirectory);
