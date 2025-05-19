@@ -15,6 +15,7 @@ use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\InvalidEnumSchema;
+use Reinfi\OpenApiModels\Exception\InvalidInlineObjectException;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForDictionaryException;
@@ -52,6 +53,7 @@ readonly class ClassTransformer
         $class = $namespace->addClass($name)
             ->setReadOnly();
         $imports = new Imports($namespace);
+        $classModel = new ClassModel($name, $namespace, $class, $imports);
 
         if ($schema instanceof Schema && $schema->description !== null && $schema->description !== '') {
             $class->addComment($schema->description);
@@ -60,7 +62,7 @@ readonly class ClassTransformer
         $schemaType = $this->typeResolver->resolve($openApi, $schema);
 
         if ($schemaType instanceof ClassReference) {
-            return $this->resolveReferenceForClass($namespace, $class, $schemaType, $imports);
+            return $this->resolveReferenceForClass($name, $namespace, $class, $schemaType, $imports);
         }
 
         if (is_string($schemaType) || in_array(
@@ -148,7 +150,7 @@ readonly class ClassTransformer
                 }
 
                 if ($type === Types::Object) {
-                    $inlineType = $this->transformInlineObject(
+                    $inlineObject = $this->transformInlineObject(
                         $configuration,
                         $openApi,
                         $openApiType,
@@ -157,7 +159,10 @@ readonly class ClassTransformer
                         $property,
                     );
 
-                    $parameter->setType($namespace->resolveName($inlineType));
+                    $classModel->addInlineModel($inlineObject);
+                    $classModel->imports->addImport($inlineObject->namespace->resolveName($inlineObject->className));
+
+                    $parameter->setType($namespace->resolveName($inlineObject->className));
                 }
 
                 if ($type === Types::Enum) {
@@ -171,6 +176,7 @@ readonly class ClassTransformer
                         $configuration,
                         $openApi,
                         $openApiType,
+                        $classModel,
                         $name,
                         $propertyName,
                         $parameter->isNullable(),
@@ -197,6 +203,7 @@ readonly class ClassTransformer
                         $configuration,
                         $openApi,
                         $openApiType,
+                        $classModel,
                         $name,
                         $propertyName,
                         $property->oneOf,
@@ -241,6 +248,7 @@ readonly class ClassTransformer
             $dictionaryType = $this->resolveDictionaryType(
                 $openApi,
                 $openApiType,
+                $classModel,
                 $dictionarySchema,
                 $configuration,
                 $name,
@@ -252,7 +260,7 @@ readonly class ClassTransformer
                 $imports->addImport(...$dictionaryType->imports);
             }
 
-            $this->dictionaryResolver->resolve($namespace, $name, $class, $dictionaryType);
+            $this->dictionaryResolver->resolve($classModel, $name, $class, $dictionaryType);
         }
 
         if ($schemaType === Types::Array) {
@@ -260,6 +268,7 @@ readonly class ClassTransformer
                 $configuration,
                 $openApi,
                 $openApiType,
+                $classModel,
                 $name,
                 'items',
                 $schema->nullable ?? false,
@@ -276,15 +285,16 @@ readonly class ClassTransformer
             $enumName = $this->transformEnum($name, '', $schema, $namespace);
             $class = $namespace->getClass($enumName);
 
-            return new ClassModel($namespace, $class, $imports);
+            return new ClassModel($enumName, $namespace, $class, $imports);
         }
 
         $this->serializableResolver->resolve($configuration, $openApi, $schema, $namespace, $class, $constructor);
 
-        return new ClassModel($namespace, $class, $imports);
+        return $classModel;
     }
 
     private function resolveReferenceForClass(
+        string $name,
         PhpNamespace $namespace,
         ClassType $class,
         ClassReference $classReference,
@@ -293,7 +303,7 @@ readonly class ClassTransformer
         $imports->addImport($classReference->name);
         $class->setExtends($classReference->name);
 
-        return new ClassModel($namespace, $class, $imports);
+        return new ClassModel($name, $namespace, $class, $imports);
     }
 
     /**
@@ -325,12 +335,16 @@ readonly class ClassTransformer
         string $parentName,
         string $propertyName,
         Schema $schema,
-    ): string {
+    ): ClassModel {
         $className = $parentName . ucfirst($propertyName);
 
-        $this->transform($configuration, $openApi, $openApiType, $className, $schema);
+        $classModel = $this->transform($configuration, $openApi, $openApiType, $className, $schema);
 
-        return $className;
+        if ($classModel === null) {
+            throw new InvalidInlineObjectException($parentName, $propertyName);
+        }
+
+        return $classModel;
     }
 
     private function transformEnum(
@@ -445,6 +459,7 @@ readonly class ClassTransformer
         Configuration $configuration,
         OpenApi $openApi,
         OpenApiType $openApiType,
+        ClassModel $classModel,
         string $parentName,
         string $propertyName,
         bool $nullable,
@@ -473,16 +488,19 @@ readonly class ClassTransformer
         }
 
         if ($arrayType === Types::Object) {
-            $arrayType = $namespace->resolveName(
-                $this->transformInlineObject(
-                    $configuration,
-                    $openApi,
-                    $openApiType,
-                    $parentName,
-                    $propertyName,
-                    $itemsSchema,
-                )
+            $inlineObject = $this->transformInlineObject(
+                $configuration,
+                $openApi,
+                $openApiType,
+                $parentName,
+                $propertyName,
+                $itemsSchema,
             );
+
+            $classModel->addInlineModel($inlineObject);
+            $classModel->imports->addImport($inlineObject->namespace->resolveName($inlineObject->className));
+
+            $arrayType = $namespace->resolveName($inlineObject->className);
         }
 
         if ($arrayType === Types::Enum) {
@@ -496,6 +514,7 @@ readonly class ClassTransformer
                 $configuration,
                 $openApi,
                 $openApiType,
+                $classModel,
                 $parentName,
                 $propertyName,
                 $itemsSchema->oneOf,
@@ -524,6 +543,7 @@ readonly class ClassTransformer
                 $configuration,
                 $openApi,
                 $openApiType,
+                $classModel,
                 $parentName,
                 $propertyName,
                 $itemsSchema->nullable ?? false,
@@ -557,6 +577,7 @@ readonly class ClassTransformer
         Configuration $configuration,
         OpenApi $openApi,
         OpenApiType $openApiType,
+        ClassModel $classModel,
         string $parentName,
         string $propertyName,
         array $oneOf,
@@ -571,17 +592,24 @@ readonly class ClassTransformer
             if ($oneOfElement instanceof Schema) {
                 $resolvedType = $this->typeResolver->resolve($openApi, $oneOfElement);
 
+                if ($resolvedType === Types::Object) {
+                    $inlineObject = $this->transformInlineObject(
+                        $configuration,
+                        $openApi,
+                        $openApiType,
+                        $parentName,
+                        $propertyName . ++$countInlineObjects,
+                        $oneOfElement,
+                    );
+
+                    $classModel->addInlineModel($inlineObject);
+                    $classModel->imports->addImport($inlineObject->namespace->resolveName($inlineObject->className));
+
+                    $resolvedTypes[] = $namespace->resolveName($inlineObject->className);
+                    continue;
+                }
+
                 $resolvedTypes[] = match ($resolvedType) {
-                    Types::Object => $namespace->resolveName(
-                        $this->transformInlineObject(
-                            $configuration,
-                            $openApi,
-                            $openApiType,
-                            $parentName,
-                            $propertyName . ++$countInlineObjects,
-                            $oneOfElement,
-                        )
-                    ),
                     Types::Enum => $namespace->resolveName(
                         $this->transformEnum(
                             $parentName,
@@ -596,6 +624,7 @@ readonly class ClassTransformer
                         $configuration,
                         $openApi,
                         $openApiType,
+                        $classModel,
                         $parentName,
                         $propertyName,
                         false,
@@ -620,6 +649,7 @@ readonly class ClassTransformer
                             $configuration,
                             $openApi,
                             $openApiType,
+                            $classModel,
                             $parentName,
                             $propertyName,
                             $reference->schema->oneOf,
@@ -646,6 +676,7 @@ readonly class ClassTransformer
     private function resolveDictionaryType(
         OpenApi $openApi,
         OpenApiType $openApiType,
+        ClassModel $classModel,
         Schema $dictionarySchema,
         Configuration $configuration,
         string $name,
@@ -654,7 +685,7 @@ readonly class ClassTransformer
     ): string|ArrayType|OneOfType {
         $dictionaryType = $this->typeResolver->resolve($openApi, $dictionarySchema);
 
-        return match ($dictionaryType) {
+        $resolvedDictionaryType = match ($dictionaryType) {
             Types::Null, Types::AnyOf =>
             throw new UnsupportedTypeForDictionaryException($dictionaryType->value),
             Types::Array =>
@@ -662,6 +693,7 @@ readonly class ClassTransformer
                 $configuration,
                 $openApi,
                 $openApiType,
+                $classModel,
                 $name,
                 'value',
                 false,
@@ -675,15 +707,13 @@ readonly class ClassTransformer
                 $openApiType,
                 sprintf('%sDictionaryValue', $name),
                 $dictionarySchema,
-            )?->class->getName() ?: throw new UnsupportedTypeForDictionaryException(
-                $dictionaryType->value,
-                'Class name is null'
-            ),
+            ) ?: throw new UnsupportedTypeForDictionaryException($dictionaryType->value, 'Could not transform object'),
             Types::Date, Types::DateTime => DateTimeInterface::class,
             Types::OneOf => $this->transformOneOf(
                 $configuration,
                 $openApi,
                 $openApiType,
+                $classModel,
                 $name,
                 'DictionaryValue',
                 $dictionarySchema->oneOf,
@@ -701,6 +731,17 @@ readonly class ClassTransformer
             ),
             default => $dictionaryType,
         };
+
+        if ($resolvedDictionaryType instanceof ClassModel) {
+            $classModel->addInlineModel($resolvedDictionaryType);
+            $classModel->imports->addImport($resolvedDictionaryType->namespace->resolveName($resolvedDictionaryType->className));
+
+            $resolvedDictionaryType = $resolvedDictionaryType->namespace->resolveName(
+                $resolvedDictionaryType->className
+            );
+        }
+
+        return $resolvedDictionaryType;
     }
 
     private function resolveNamespace(
@@ -711,7 +752,7 @@ readonly class ClassTransformer
         if ($schema instanceof Reference) {
             $reference = $this->referenceResolver->resolve($openApi, $schema);
 
-            return $this->resolveNamespace($openApi, $reference->openApiType, $reference->schema);
+            return $this->resolveNamespace($openApi, $openApiType, $reference->schema);
         }
 
         return $this->namespaceResolver->resolveNamespace($openApiType, $schema);

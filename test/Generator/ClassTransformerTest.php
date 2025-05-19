@@ -31,6 +31,7 @@ use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
 use Reinfi\OpenApiModels\Model\AllOfType;
 use Reinfi\OpenApiModels\Model\ArrayType;
+use Reinfi\OpenApiModels\Model\ClassModel;
 use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\ScalarType;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
@@ -2323,7 +2324,7 @@ class ClassTransformerTest extends TestCase
 
         $dictionaryResolver->expects($this->once())
             ->method('resolve')
-            ->with($namespace, 'Test', self::isInstanceOf(ClassType::class), 'string');
+            ->with(self::isInstanceOf(ClassModel::class), 'Test', self::isInstanceOf(ClassType::class), 'string');
 
         $serializableResolver->expects($this->once())
             ->method('resolve')

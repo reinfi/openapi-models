@@ -8,20 +8,25 @@ use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Model\ArrayType;
+use Reinfi\OpenApiModels\Model\ClassModel;
+use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\OneOfType;
 
 class DictionaryResolver
 {
     public function resolve(
-        PhpNamespace $namespace,
+        ClassModel $classModel,
         string $className,
         ClassType $class,
         string|ArrayType|OneOfType $dictionaryType,
     ): void {
-        $dictionaryClass = $this->resolveDictionaryClass($namespace, $className, $dictionaryType);
-        $dictionaryClassName = $dictionaryClass->getName();
+        $namespace = $classModel->namespace;
+        $dictionaryClassModel = $this->resolveDictionaryClass($namespace, $className, $dictionaryType);
+        $dictionaryClassName = $dictionaryClassModel->className;
 
-        assert($dictionaryClassName !== null);
+        $classModel->addInlineModel($dictionaryClassModel);
+
+        $classModel->imports->addImport($dictionaryClassModel->namespace->resolveName($dictionaryClassName));
 
         $constructor = $class->getMethod('__construct');
         $constructor->setVariadic();
@@ -39,8 +44,9 @@ class DictionaryResolver
         PhpNamespace $namespace,
         string $className,
         string|ArrayType|OneOfType $dictionaryType
-    ): ClassType {
-        $dictionaryClass = $namespace->addClass(sprintf('%sDictionary', $className))
+    ): ClassModel {
+        $dictionaryClassName = sprintf('%sDictionary', $className);
+        $dictionaryClass = $namespace->addClass($dictionaryClassName)
             ->setReadOnly();
 
         $constructor = $dictionaryClass->addMethod('__construct');
@@ -58,9 +64,9 @@ class DictionaryResolver
                 ->setComment($dictionaryType->phpDocType());
         } else {
             $constructor->addPromotedParameter('value')
-                ->setType($namespace->resolveName($dictionaryType));
+                ->setType($dictionaryType);
         }
 
-        return $dictionaryClass;
+        return new ClassModel($dictionaryClassName, $namespace, $dictionaryClass, new Imports($namespace));
     }
 }

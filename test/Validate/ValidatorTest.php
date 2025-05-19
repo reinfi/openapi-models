@@ -70,7 +70,7 @@ class ValidatorTest extends TestCase
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $result = $validator->validate($configuration, [
-            new ClassModel($namespace, $class, new Imports($namespace)),
+            new ClassModel('Foo', $namespace, $class, new Imports($namespace)),
         ]);
 
         self::assertTrue($result->isValid());
@@ -100,7 +100,7 @@ class ValidatorTest extends TestCase
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $result = $validator->validate($configuration, [
-            new ClassModel($namespace, $class, new Imports($namespace)),
+            new ClassModel('Foo', $namespace, $class, new Imports($namespace)),
         ]);
 
         self::assertFalse($result->isValid());
@@ -135,7 +135,7 @@ class ValidatorTest extends TestCase
         $configuration = new Configuration([], $this->outputDir->url(), '');
 
         $result = $validator->validate($configuration, [
-            new ClassModel($namespace, $class, new Imports($namespace)),
+            new ClassModel('Foo', $namespace, $class, new Imports($namespace)),
         ]);
 
         self::assertFalse($result->isValid());

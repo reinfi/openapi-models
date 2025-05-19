@@ -71,6 +71,11 @@ readonly class ClassGenerator
                     $classModel->imports->copyImports();
 
                     $models[] = $classModel;
+
+                    foreach ($classModel->getInlineModels() as $inlineModel) {
+                        $inlineModel->imports->copyImports();
+                        $models[] = $inlineModel;
+                    }
                 }
             }
         }
@@ -130,6 +135,11 @@ readonly class ClassGenerator
                     $classModel->imports->copyImports();
 
                     $models[] = $classModel;
+
+                    foreach ($classModel->getInlineModels() as $inlineModel) {
+                        $inlineModel->imports->copyImports();
+                        $models[] = $inlineModel;
+                    }
                 }
             }
         }

@@ -59,13 +59,13 @@ class ClassWriterTest extends TestCase
         $firstClass = new ClassType('ClassFirst');
         $firstNamespace->add($firstClass);
         $firstImports = new Imports($firstNamespace);
-        $firstModel = new ClassModel($firstNamespace, $firstClass, $firstImports);
+        $firstModel = new ClassModel('ClassFirst', $firstNamespace, $firstClass, $firstImports);
 
         $secondNamespace = new PhpNamespace('Response');
         $secondClass = new ClassType('ClassSecond');
         $secondNamespace->add($secondClass);
         $secondImports = new Imports($secondNamespace);
-        $secondModel = new ClassModel($secondNamespace, $secondClass, $secondImports);
+        $secondModel = new ClassModel('ClassSecond', $secondNamespace, $secondClass, $secondImports);
 
         $writer->write($configuration, [$firstModel, $secondModel]);
 
@@ -105,7 +105,7 @@ class ClassWriterTest extends TestCase
         $class = new ClassType('ClassFirst');
         $namespace->add($class);
         $imports = new Imports($namespace);
-        $model = new ClassModel($namespace, $class, $imports);
+        $model = new ClassModel('ClassFirst', $namespace, $class, $imports);
 
         $writer->write($configuration, [$model]);
 

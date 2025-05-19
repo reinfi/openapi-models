@@ -6,6 +6,6 @@ return [
     'paths' => [__DIR__ . '/../spec/acceptance.yml'],
     'outputPath' => __DIR__ . '/../output',
     'namespace' => 'Api',
-    'clearOutputDirectory' => true,
+    'clearOutputDirectory' => false,
     'dateTimeAsObject' => true,
 ];

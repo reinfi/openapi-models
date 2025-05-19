@@ -48,7 +48,7 @@ class ClassGeneratorTest extends TestCase
 
         $namespace = new PhpNamespace('Test');
         $classModel = $this->getMockBuilder(ClassModel::class)
-            ->setConstructorArgs([$namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
+            ->setConstructorArgs(['Test', $namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
             ->getMock();
 
         $transformer = $this->createMock(ClassTransformer::class);
@@ -94,7 +94,7 @@ class ClassGeneratorTest extends TestCase
 
         $namespace = new PhpNamespace('Test');
         $classModel = $this->getMockBuilder(ClassModel::class)
-            ->setConstructorArgs([$namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
+            ->setConstructorArgs(['Test', $namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
             ->getMock();
 
         $transformer = $this->createMock(ClassTransformer::class);
@@ -140,7 +140,7 @@ class ClassGeneratorTest extends TestCase
 
         $namespace = new PhpNamespace('Test');
         $classModel = $this->getMockBuilder(ClassModel::class)
-            ->setConstructorArgs([$namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
+            ->setConstructorArgs(['Test', $namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
             ->getMock();
 
         $transformer = $this->createMock(ClassTransformer::class);
@@ -186,7 +186,7 @@ class ClassGeneratorTest extends TestCase
 
         $namespace = new PhpNamespace('Test');
         $classModel = $this->getMockBuilder(ClassModel::class)
-            ->setConstructorArgs([$namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
+            ->setConstructorArgs(['Test', $namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
             ->getMock();
 
         $transformer = $this->createMock(ClassTransformer::class);
@@ -239,7 +239,7 @@ class ClassGeneratorTest extends TestCase
 
         $namespace = new PhpNamespace('Test');
         $classModel = $this->getMockBuilder(ClassModel::class)
-            ->setConstructorArgs([$namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
+            ->setConstructorArgs(['Test', $namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
             ->getMock();
 
         $transformer->expects($this->once())
@@ -322,7 +322,7 @@ class ClassGeneratorTest extends TestCase
 
         $namespace = new PhpNamespace('Test');
         $classModel = $this->getMockBuilder(ClassModel::class)
-            ->setConstructorArgs([$namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
+            ->setConstructorArgs(['Test', $namespace, $namespace->addClass('Test'), $this->createMock(Imports::class)])
             ->getMock();
 
         $transformer = $this->createMock(ClassTransformer::class);
