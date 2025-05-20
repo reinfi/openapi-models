@@ -470,6 +470,8 @@ readonly class ClassTransformer
             throw new UnresolvedArrayTypeException('unknown type');
         }
 
+        $containsNullAsValue = $itemsSchema->nullable ?? false;
+
         if ($arrayType instanceof ScalarType) {
             $arrayType = $arrayType->name;
         }
@@ -525,7 +527,7 @@ readonly class ClassTransformer
             return new ArrayType(
                 DateTimeInterface::class,
                 $nullable,
-                sprintf('array<%s>', DateTimeInterface::class),
+                sprintf('array<%s%s>', DateTimeInterface::class, $containsNullAsValue ? '|null' : ''),
                 [DateTimeInterface::class]
             );
         }
@@ -546,7 +548,11 @@ readonly class ClassTransformer
                 throw new UnsupportedTypeForArrayException('date', 'This is not possible in a nested array.');
             }
 
-            return new ArrayType('array', $nullable, sprintf('array<%s>', $innerArrayType->docType));
+            return new ArrayType('array', $nullable, sprintf(
+                'array<%s%s>',
+                $innerArrayType->docType,
+                $containsNullAsValue ? '|null' : ''
+            ));
         }
 
         if ($arrayType instanceof Types) {
@@ -554,10 +560,18 @@ readonly class ClassTransformer
         }
 
         if ($arrayType instanceof ClassReference) {
-            return new ArrayType($arrayType, $nullable, sprintf('%s[]', $arrayType->name), [$arrayType->name]);
+            return new ArrayType($arrayType, $nullable, sprintf(
+                'array<%s%s>',
+                $arrayType->name,
+                $containsNullAsValue ? '|null' : ''
+            ), [$arrayType->name]);
         }
 
-        return new ArrayType($arrayType, $nullable, sprintf('%s[]', $classModel->namespace->simplifyName($arrayType)));
+        return new ArrayType($arrayType, $nullable, sprintf(
+            'array<%s%s>',
+            $classModel->namespace->simplifyName($arrayType),
+            $containsNullAsValue ? '|null' : ''
+        ));
     }
 
     /**

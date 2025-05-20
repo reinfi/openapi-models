@@ -1166,7 +1166,7 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
-        self::assertEquals('@var string[] $values', $parameter->getComment());
+        self::assertEquals('@var array<string> $values', $parameter->getComment());
     }
 
     public function testItResolvesScalarArrayTypesAsReference(): void
@@ -1246,7 +1246,7 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
-        self::assertEquals('@var int[] $values', $parameter->getComment());
+        self::assertEquals('@var array<int> $values', $parameter->getComment());
     }
 
     public function testItResolvesScalarArrayTypesWithNullableProperty(): void
@@ -1317,7 +1317,7 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
-        self::assertEquals('@var string[]|null $values', $parameter->getComment());
+        self::assertEquals('@var array<string|null>|null $values', $parameter->getComment());
     }
 
     public function testItResolvesDateArrayType(): void
@@ -1465,7 +1465,7 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $classes);
         self::assertEquals('array', $arrayParameter->getType());
-        self::assertEquals('@var TestValues[] $values', $arrayParameter->getComment());
+        self::assertEquals('@var array<TestValues> $values', $arrayParameter->getComment());
         self::assertArrayHasKey('TestValues', $classes);
     }
 
@@ -1536,7 +1536,7 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $classes);
         self::assertEquals('array', $arrayParameter->getType());
-        self::assertEquals('@var TestStates[] $states', $arrayParameter->getComment());
+        self::assertEquals('@var array<TestStates> $states', $arrayParameter->getComment());
         self::assertArrayHasKey('TestStates', $classes);
         self::assertInstanceOf(EnumType::class, $classes['TestStates']);
     }
@@ -1615,7 +1615,7 @@ class ClassTransformerTest extends TestCase
         self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
-        self::assertEquals('@var Test2[] $values', $parameter->getComment());
+        self::assertEquals('@var array<Test2> $values', $parameter->getComment());
     }
 
     public function testItResolvesOneOfAsArrayType(): void
