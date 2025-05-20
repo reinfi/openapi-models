@@ -7,7 +7,6 @@ namespace Reinfi\OpenApiModels\Generator;
 use DateTimeInterface;
 use InvalidArgumentException;
 use Nette\PhpGenerator\ClassType;
-use Nette\PhpGenerator\EnumType;
 use Nette\PhpGenerator\Helpers;
 use Nette\PhpGenerator\PhpNamespace;
 use NumberFormatter;
@@ -167,9 +166,11 @@ readonly class ClassTransformer
                 }
 
                 if ($type === Types::Enum) {
-                    $enumName = $this->transformEnum($name, $propertyName, $property, $namespace);
+                    $enumClassModel = $this->transformEnum($name, $propertyName, $property, $namespace);
+                    $classModel->addInlineModel($enumClassModel);
+                    $classModel->imports->addImport($namespace->resolveName($enumClassModel->className));
 
-                    $parameter->setType($namespace->resolveName($enumName));
+                    $parameter->setType($namespace->resolveName($enumClassModel->className));
                 }
 
                 if ($type === Types::Array) {
@@ -275,11 +276,8 @@ readonly class ClassTransformer
 
         if ($schemaType === Types::Enum) {
             $namespace->removeClass($name);
-            $enumName = $this->transformEnum($name, '', $schema, $namespace);
-            $class = $namespace->getClass($enumName);
-            assert($class instanceof EnumType);
 
-            return new ClassModel($enumName, $namespace, $class, $imports);
+            return $this->transformEnum($name, '', $schema, $namespace);
         }
 
         $this->serializableResolver->resolve($configuration, $openApi, $schema, $namespace, $class, $constructor);
@@ -346,7 +344,7 @@ readonly class ClassTransformer
         string $propertyName,
         Schema $schema,
         PhpNamespace $namespace
-    ): string {
+    ): ClassModel {
         $enumName = $parentName . ucfirst($propertyName);
 
         $enum = $namespace->addEnum($enumName);
@@ -446,7 +444,7 @@ readonly class ClassTransformer
             }
         }
 
-        return $enumName;
+        return new ClassModel($enumName, $namespace, $enum, new Imports($namespace));
     }
 
     private function resolveArrayType(
@@ -498,9 +496,10 @@ readonly class ClassTransformer
         }
 
         if ($arrayType === Types::Enum) {
-            $arrayType = $classModel->namespace->resolveName(
-                $this->transformEnum($parentName, $propertyName, $itemsSchema, $classModel->namespace)
-            );
+            $enumClassModel = $this->transformEnum($parentName, $propertyName, $itemsSchema, $classModel->namespace);
+            $classModel->addInlineModel($enumClassModel);
+            $classModel->imports->addImport($classModel->namespace->resolveName($enumClassModel->className));
+            $arrayType = $classModel->namespace->resolveName($enumClassModel->className);
         }
 
         if ($arrayType === Types::OneOf && is_array($itemsSchema->oneOf)) {
@@ -611,15 +610,20 @@ readonly class ClassTransformer
                     continue;
                 }
 
+                if ($resolvedType === Types::Enum) {
+                    $enumClassModel = $this->transformEnum(
+                        $parentName,
+                        $propertyName . ++$countInlineObjects,
+                        $oneOfElement,
+                        $classModel->namespace
+                    );
+                    $classModel->addInlineModel($enumClassModel);
+                    $classModel->imports->addImport($classModel->namespace->resolveName($enumClassModel->className));
+                    $resolvedTypes[] = $classModel->namespace->resolveName($enumClassModel->className);
+                    continue;
+                }
+
                 $resolvedTypes[] = match ($resolvedType) {
-                    Types::Enum => $classModel->namespace->resolveName(
-                        $this->transformEnum(
-                            $parentName,
-                            $propertyName . ++$countInlineObjects,
-                            $oneOfElement,
-                            $classModel->namespace
-                        )
-                    ),
                     Types::Null => 'null',
                     Types::DateTime, Types::Date => $configuration->dateTimeAsObject ? DateTimeInterface::class : 'string',
                     Types::Array => $this->resolveArrayType(
