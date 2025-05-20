@@ -38,18 +38,14 @@ class Validator
             $classOnlyNamespace = $this->singleNamespaceResolver->resolve($namespace, $class);
 
             if (! file_exists($filePath)) {
-                $result->add(
-                    new ValidationFile($class->getName(), $filePath, ValidationFileResult::NotExisting)
-                );
+                $result->add(new ValidationFile($class->getName(), $filePath, ValidationFileResult::NotExisting));
                 continue;
             }
 
             $contents = file_get_contents($filePath);
 
             if ($contents === false) {
-                $result->add(
-                    new ValidationFile($class->getName(), $filePath, ValidationFileResult::NotExisting)
-                );
+                $result->add(new ValidationFile($class->getName(), $filePath, ValidationFileResult::NotExisting));
                 continue;
             }
 
