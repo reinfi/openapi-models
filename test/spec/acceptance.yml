@@ -262,6 +262,14 @@ components:
         items:
           type: string
 
+    TestPropertyNamespace:
+      type: object
+      required:
+        - test
+      properties:
+        test:
+          $ref: '#/components/schemas/TestNamespace'
+
     TestNamespace:
       type: object
       x-php-namespace: Test
