@@ -34,5 +34,9 @@ class ClassModel
     public function addInlineModel(self $classModel): void
     {
         $this->inlineModels[] = $classModel;
+
+        foreach ($classModel->getInlineModels() as $inlineModel) {
+            $this->addInlineModel($inlineModel);
+        }
     }
 }
