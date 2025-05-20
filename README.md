@@ -54,6 +54,24 @@ To validate your files, i.e. if the specification matches the generated files, y
 
 Make sure you use the same configuration file as used for the generate command. 
 
+## Namespace
+
+You can specify a custom namespace for a schema or property using the `x-php-namespace` extension.
+This allows you to extend the default namespace configuration.
+
+```yml
+components:
+  schemas:
+    Foo:
+      x-php-namespace: Bar
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: number
+```
+
 ## Types
 
 This library does not support `mixed` type from open-api specification. 
