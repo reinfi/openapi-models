@@ -23,6 +23,7 @@ use Reinfi\OpenApiModels\Generator\ArrayObjectResolver;
 use Reinfi\OpenApiModels\Generator\ClassReference;
 use Reinfi\OpenApiModels\Generator\ClassTransformer;
 use Reinfi\OpenApiModels\Generator\DictionaryResolver;
+use Reinfi\OpenApiModels\Generator\NamespaceResolver;
 use Reinfi\OpenApiModels\Generator\OpenApiType;
 use Reinfi\OpenApiModels\Generator\PropertyResolver;
 use Reinfi\OpenApiModels\Generator\ReferenceResolver;
@@ -30,6 +31,7 @@ use Reinfi\OpenApiModels\Generator\TypeResolver;
 use Reinfi\OpenApiModels\Generator\Types;
 use Reinfi\OpenApiModels\Model\AllOfType;
 use Reinfi\OpenApiModels\Model\ArrayType;
+use Reinfi\OpenApiModels\Model\ClassModel;
 use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\ScalarType;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
@@ -58,9 +60,22 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
-        $referenceResolver->expects($this->never())
-            ->method('resolve');
+        $referenceResolver->expects($this->once())
+            ->method('resolve')
+            ->with($openApi, self::isInstanceOf(Reference::class))->willReturn(new SchemaWithName(
+                OpenApiType::Schemas,
+                'Test',
+                new Schema([
+                    'required' => true,
+                    'properties' => [
+                        'id' => [
+                            'type' => 'number',
+                        ],
+                    ],
+                ])
+            ));
 
         $typeResolver->expects($this->once())
             ->method('resolve')
@@ -72,6 +87,10 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver->expects($this->never())
             ->method('resolve');
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -79,25 +98,26 @@ class ClassTransformerTest extends TestCase
             $serializableResolver,
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
-            $dictionaryResolver
+            $dictionaryResolver,
+            $namespaceResolver
         );
 
         $schema = new Reference([
             '$ref' => '#/components/schemas/Test2',
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
-        self::assertCount(1, $namespace->getClasses());
-        self::assertEquals('Test2', $classType->getExtends());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
+        self::assertInstanceOf(ClassType::class, $classModel->class);
+        self::assertEquals('Test2', $classModel->class->getExtends());
     }
 
     public function testItDoesNotTransformScalarProperty(): void
@@ -112,6 +132,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -123,6 +144,10 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver->expects($this->never())
             ->method('resolve');
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -131,22 +156,22 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver
         );
 
         $schema = new Schema([
             'type' => 'string',
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertCount(0, $namespace->getClasses());
+        self::assertNull($classModel);
     }
 
     public function testItDoesNotTransformDateProperty(): void
@@ -161,6 +186,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -172,6 +198,10 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver->expects($this->never())
             ->method('resolve');
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -180,6 +210,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver
         );
 
         $schema = new Schema([
@@ -187,16 +218,9 @@ class ClassTransformerTest extends TestCase
             'format' => 'date',
         ]);
 
-        $transformer->transform(
-            $this->configuration,
-            $openApi,
-            'Test',
-            $schema,
-            $namespace,
-            new Imports($namespace)
-        );
+        $classModel = $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
 
-        self::assertCount(0, $namespace->getClasses());
+        self::assertNull($classModel);
     }
 
     public function testItSetsDescription(): void
@@ -211,9 +235,14 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
+
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -223,23 +252,24 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver
         );
 
         $schema = new Schema([
             'description' => 'test',
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
-        self::assertEquals('test', $classType->getComment());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
+        self::assertEquals('test', $classModel->class->getComment());
     }
 
     public function testItDoesNotSetDescriptionIfEmpty(): void
@@ -254,9 +284,14 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
+
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -266,23 +301,24 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver
         );
 
         $schema = new Schema([
             'description' => '',
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
-        self::assertNull($classType->getComment());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
+        self::assertNull($classModel->class->getComment());
     }
 
     public function testItDoesNotFailIfRequiredIsNotArray(): void
@@ -297,6 +333,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $propertyResolver->method('resolve')
             ->with(self::isInstanceOf(Method::class), 'id', self::isInstanceOf(Schema::class), false, 'int')
@@ -309,6 +346,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, 'int');
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -317,6 +358,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -328,16 +370,16 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $namespace->getClasses());
     }
 
@@ -353,6 +395,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -364,6 +407,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, 'int', 'string');
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -372,6 +419,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -385,16 +433,16 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $namespace->getClasses());
     }
 
@@ -411,6 +459,7 @@ class ClassTransformerTest extends TestCase
         $referenceResolver = $this->createMock(ReferenceResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -430,6 +479,10 @@ class ClassTransformerTest extends TestCase
         $serializableResolver = $this->createMock(SerializableResolver::class);
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -438,6 +491,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver
         );
 
         $schema = new Schema([
@@ -453,16 +507,16 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $namespace->getClasses());
         self::assertEquals('string', $dateProperty->getType());
         self::assertEquals('string', $dateTimeProperty->getType());
@@ -472,7 +526,6 @@ class ClassTransformerTest extends TestCase
     {
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('Api');
-        $imports = new Imports($namespace);
         $configuration = new Configuration([], '', '', false, true);
 
         $dateProperty = new PromotedParameter('date');
@@ -501,6 +554,11 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -510,6 +568,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -525,14 +584,15 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform($configuration, $openApi, 'Test', $schema, $namespace, $imports);
+        $classModel = $transformer->transform($configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $namespace->getClasses());
         self::assertEquals(DateTimeInterface::class, $dateProperty->getType());
         self::assertEquals(DateTimeInterface::class, $dateTimeProperty->getType());
 
-        $imports->copyImports();
+        $classModel->imports->copyImports();
 
         self::assertContains(DateTimeInterface::class, $namespace->getUses());
     }
@@ -549,6 +609,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -580,6 +641,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, 'int', 'string');
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -588,6 +653,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -606,16 +672,16 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $namespace->getClasses());
     }
 
@@ -645,6 +711,11 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+
+        $namespaceResolver->expects($this->exactly(2))
+            ->method('resolveNamespace')
+            ->willReturn($namespace, $namespace);
 
         $transformer = new ClassTransformer(
             $propertyResolver,
@@ -654,6 +725,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -670,16 +742,16 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $namespace->getClasses());
         self::assertArrayHasKey('TestUuid', $namespace->getClasses());
     }
@@ -696,6 +768,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -707,6 +780,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -715,6 +792,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -726,17 +804,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $classes);
         self::assertArrayHasKey('TestState', $classes);
 
@@ -762,6 +840,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -773,6 +852,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -781,6 +864,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -793,17 +877,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $classes);
         self::assertArrayHasKey('TestState', $classes);
 
@@ -829,6 +913,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $propertyResolver->method('resolve')
             ->willReturn(new PromotedParameter('test'));
@@ -840,6 +925,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -848,6 +937,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -859,17 +949,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $classes);
         self::assertArrayHasKey('TestState', $classes);
 
@@ -899,6 +989,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -911,6 +1002,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -919,6 +1014,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -929,14 +1025,7 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $transformer->transform(
-            $this->configuration,
-            $openApi,
-            'Test',
-            $schema,
-            $namespace,
-            new Imports($namespace)
-        );
+        $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
     }
 
     public function testItThrowsExceptionIfTypeIsNotString(): void
@@ -955,6 +1044,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -968,6 +1058,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -976,6 +1070,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -990,17 +1085,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
     }
@@ -1018,6 +1113,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1031,6 +1127,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1039,6 +1139,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1052,17 +1153,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var array<string> $values', $parameter->getComment());
@@ -1081,6 +1182,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1104,6 +1206,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1112,6 +1218,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1126,17 +1233,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var array<int> $values', $parameter->getComment());
@@ -1156,6 +1263,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1169,6 +1277,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1177,6 +1289,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1191,17 +1304,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var array<string|null>|null $values', $parameter->getComment());
@@ -1220,6 +1333,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1233,6 +1347,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1241,6 +1359,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1255,17 +1374,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var array<DateTimeInterface> $dates', $parameter->getComment());
@@ -1285,6 +1404,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1300,6 +1420,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($arrayParameter, $objectParameter);
 
+        $namespaceResolver->expects($this->exactly(2))
+            ->method('resolveNamespace')
+            ->willReturn($namespace, $namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1308,6 +1432,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1327,17 +1452,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $classes);
         self::assertEquals('array', $arrayParameter->getType());
         self::assertEquals('@var array<TestValues> $values', $arrayParameter->getComment());
@@ -1357,6 +1482,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1370,6 +1496,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($arrayParameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1378,6 +1508,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1392,17 +1523,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $classes);
         self::assertEquals('array', $arrayParameter->getType());
         self::assertEquals('@var array<TestStates> $states', $arrayParameter->getComment());
@@ -1423,6 +1554,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1444,6 +1576,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1452,6 +1588,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1465,17 +1602,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var array<Test2> $values', $parameter->getComment());
@@ -1494,6 +1631,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1529,6 +1667,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1537,6 +1679,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1558,17 +1701,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var array<Test1|Test2> $values', $parameter->getComment());
@@ -1588,6 +1731,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1623,6 +1767,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1631,6 +1779,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1653,17 +1802,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(1, $classes);
         self::assertEquals('array', $parameter->getType());
         self::assertEquals('@var array<Test1|Test2>|null $values', $parameter->getComment());
@@ -1671,8 +1820,8 @@ class ClassTransformerTest extends TestCase
 
     public function testItThrowsExceptionIfOneOfContainerDate(): void
     {
-        self::expectException(UnsupportedTypeForArrayException::class);
-        self::expectExceptionMessage(
+        $this->expectException(UnsupportedTypeForArrayException::class);
+        $this->expectExceptionMessage(
             'Type "date or datetime in oneOf" is currently not supported for array definition'
         );
 
@@ -1688,6 +1837,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1718,6 +1868,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($parameter);
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1726,6 +1880,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1748,7 +1903,7 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $transformer->transform($configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));
+        $transformer->transform($configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
     }
 
     public function testItResolvesOneOf(): void
@@ -1765,6 +1920,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1797,6 +1953,10 @@ class ClassTransformerTest extends TestCase
             ->method('resolve')
             ->willReturn($referenceParameter, $idParameter);
 
+        $namespaceResolver->expects($this->exactly(2))
+            ->method('resolveNamespace')
+            ->willReturn($namespace, $namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1805,6 +1965,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1828,17 +1989,17 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
         $classes = $namespace->getClasses();
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
         self::assertCount(2, $classes);
         self::assertArrayHasKey('Test', $classes);
         self::assertArrayHasKey('TestReference1', $classes);
@@ -1857,6 +2018,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1884,6 +2046,10 @@ class ClassTransformerTest extends TestCase
                 self::isInstanceOf(Imports::class),
             );
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1892,6 +2058,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1901,16 +2068,16 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $classType = $transformer->transform(
+        $classModel = $transformer->transform(
             $this->configuration,
             $openApi,
+            OpenApiType::Schemas,
             'Test',
             $schema,
-            $namespace,
-            new Imports($namespace)
         );
 
-        self::assertEquals('Test', $classType->getName());
+        self::assertNotNull($classModel);
+        self::assertEquals('Test', $classModel->class->getName());
     }
 
     public function testItResolvesToEnum(): void
@@ -1925,6 +2092,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -1944,6 +2112,10 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver->expects($this->never())
             ->method('resolve');
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -1952,6 +2124,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -1959,14 +2132,7 @@ class ClassTransformerTest extends TestCase
             'enum' => ['green', 'red', 'white'],
         ]);
 
-        $transformer->transform(
-            $this->configuration,
-            $openApi,
-            'Test',
-            $schema,
-            $namespace,
-            new Imports($namespace)
-        );
+        $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
 
         $classes = $namespace->getClasses();
 
@@ -1990,6 +2156,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -2009,6 +2176,10 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver->expects($this->never())
             ->method('resolve');
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -2017,6 +2188,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -2024,14 +2196,7 @@ class ClassTransformerTest extends TestCase
             'enum' => ['status.ok', 'status.danger'],
         ]);
 
-        $transformer->transform(
-            $this->configuration,
-            $openApi,
-            'Test',
-            $schema,
-            $namespace,
-            new Imports($namespace)
-        );
+        $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
 
         $classes = $namespace->getClasses();
 
@@ -2062,6 +2227,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $referenceResolver->expects($this->never())
             ->method('resolve');
@@ -2095,6 +2261,10 @@ class ClassTransformerTest extends TestCase
                 'dollar'
             )->willReturn(new AllOfType('string', $propertySchema));
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -2103,6 +2273,7 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
         $schema = new Schema([
@@ -2119,14 +2290,7 @@ class ClassTransformerTest extends TestCase
             ],
         ]);
 
-        $transformer->transform(
-            $this->configuration,
-            $openApi,
-            'Test',
-            $schema,
-            $namespace,
-            new Imports($namespace)
-        );
+        $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
 
         $classes = $namespace->getClasses();
 
@@ -2153,13 +2317,14 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $typeResolver->method('resolve')
             ->willReturn(Types::Object, 'string');
 
         $dictionaryResolver->expects($this->once())
             ->method('resolve')
-            ->with($namespace, 'Test', self::isInstanceOf(ClassType::class), 'string');
+            ->with(self::isInstanceOf(ClassModel::class), 'Test', self::isInstanceOf(ClassType::class), 'string');
 
         $serializableResolver->expects($this->once())
             ->method('resolve')
@@ -2172,6 +2337,10 @@ class ClassTransformerTest extends TestCase
                 self::isInstanceOf(Method::class)
             );
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -2180,9 +2349,10 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
-        $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));
+        $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
     }
 
     public function testItCallsSerialization(): void
@@ -2207,6 +2377,7 @@ class ClassTransformerTest extends TestCase
         $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
         $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
         $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
 
         $typeResolver->method('resolve')
             ->willReturn(Types::Object, Types::Date);
@@ -2225,6 +2396,10 @@ class ClassTransformerTest extends TestCase
                 self::isInstanceOf(Method::class)
             );
 
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
         $transformer = new ClassTransformer(
             $propertyResolver,
             $typeResolver,
@@ -2233,8 +2408,9 @@ class ClassTransformerTest extends TestCase
             $arrayObjectResolver,
             $allOfPropertySchemaResolver,
             $dictionaryResolver,
+            $namespaceResolver,
         );
 
-        $transformer->transform($this->configuration, $openApi, 'Test', $schema, $namespace, new Imports($namespace));
+        $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
     }
 }

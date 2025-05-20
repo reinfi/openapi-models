@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Writer;
 
 use DirectoryIterator;
-use Nette\PhpGenerator\PhpNamespace;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Model\ClassModel;
 
 readonly class ClassWriter
 {
@@ -18,30 +18,30 @@ readonly class ClassWriter
     }
 
     /**
-     * @param array<string, PhpNamespace> $namespaces
+     * @param ClassModel[] $models
      */
-    public function write(Configuration $configuration, array $namespaces): void
+    public function write(Configuration $configuration, array $models): void
     {
         if ($configuration->clearOutputDirectory) {
             $this->clearOutputDirectory($configuration->outputPath);
         }
 
-        foreach ($namespaces as $namespace) {
-            foreach ($namespace->getClasses() as $class) {
-                if ($class->getName() === null) {
-                    continue;
-                }
-
-                $filePath = $this->fileNameResolver->resolve($configuration, $namespace, $class);
-
-                if (! is_dir(dirname($filePath))) {
-                    mkdir(dirname($filePath));
-                }
-
-                $classOnlyNamespace = $this->singleNamespaceResolver->resolve($namespace, $class);
-
-                file_put_contents($filePath, $this->templateResolver->resolve($classOnlyNamespace));
+        foreach ($models as $model) {
+            $namespace = $model->namespace;
+            $class = $model->class;
+            if ($class->getName() === null) {
+                continue;
             }
+
+            $filePath = $this->fileNameResolver->resolve($configuration, $namespace, $class);
+
+            if (! is_dir(dirname($filePath))) {
+                mkdir(dirname($filePath));
+            }
+
+            $classOnlyNamespace = $this->singleNamespaceResolver->resolve($namespace, $class);
+
+            file_put_contents($filePath, $this->templateResolver->resolve($classOnlyNamespace));
         }
     }
 

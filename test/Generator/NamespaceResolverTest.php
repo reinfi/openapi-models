@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Test\Generator;
 
 use Nette\PhpGenerator\PhpNamespace;
+use openapiphp\openapi\spec\Schema;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\NotRegisteredNamespaceException;
 use Reinfi\OpenApiModels\Generator\NamespaceResolver;
@@ -56,8 +58,13 @@ class NamespaceResolverTest extends TestCase
 
         $resolver->initialize($configuration);
 
-        $namespaces = $resolver->getNamespaces();
+        $namespacesProperty = (new ReflectionClass($resolver))->getProperty('openApiTypeToNamespace');
+        $namespacesProperty->setAccessible(true);
 
+        $namespaces = $namespacesProperty->getValue($resolver);
+
+        self::assertIsIterable($namespaces);
+        self::assertIsArray($namespaces);
         self::assertCount(3, $namespaces);
         self::assertContainsOnlyInstancesOf(PhpNamespace::class, $namespaces);
         self::assertArrayHasKey(OpenApiType::Schemas->value, $namespaces);
@@ -74,21 +81,41 @@ class NamespaceResolverTest extends TestCase
         $configuration = new Configuration([], '', $configurationNamespace);
 
         $resolver = new NamespaceResolver();
-
         $resolver->initialize($configuration);
 
-        $namespace = $resolver->resolveNamespace($openApiType);
+        $schema = new Schema([
+            'type' => 'object',
+        ]);
+        $namespace = $resolver->resolveNamespace($openApiType, $schema);
 
         self::assertEquals($expectedNamespace, $namespace->getName());
     }
 
+    public function testItResolvesNamespaceWithXPhpNamespace(): void
+    {
+        $configuration = new Configuration([], '', 'Api');
+        $resolver = new NamespaceResolver();
+        $resolver->initialize($configuration);
+
+        $schema = new Schema([
+            'type' => 'object',
+            'x-php-namespace' => 'Custom',
+        ]);
+
+        $namespace = $resolver->resolveNamespace(OpenApiType::Schemas, $schema);
+
+        self::assertEquals('Api\Schema\Custom', $namespace->getName());
+    }
+
     public function testItThrowsExceptionIfNamespaceNotKnown(): void
     {
-        self::expectException(NotRegisteredNamespaceException::class);
-        self::expectExceptionMessage('No namespace is registered for open api type schemas');
+        $this->expectException(NotRegisteredNamespaceException::class);
+        $this->expectExceptionMessage('No namespace is registered for open api type schemas');
 
         $resolver = new NamespaceResolver();
-
-        $resolver->resolveNamespace(OpenApiType::Schemas);
+        $schema = new Schema([
+            'type' => 'object',
+        ]);
+        $resolver->resolveNamespace(OpenApiType::Schemas, $schema);
     }
 }
