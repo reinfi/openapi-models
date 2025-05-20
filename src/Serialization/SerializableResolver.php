@@ -108,7 +108,7 @@ readonly class SerializableResolver
         $method->addBody($this->intend('],'));
 
         if (count($notRequiredParameterNames) === 1) {
-            $method->addBody($this->intend('static fn (mixed $value): bool => $value === null'));
+            $method->addBody($this->intend('static fn (mixed $value): bool => $value !== null'));
             $method->addBody(');');
             return;
         }
