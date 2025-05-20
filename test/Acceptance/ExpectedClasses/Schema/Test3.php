@@ -31,7 +31,7 @@ readonly class Test3 implements JsonSerializable
                 'inline' => $this->inline,
                 'name' => $this->name,
             ],
-            static fn (mixed $value): bool => $value === null
+            static fn (mixed $value): bool => $value !== null
         );
     }
 }

@@ -25,7 +25,7 @@ readonly class RequestBody1 implements JsonSerializable
                 'id' => $this->id,
                 'test' => $this->test,
             ],
-            static fn (mixed $value): bool => $value === null
+            static fn (mixed $value): bool => $value !== null
         );
     }
 }
