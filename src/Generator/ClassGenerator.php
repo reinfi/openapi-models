@@ -68,17 +68,15 @@ readonly class ClassGenerator
                 );
 
                 if ($classModel !== null) {
-                    $classModel->imports->copyImports();
-
                     $models[] = $classModel;
-
                     foreach ($classModel->getInlineModels() as $inlineModel) {
-                        $inlineModel->imports->copyImports();
                         $models[] = $inlineModel;
                     }
                 }
             }
         }
+
+        $this->addClassesForImports($models);
 
         return $models;
     }
@@ -132,18 +130,50 @@ readonly class ClassGenerator
                         $classModel->class->addComment($component->description);
                     }
 
-                    $classModel->imports->copyImports();
-
                     $models[] = $classModel;
-
                     foreach ($classModel->getInlineModels() as $inlineModel) {
-                        $inlineModel->imports->copyImports();
                         $models[] = $inlineModel;
                     }
                 }
             }
         }
 
+        $this->addClassesForImports($models);
+
         return $models;
+    }
+
+    /**
+     * @param ClassModel[] $classModels
+     */
+    private function addClassesForImports(array $classModels): void
+    {
+        foreach ($classModels as $classModel) {
+            foreach ($classModel->imports->getImports() as $import) {
+                $importModel = $this->findClassModel($classModels, $import);
+
+                if ($importModel !== null) {
+                    $classModel->namespace->add($importModel->class);
+                }
+            }
+
+            $classModel->imports->copyImports();
+        }
+    }
+
+    /**
+     * @param ClassModel[] $classModels
+     */
+    private function findClassModel(array $classModels, string $import): ?ClassModel
+    {
+        foreach ($classModels as $classModel) {
+            $fullClassName = $classModel->namespace->resolveName($classModel->className);
+
+            if ($fullClassName === $import) {
+                return $classModel;
+            }
+        }
+
+        return null;
     }
 }

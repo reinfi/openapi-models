@@ -7,6 +7,7 @@ namespace Reinfi\OpenApiModels\Generator;
 use DateTimeInterface;
 use InvalidArgumentException;
 use Nette\PhpGenerator\ClassType;
+use Nette\PhpGenerator\EnumType;
 use Nette\PhpGenerator\Helpers;
 use Nette\PhpGenerator\PhpNamespace;
 use NumberFormatter;
@@ -248,8 +249,6 @@ readonly class ClassTransformer
                 $dictionarySchema,
                 $configuration,
                 $name,
-                $namespace,
-                $imports
             );
 
             if ($dictionaryType instanceof ArrayType) {
@@ -278,6 +277,7 @@ readonly class ClassTransformer
             $namespace->removeClass($name);
             $enumName = $this->transformEnum($name, '', $schema, $namespace);
             $class = $namespace->getClass($enumName);
+            assert($class instanceof EnumType);
 
             return new ClassModel($enumName, $namespace, $class, $imports);
         }
@@ -520,6 +520,8 @@ readonly class ClassTransformer
         }
 
         if (in_array($arrayType, [Types::Date, Types::DateTime], true)) {
+            $classModel->imports->addImport(DateTimeInterface::class);
+
             return new ArrayType(
                 DateTimeInterface::class,
                 $nullable,
@@ -652,6 +654,10 @@ readonly class ClassTransformer
             }
         }
 
+        if (in_array(DateTimeInterface::class, $resolvedTypes, true)) {
+            $classModel->imports->addImport(DateTimeInterface::class);
+        }
+
         return new OneOfType($resolvedTypes);
     }
 
@@ -662,8 +668,6 @@ readonly class ClassTransformer
         Schema $dictionarySchema,
         Configuration $configuration,
         string $name,
-        PhpNamespace $namespace,
-        Imports $imports
     ): string|ArrayType|OneOfType {
         $dictionaryType = $this->typeResolver->resolve($openApi, $dictionarySchema);
 
@@ -698,7 +702,7 @@ readonly class ClassTransformer
                 'DictionaryValue',
                 $dictionarySchema->oneOf,
             ),
-            Types::Enum => $this->transformEnum($name, 'DictionaryValue', $dictionarySchema, $namespace),
+            Types::Enum => $this->transformEnum($name, 'DictionaryValue', $dictionarySchema, $classModel->namespace),
             Types::Object => $this->transformInlineObject(
                 $configuration,
                 $openApi,
@@ -712,7 +716,9 @@ readonly class ClassTransformer
 
         if ($resolvedDictionaryType instanceof ClassModel) {
             $classModel->addInlineModel($resolvedDictionaryType);
-            $classModel->imports->addImport($resolvedDictionaryType->namespace->resolveName($resolvedDictionaryType->className));
+            $classModel->imports->addImport(
+                $resolvedDictionaryType->namespace->resolveName($resolvedDictionaryType->className)
+            );
 
             $resolvedDictionaryType = $resolvedDictionaryType->namespace->resolveName(
                 $resolvedDictionaryType->className

@@ -28,21 +28,20 @@ readonly class ClassWriter
 
         foreach ($models as $model) {
             $namespace = $model->namespace;
-            foreach ($namespace->getClasses() as $class) {
-                if ($class->getName() === null) {
-                    continue;
-                }
-
-                $filePath = $this->fileNameResolver->resolve($configuration, $namespace, $class);
-
-                if (! is_dir(dirname($filePath))) {
-                    mkdir(dirname($filePath));
-                }
-
-                $classOnlyNamespace = $this->singleNamespaceResolver->resolve($namespace, $class);
-
-                file_put_contents($filePath, $this->templateResolver->resolve($classOnlyNamespace));
+            $class = $model->class;
+            if ($class->getName() === null) {
+                continue;
             }
+
+            $filePath = $this->fileNameResolver->resolve($configuration, $namespace, $class);
+
+            if (! is_dir(dirname($filePath))) {
+                mkdir(dirname($filePath));
+            }
+
+            $classOnlyNamespace = $this->singleNamespaceResolver->resolve($namespace, $class);
+
+            file_put_contents($filePath, $this->templateResolver->resolve($classOnlyNamespace));
         }
     }
 

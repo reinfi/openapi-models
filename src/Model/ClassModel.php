@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Model;
 
-use Nette\PhpGenerator\ClassLike;
+use Nette\PhpGenerator\ClassType;
+use Nette\PhpGenerator\EnumType;
 use Nette\PhpGenerator\PhpNamespace;
 
 class ClassModel
@@ -17,7 +18,7 @@ class ClassModel
     public function __construct(
         public readonly string $className,
         public readonly PhpNamespace $namespace,
-        public readonly ClassLike $class,
+        public readonly ClassType|EnumType $class,
         public readonly Imports $imports,
     ) {
     }
