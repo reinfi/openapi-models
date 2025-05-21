@@ -15,6 +15,7 @@ use PackageVersions\Versions;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Configuration\ConfigurationBuilder;
 use Reinfi\OpenApiModels\Generator\ClassGenerator;
+use Reinfi\OpenApiModels\Model\ClassModel;
 use Reinfi\OpenApiModels\Parser\Parser;
 use Reinfi\OpenApiModels\Writer\ClassWriter;
 use Symfony\Component\Console\Command\Command;
@@ -74,9 +75,7 @@ class GenerateCommand extends Command
 
         $this->classWriter->write($configuration, $models);
 
-        foreach ($models as $model) {
-            $this->outputNamespace($io, $model->namespace);
-        }
+        $this->outputModels($io, $models);
 
         $io->success('Finished');
 
@@ -98,6 +97,33 @@ class GenerateCommand extends Command
                 ['DateTime format', $configuration->dateTimeAsObject ? $configuration->dateTimeFormat : ''],
             ]
         );
+    }
+
+    /**
+     * @param ClassModel[] $classModels
+     */
+    private function outputModels(SymfonyStyle $io, array $classModels): void
+    {
+        /** @var array<string, PhpNamespace> $namespaces */
+        $namespaces = array_reduce(
+            $classModels,
+            function (
+                /** @param array<string, PhpNamespace> $io */ array $namespaces,
+                ClassModel $classModel
+            ): array {
+                /** @var PhpNamespace $namespace */
+                $namespace = $namespaces[$classModel->namespace->getName()] ?? $namespaces[$classModel->namespace->getName()] = $classModel->namespace;
+
+                $namespace->add($classModel->class);
+
+                return $namespaces;
+            },
+            []
+        );
+
+        foreach ($namespaces as $namespace) {
+            $this->outputNamespace($io, $namespace);
+        }
     }
 
     private function outputNamespace(SymfonyStyle $io, PhpNamespace $namespace): void
