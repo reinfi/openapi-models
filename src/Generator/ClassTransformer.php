@@ -356,9 +356,10 @@ readonly class ClassTransformer
         // https://swagger.io/docs/specification/v3_0/data-models/enums/#nullable-enums
         $nullable = $schema->nullable && in_array(null, $schema->enum, true);
 
-        if ($schema->nullable && !in_array(null, $schema->enum, true)) {
+        if ($schema->nullable && ! in_array(null, $schema->enum, true)) {
             throw new InvalidEnumSchema(
-                $enumName, 'Defining a nullable enum requires to have the "null" value present in the enum values'
+                $enumName,
+                'Defining a nullable enum requires to have the "null" value present in the enum values'
             );
         }
 
@@ -383,6 +384,13 @@ readonly class ClassTransformer
             }
 
             if (! is_string($enumValue) && ! is_int($enumValue)) {
+                if ($enumValue === null) {
+                    throw new InvalidEnumSchema(
+                        $enumName,
+                        'Defining a nullable enum requires to set the schema nullable'
+                    );
+                }
+
                 throw new InvalidArgumentException(sprintf(
                     'Enum value must be string or integer, got %s',
                     gettype($enumValue)
