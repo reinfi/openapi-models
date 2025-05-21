@@ -77,6 +77,31 @@ components:
 This library does not support `mixed` type from open-api specification. 
 Therefore, you always have to set a type in your specification.
 
+## Enum
+
+Enums are converted to native PHP enums. If your property should be nullable you must set the
+property itself nullable and also add null as enum case value.
+
+```yml
+components:
+  schemas:
+    Test1:
+      type: object
+      required:
+        - state
+      properties:
+        state:
+          type: string
+          nullable: true
+          enum: 
+            - Good
+            - Bad
+            - null
+```
+
+For more information about nullable enums, see
+the [Swagger documentation](https://swagger.io/docs/specification/v3_0/data-models/enums/#nullable-enums).
+
 ## Date or DateTime
 
 The following schema has date/date-time properties.

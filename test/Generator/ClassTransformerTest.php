@@ -16,6 +16,7 @@ use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Configuration\Configuration;
+use Reinfi\OpenApiModels\Exception\InvalidEnumSchema;
 use Reinfi\OpenApiModels\Exception\UnresolvedArrayTypeException;
 use Reinfi\OpenApiModels\Exception\UnsupportedTypeForArrayException;
 use Reinfi\OpenApiModels\Generator\AllOfPropertySchemaResolver;
@@ -973,10 +974,123 @@ class ClassTransformerTest extends TestCase
         self::assertEquals(2, $enum->getCases()['Two']->getValue());
     }
 
+    public function testItThrowsExceptionIfNullableEnumDoesNotContainNullAsEnumValue(): void
+    {
+        $this->expectException(InvalidEnumSchema::class);
+        $this->expectExceptionMessage(
+            'Enum "TestState" is invalid, reason: Defining a nullable enum requires to have the "null" value present in the enum values'
+        );
+
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+
+        $propertyResolver->method('resolve')
+            ->willReturn(new PromotedParameter('test'));
+
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
+
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
+            $dictionaryResolver,
+            $namespaceResolver,
+        );
+
+        $schema = new Schema([
+            'properties' => [
+                'state' => [
+                    'type' => 'number',
+                    'nullable' => true,
+                    'enum' => [1, 2],
+                ],
+            ],
+        ]);
+
+        $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
+    }
+
+    public function testItThrowsExceptionIfEnumContainsNullValueButIsNotNullable(): void
+    {
+        $this->expectException(InvalidEnumSchema::class);
+        $this->expectExceptionMessage(
+            'Enum "TestState" is invalid, reason: Defining a nullable enum requires to set the schema nullable'
+        );
+
+        $openApi = new OpenApi([]);
+        $namespace = new PhpNamespace('');
+
+        $propertyResolver = $this->createMock(PropertyResolver::class);
+        $typeResolver = $this->createMock(TypeResolver::class);
+        $referenceResolver = $this->createMock(ReferenceResolver::class);
+        $serializableResolver = $this->createMock(SerializableResolver::class);
+        $arrayObjectResolver = $this->createMock(ArrayObjectResolver::class);
+        $allOfPropertySchemaResolver = $this->createMock(AllOfPropertySchemaResolver::class);
+        $dictionaryResolver = $this->createMock(DictionaryResolver::class);
+        $namespaceResolver = $this->createMock(NamespaceResolver::class);
+
+        $propertyResolver->method('resolve')
+            ->willReturn(new PromotedParameter('test'));
+
+        $referenceResolver->expects($this->never())
+            ->method('resolve');
+
+        $typeResolver->expects($this->exactly(2))
+            ->method('resolve')
+            ->with($openApi, self::isInstanceOf(Schema::class))->willReturn(Types::Object, Types::Enum);
+
+        $namespaceResolver->expects($this->once())
+            ->method('resolveNamespace')
+            ->willReturn($namespace);
+
+        $transformer = new ClassTransformer(
+            $propertyResolver,
+            $typeResolver,
+            $referenceResolver,
+            $serializableResolver,
+            $arrayObjectResolver,
+            $allOfPropertySchemaResolver,
+            $dictionaryResolver,
+            $namespaceResolver,
+        );
+
+        $schema = new Schema([
+            'properties' => [
+                'state' => [
+                    'type' => 'number',
+                    'enum' => [1, 2, null],
+                ],
+            ],
+        ]);
+
+        $transformer->transform($this->configuration, $openApi, OpenApiType::Schemas, 'Test', $schema);
+    }
+
     public function testItThrowsExceptionIfItemsSchemaIsNull(): void
     {
-        self::expectException(UnresolvedArrayTypeException::class);
-        self::expectExceptionMessage('Could not resolve array type, got type "missing type"');
+        $this->expectException(UnresolvedArrayTypeException::class);
+        $this->expectExceptionMessage('Could not resolve array type, got type "missing type"');
 
         $openApi = new OpenApi([]);
         $namespace = new PhpNamespace('');
