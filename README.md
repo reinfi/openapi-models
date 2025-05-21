@@ -56,7 +56,7 @@ Make sure you use the same configuration file as used for the generate command.
 
 ## Namespace
 
-You can specify a custom namespace for a schema or property using the `x-php-namespace` extension.
+You can specify a custom namespace for a schema, response or request-body using the `x-php-namespace` extension.
 This allows you to extend the default namespace configuration.
 
 ```yml
