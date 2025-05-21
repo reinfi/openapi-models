@@ -353,20 +353,35 @@ readonly class ClassTransformer
             default => 'string'
         });
 
+        // https://swagger.io/docs/specification/v3_0/data-models/enums/#nullable-enums
+        $nullable = $schema->nullable && in_array(null, $schema->enum, true);
+
+        if ($schema->nullable && !in_array(null, $schema->enum, true)) {
+            throw new InvalidEnumSchema(
+                $enumName, 'Defining a nullable enum requires to have the "null" value present in the enum values'
+            );
+        }
+
         // @phpstan-ignore-next-line
         $enumVarNames = isset($schema->{'x-enum-varnames'}) ? $schema->{'x-enum-varnames'} : null;
         // @phpstan-ignore-next-line
         $enumVarDescriptions = isset($schema->{'x-enum-descriptions'}) ? $schema->{'x-enum-descriptions'} : null;
 
-        if (is_array($enumVarNames) && count($schema->enum) !== count($enumVarNames)) {
+        $enumCaseCount = count($schema->enum) - ($nullable ? 1 : 0);
+        if (is_array($enumVarNames) && $enumCaseCount !== count($enumVarNames)) {
             throw new InvalidEnumSchema($enumName, 'x-enum-varnames count does not match enum count');
         }
 
-        if (is_array($enumVarDescriptions) && count($schema->enum) !== count($enumVarDescriptions)) {
+        if (is_array($enumVarDescriptions) && $enumCaseCount !== count($enumVarDescriptions)) {
             throw new InvalidEnumSchema($enumName, 'x-enum-descriptions count does not match enum count');
         }
 
-        foreach ($schema->enum as $index => $enumValue) {
+        $enumCaseIndex = 0;
+        foreach ($schema->enum as $enumValue) {
+            if ($nullable && $enumValue === null) {
+                continue;
+            }
+
             if (! is_string($enumValue) && ! is_int($enumValue)) {
                 throw new InvalidArgumentException(sprintf(
                     'Enum value must be string or integer, got %s',
@@ -389,11 +404,11 @@ readonly class ClassTransformer
             $enumCaseName = ucfirst($enumCaseName);
 
             if (is_array($enumVarNames)) {
-                $varName = $enumVarNames[$index];
+                $varName = $enumVarNames[$enumCaseIndex];
                 if (! is_string($varName)) {
                     throw new InvalidArgumentException(sprintf(
                         'Enum var name at index %d must be a string, got %s',
-                        $index,
+                        $enumCaseIndex,
                         gettype($varName)
                     ));
                 }
@@ -432,16 +447,18 @@ readonly class ClassTransformer
             $enumCase = $enum->addCase($enumCaseName, $enumValue);
 
             if (is_array($enumVarDescriptions)) {
-                $description = $enumVarDescriptions[$index];
+                $description = $enumVarDescriptions[$enumCaseIndex];
                 if (! is_string($description)) {
                     throw new InvalidArgumentException(sprintf(
                         'Enum description at index %d must be a string, got %s',
-                        $index,
+                        $enumCaseIndex,
                         gettype($description)
                     ));
                 }
                 $enumCase->addComment($description);
             }
+
+            $enumCaseIndex++;
         }
 
         return new ClassModel($enumName, $namespace, $enum, new Imports($namespace));

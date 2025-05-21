@@ -372,6 +372,25 @@ components:
               items:
                 type: integer
 
+    Test17NullableEnum:
+      type: object
+      required:
+        - enumValue
+      properties:
+        enumValue:
+          type: string
+          enum:
+            - null
+            - good
+            - bad
+          nullable: true
+          x-enum-varnames:
+            - Good
+            - Bad
+          x-enum-descriptions:
+            - You did it good
+            - Next time you do it better
+
   requestBodies:
     RequestBody1:
       content:
