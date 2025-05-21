@@ -108,7 +108,8 @@ class GenerateCommand extends Command
         $namespaces = array_reduce(
             $classModels,
             function (
-                /** @param array<string, PhpNamespace> $io */ array $namespaces,
+                /** @param array<string, PhpNamespace> $io */
+                array $namespaces,
                 ClassModel $classModel
             ): array {
                 /** @var PhpNamespace $namespace */
