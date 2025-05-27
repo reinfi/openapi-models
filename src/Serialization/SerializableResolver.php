@@ -109,7 +109,7 @@ readonly class SerializableResolver
 
         if (count($notRequiredParameterNames) === count($parameters)) {
             $method->addBody($this->intend('static fn (mixed $value): bool => $value !== null'));
-        } else if (count($notRequiredParameterNames) === 1) {
+        } elseif (count($notRequiredParameterNames) === 1) {
             $method->addBody($this->intend(
                 sprintf(
                     'static fn (mixed $value, string $key): bool => !($key === \'%1$s\' && $value === null),',
