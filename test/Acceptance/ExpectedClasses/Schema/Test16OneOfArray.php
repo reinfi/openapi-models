@@ -26,7 +26,8 @@ readonly class Test16OneOfArray implements JsonSerializable
                 'requiredValue' => $this->requiredValue,
                 'noneRequiredValue' => $this->noneRequiredValue,
             ],
-            static fn (mixed $value): bool => $value !== null
+            static fn (mixed $value, string $key): bool => !($key === 'noneRequiredValue' && $value === null),
+            ARRAY_FILTER_USE_BOTH
         );
     }
 }

@@ -340,6 +340,63 @@ components:
               items:
                 type: integer
 
+    Test17SingleOptional:
+      type: object
+      properties:
+        id:
+          type: number
+
+    Test18MultipleOptional:
+      type: object
+      properties:
+        id:
+          type: number
+        email:
+          type: string
+        admin:
+          type: boolean
+        changed:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+        dateTime:
+          type: string
+          format: date-time
+        deleted:
+          type: boolean
+
+    Test19MultipleRequiredSingleOptional:
+      type: object
+      required:
+        - id
+        - changed
+      properties:
+        id:
+          type: number
+        email:
+          type: string
+        changed:
+          type: string
+          nullable: true
+
+    Test20MultipleRequiredMultipleOptional:
+      type: object
+      required:
+        - id
+        - changed
+      properties:
+        id:
+          type: number
+        email:
+          type: string
+        admin:
+          type: boolean
+        changed:
+          type: string
+          nullable: true
+
   requestBodies:
     RequestBody1:
       content:
