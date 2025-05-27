@@ -6,7 +6,7 @@ namespace Api\Schema;
 
 use JsonSerializable;
 
-readonly class Test19MultipleRequiredSingleOptional implements JsonSerializable
+readonly class Test20MultipleRequiredSingleOptional implements JsonSerializable
 {
     public function __construct(
         public int $id,

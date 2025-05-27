@@ -18,7 +18,7 @@ use Traversable;
  */
 readonly class Test7 implements IteratorAggregate, Countable, ArrayAccess, JsonSerializable
 {
-    /** @var Test1[] $items */
+    /** @var array<Test1> $items */
     private array $items;
 
     public function __construct(Test1 ...$items)

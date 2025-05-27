@@ -54,10 +54,53 @@ To validate your files, i.e. if the specification matches the generated files, y
 
 Make sure you use the same configuration file as used for the generate command. 
 
+## Namespace
+
+You can specify a custom namespace for a schema, response or request-body using the `x-php-namespace` extension.
+This allows you to extend the default namespace configuration.
+
+```yml
+components:
+  schemas:
+    Foo:
+      x-php-namespace: Bar
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: number
+```
+
 ## Types
 
 This library does not support `mixed` type from open-api specification. 
 Therefore, you always have to set a type in your specification.
+
+## Enum
+
+Enums are converted to native PHP enums. If your property should be nullable you must set the
+property itself nullable and also add null as enum case value.
+
+```yml
+components:
+  schemas:
+    Test1:
+      type: object
+      required:
+        - state
+      properties:
+        state:
+          type: string
+          nullable: true
+          enum: 
+            - Good
+            - Bad
+            - null
+```
+
+For more information about nullable enums, see
+the [Swagger documentation](https://swagger.io/docs/specification/v3_0/data-models/enums/#nullable-enums).
 
 ## Date or DateTime
 

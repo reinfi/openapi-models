@@ -7,7 +7,7 @@ namespace Api\Schema;
 use DateTimeInterface;
 use JsonSerializable;
 
-readonly class Test18MultipleOptional implements JsonSerializable
+readonly class Test19MultipleOptional implements JsonSerializable
 {
     public function __construct(
         public ?int $id = null,

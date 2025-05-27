@@ -10,6 +10,8 @@ use Nette\PhpGenerator\PhpNamespace;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Generator\DictionaryResolver;
 use Reinfi\OpenApiModels\Model\ArrayType;
+use Reinfi\OpenApiModels\Model\ClassModel;
+use Reinfi\OpenApiModels\Model\Imports;
 
 class DictionaryResolverTest extends TestCase
 {
@@ -21,7 +23,9 @@ class DictionaryResolverTest extends TestCase
         $class = $namespace->addClass('Test');
         $class->addMethod('__construct');
 
-        $resolver->resolve($namespace, 'Test', $class, 'string');
+        $classModel = new ClassModel('Test', $namespace, $class, new Imports($namespace));
+
+        $resolver->resolve($classModel, 'Test', $class, 'string');
 
         $constructor = $class->getMethod('__construct');
 
@@ -41,7 +45,9 @@ class DictionaryResolverTest extends TestCase
         $class = $namespace->addClass('Test');
         $class->addMethod('__construct');
 
-        $resolver->resolve($namespace, 'Test', $class, 'string');
+        $classModel = new ClassModel('Test', $namespace, $class, new Imports($namespace));
+
+        $resolver->resolve($classModel, 'Test', $class, 'string');
 
         self::assertTrue($class->hasProperty('dictionaries'));
 
@@ -61,7 +67,9 @@ class DictionaryResolverTest extends TestCase
         $class = $namespace->addClass('Test');
         $class->addMethod('__construct');
 
-        $resolver->resolve($namespace, 'Test', $class, 'string');
+        $classModel = new ClassModel('Test', $namespace, $class, new Imports($namespace));
+
+        $resolver->resolve($classModel, 'Test', $class, 'string');
 
         $classes = $namespace->getClasses();
 
@@ -92,7 +100,9 @@ class DictionaryResolverTest extends TestCase
         $class = $namespace->addClass('Test');
         $class->addMethod('__construct');
 
-        $resolver->resolve($namespace, 'Test', $class, new ArrayType('string', false, '@var string[] $value'));
+        $classModel = new ClassModel('Test', $namespace, $class, new Imports($namespace));
+
+        $resolver->resolve($classModel, 'Test', $class, new ArrayType('string', false, '@var string[] $value'));
 
         $classes = $namespace->getClasses();
 

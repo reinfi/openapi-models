@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
-use Nette\PhpGenerator\PhpNamespace;
 use openapiphp\openapi\spec\OpenApi;
 use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\RequestBody;
@@ -12,7 +11,7 @@ use openapiphp\openapi\spec\Response;
 use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Configuration\Configuration;
 use Reinfi\OpenApiModels\Exception\OnlyJsonContentTypeSupported;
-use Reinfi\OpenApiModels\Model\Imports;
+use Reinfi\OpenApiModels\Model\ClassModel;
 
 readonly class ClassGenerator
 {
@@ -23,63 +22,81 @@ readonly class ClassGenerator
     }
 
     /**
-     * @return array<value-of<OpenApiType>, PhpNamespace>
+     * @return ClassModel[]
      */
     public function generate(OpenApi $openApi, Configuration $configuration): array
     {
         $this->namespaceResolver->initialize($configuration);
 
-        $this->addSchemas($configuration, $openApi);
-        $this->buildMediaTypeComponents(
-            $configuration,
-            OpenApiType::RequestBodies,
-            $openApi,
-            $openApi->components->requestBodies ?? []
-        );
-        $this->buildMediaTypeComponents(
-            $configuration,
-            OpenApiType::Responses,
-            $openApi,
-            $openApi->components->responses ?? []
-        );
-
-        return $this->namespaceResolver->getNamespaces();
+        return [
+            ...$this->addSchemas($configuration, $openApi),
+            ...$this->buildMediaTypeComponents(
+                $configuration,
+                OpenApiType::RequestBodies,
+                $openApi,
+                $openApi->components->requestBodies ?? []
+            ),
+            ...$this->buildMediaTypeComponents(
+                $configuration,
+                OpenApiType::Responses,
+                $openApi,
+                $openApi->components->responses ?? []
+            ),
+        ];
     }
 
-    private function addSchemas(Configuration $configuration, OpenApi $openApi): void
+    /**
+     * @return ClassModel[]
+     */
+    private function addSchemas(Configuration $configuration, OpenApi $openApi): array
     {
         $schemas = $openApi->components->schemas ?? [];
         if (count($schemas) === 0) {
-            return;
+            return [];
         }
 
-        $namespace = $this->namespaceResolver->resolveNamespace(OpenApiType::Schemas);
-        $imports = new Imports($namespace);
+        $models = [];
 
         foreach ($schemas as $name => $schema) {
             if ($schema instanceof Schema) {
-                $this->classTransformer->transform($configuration, $openApi, $name, $schema, $namespace, $imports);
+                $classModel = $this->classTransformer->transform(
+                    $configuration,
+                    $openApi,
+                    OpenApiType::Schemas,
+                    $name,
+                    $schema
+                );
+
+                if ($classModel !== null) {
+                    $models[] = $classModel;
+                    foreach ($classModel->getInlineModels() as $inlineModel) {
+                        $models[] = $inlineModel;
+                    }
+                }
             }
         }
 
-        $imports->copyImports();
+        $this->addClassesForImports($models);
+
+        return $models;
     }
 
     /**
      * @param array<RequestBody|Response|Reference> $components
+     *
+     * @return ClassModel[]
      */
     private function buildMediaTypeComponents(
         Configuration $configuration,
         OpenApiType $openApiType,
         OpenApi $openApi,
         array $components
-    ): void {
+    ): array {
         if (count($components) === 0) {
-            return;
+            return [];
         }
 
-        $namespace = $this->namespaceResolver->resolveNamespace($openApiType);
-        $imports = new Imports($namespace);
+        $models = [];
 
         foreach ($components as $name => $component) {
             if ($component instanceof Reference) {
@@ -98,23 +115,65 @@ readonly class ClassGenerator
             }
 
             if ($mediaType->schema !== null) {
-                $class = $this->classTransformer->transform(
+                $classModel = $this->classTransformer->transform(
                     $configuration,
                     $openApi,
+                    $openApiType,
                     $name,
                     $mediaType->schema,
-                    $namespace,
-                    $imports
                 );
 
-                if ($class->getComment() === null && is_string($component->description) && strlen(
-                    $component->description
-                ) > 0) {
-                    $class->addComment($component->description);
+                if ($classModel !== null) {
+                    if ($classModel->class->getComment() === null && is_string($component->description) && strlen(
+                        $component->description
+                    ) > 0) {
+                        $classModel->class->addComment($component->description);
+                    }
+
+                    $models[] = $classModel;
+                    foreach ($classModel->getInlineModels() as $inlineModel) {
+                        $models[] = $inlineModel;
+                    }
                 }
             }
         }
 
-        $imports->copyImports();
+        $this->addClassesForImports($models);
+
+        return $models;
+    }
+
+    /**
+     * @param ClassModel[] $classModels
+     */
+    private function addClassesForImports(array $classModels): void
+    {
+        foreach ($classModels as $classModel) {
+            foreach ($classModel->imports->getImports() as $import) {
+                $importModel = $this->findClassModel($classModels, $import);
+
+                if ($importModel !== null) {
+                    $classModel->namespace->add($importModel->class);
+                }
+            }
+
+            $classModel->imports->copyImports();
+        }
+    }
+
+    /**
+     * @param ClassModel[] $classModels
+     */
+    private function findClassModel(array $classModels, string $import): ?ClassModel
+    {
+        foreach ($classModels as $classModel) {
+            $fullClassName = $classModel->namespace->resolveName($classModel->className);
+
+            if ($fullClassName === $import) {
+                return $classModel;
+            }
+        }
+
+        return null;
     }
 }

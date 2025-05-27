@@ -48,7 +48,7 @@ readonly class TypeResolver
 
             return new ClassReference(
                 $schemaWithName->openApiType,
-                $this->namespaceResolver->resolveNamespace($schemaWithName->openApiType)
+                $this->namespaceResolver->resolveNamespace($schemaWithName->openApiType, $schemaWithName->schema)
                     ->resolveName($schemaWithName->name)
             );
         }

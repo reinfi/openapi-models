@@ -11,7 +11,7 @@ readonly class Test3 implements JsonSerializable
     public function __construct(
         public string $id,
         public float $dollar,
-        /** @var Test1[] $tests */
+        /** @var array<Test1> $tests */
         public array $tests,
         public Test3Inline $inline,
         public ?string $name = null,

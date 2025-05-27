@@ -59,9 +59,9 @@ class ValidateCommand extends Command
 
         $parserResult = $this->parser->parse($configuration);
 
-        $namespaces = $this->classGenerator->generate($parserResult->openApi, $configuration);
+        $models = $this->classGenerator->generate($parserResult->openApi, $configuration);
 
-        $validationResult = $this->validator->validate($configuration, $namespaces);
+        $validationResult = $this->validator->validate($configuration, $models);
 
         $outputFormatter = $this->formatterFactory->create(
             $typedInput->getOption('output-format')

@@ -29,6 +29,14 @@ class Imports
         }
     }
 
+    /**
+     * @return string[]
+     */
+    public function getImports(): array
+    {
+        return $this->imports;
+    }
+
     public function copyImports(): void
     {
         foreach ($this->imports as $import) {

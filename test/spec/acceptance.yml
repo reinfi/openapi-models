@@ -134,6 +134,7 @@ components:
       required:
         - id
         - states
+        - nullableArrayString
       properties:
         id:
           type: string
@@ -161,6 +162,11 @@ components:
             type: array
             items:
               type: string
+        nullableArrayString:
+          type: array
+          items:
+            type: string
+            nullable: true
 
     Test7:
       type: array
@@ -262,6 +268,24 @@ components:
         items:
           type: string
 
+    TestPropertyNamespace:
+      type: object
+      required:
+        - test
+      properties:
+        test:
+          $ref: '#/components/schemas/TestNamespace'
+
+    TestNamespace:
+      type: object
+      x-php-namespace: Test
+      description: Test object to be in a different namespace
+      required:
+        - id
+      properties:
+        id:
+          type: number
+
     NullableDate:
       type: string
       format: date
@@ -314,6 +338,14 @@ components:
         - Just as green as an apple
         - Like the white snow on the mountains
 
+    ColorNamespace:
+      type: string
+      x-php-namespace: Enums
+      enum:
+        - red
+        - green
+        - white
+
     Test7OrTest8:
       oneOf:
         - $ref: '#/components/schemas/Test7'
@@ -340,13 +372,32 @@ components:
               items:
                 type: integer
 
-    Test17SingleOptional:
+    Test17NullableEnum:
+      type: object
+      required:
+        - enumValue
+      properties:
+        enumValue:
+          type: string
+          enum:
+            - null
+            - good
+            - bad
+          nullable: true
+          x-enum-varnames:
+            - Good
+            - Bad
+          x-enum-descriptions:
+            - You did it good
+            - Next time you do it better
+
+    Test18SingleOptional:
       type: object
       properties:
         id:
           type: number
 
-    Test18MultipleOptional:
+    Test19MultipleOptional:
       type: object
       properties:
         id:
@@ -367,7 +418,7 @@ components:
         deleted:
           type: boolean
 
-    Test19MultipleRequiredSingleOptional:
+    Test20MultipleRequiredSingleOptional:
       type: object
       required:
         - id
@@ -381,7 +432,7 @@ components:
           type: string
           nullable: true
 
-    Test20MultipleRequiredMultipleOptional:
+    Test21MultipleRequiredMultipleOptional:
       type: object
       required:
         - id

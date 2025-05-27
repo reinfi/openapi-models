@@ -11,13 +11,15 @@ readonly class Test6 implements JsonSerializable
 {
     public function __construct(
         public string $id,
-        /** @var Test6States[] $states */
+        /** @var array<Test6States> $states */
         public array $states,
+        /** @var array<string|null> $nullableArrayString */
+        public array $nullableArrayString,
         /** @var array<Test1|Test2>|null $tests */
         public ?array $tests = null,
         /** @var array<DateTimeInterface>|null $dates */
         public ?array $dates = null,
-        /** @var array<string[]>|null $arrayOfArray */
+        /** @var array<array<string>>|null $arrayOfArray */
         public ?array $arrayOfArray = null,
     ) {
     }
@@ -31,6 +33,7 @@ readonly class Test6 implements JsonSerializable
             [
                 'id' => $this->id,
                 'states' => $this->states,
+                'nullableArrayString' => $this->nullableArrayString,
                 'tests' => $this->tests,
                 'dates' => $this->dates === null ? $this->dates : array_map(static fn (DateTimeInterface $date): string => $date->format('Y-m-d'), $this->dates),
                 'arrayOfArray' => $this->arrayOfArray,
