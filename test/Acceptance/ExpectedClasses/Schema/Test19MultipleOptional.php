@@ -7,17 +7,14 @@ namespace Api\Schema;
 use DateTimeInterface;
 use JsonSerializable;
 
-/**
- * Test1 object to show functionality
- */
-readonly class Test1 implements JsonSerializable
+readonly class Test19MultipleOptional implements JsonSerializable
 {
     public function __construct(
-        public int $id,
-        public string $email,
-        public bool $admin,
-        public ?string $changed,
-        public DateTimeInterface $date,
+        public ?int $id = null,
+        public ?string $email = null,
+        public ?bool $admin = null,
+        public ?string $changed = null,
+        public ?DateTimeInterface $date = null,
         public ?DateTimeInterface $dateTime = null,
         public ?bool $deleted = null,
     ) {
@@ -34,15 +31,11 @@ readonly class Test1 implements JsonSerializable
                 'email' => $this->email,
                 'admin' => $this->admin,
                 'changed' => $this->changed,
-                'date' => $this->date->format('Y-m-d'),
+                'date' => $this->date?->format('Y-m-d'),
                 'dateTime' => $this->dateTime?->format('Y-m-d\TH:i:sP'),
                 'deleted' => $this->deleted,
             ],
-            static fn (mixed $value, string $key): bool => !(in_array($key, [
-                'dateTime',
-                'deleted',
-            ], true) && $value === null),
-            ARRAY_FILTER_USE_BOTH
+            static fn (mixed $value): bool => $value !== null
         );
     }
 }

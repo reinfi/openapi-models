@@ -24,6 +24,9 @@ readonly class Test6 implements JsonSerializable
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return array_filter(
@@ -35,7 +38,11 @@ readonly class Test6 implements JsonSerializable
                 'dates' => $this->dates === null ? $this->dates : array_map(static fn (DateTimeInterface $date): string => $date->format('Y-m-d'), $this->dates),
                 'arrayOfArray' => $this->arrayOfArray,
             ],
-            static fn (mixed $value, string $key): bool => !(in_array($key, ['tests', 'dates', 'arrayOfArray'], true) && $value === null),
+            static fn (mixed $value, string $key): bool => !(in_array($key, [
+                'tests',
+                'dates',
+                'arrayOfArray',
+            ], true) && $value === null),
             ARRAY_FILTER_USE_BOTH
         );
     }

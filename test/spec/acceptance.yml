@@ -391,6 +391,63 @@ components:
             - You did it good
             - Next time you do it better
 
+    Test18SingleOptional:
+      type: object
+      properties:
+        id:
+          type: number
+
+    Test19MultipleOptional:
+      type: object
+      properties:
+        id:
+          type: number
+        email:
+          type: string
+        admin:
+          type: boolean
+        changed:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+        dateTime:
+          type: string
+          format: date-time
+        deleted:
+          type: boolean
+
+    Test20MultipleRequiredSingleOptional:
+      type: object
+      required:
+        - id
+        - changed
+      properties:
+        id:
+          type: number
+        email:
+          type: string
+        changed:
+          type: string
+          nullable: true
+
+    Test21MultipleRequiredMultipleOptional:
+      type: object
+      required:
+        - id
+        - changed
+      properties:
+        id:
+          type: number
+        email:
+          type: string
+        admin:
+          type: boolean
+        changed:
+          type: string
+          nullable: true
+
   requestBodies:
     RequestBody1:
       content:

@@ -25,6 +25,9 @@ readonly class Response1 implements JsonSerializable
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return array_filter(
@@ -34,7 +37,11 @@ readonly class Response1 implements JsonSerializable
                 'items' => $this->items,
                 'whoKnows' => $this->whoKnows,
             ],
-            static fn (mixed $value, string $key): bool => !(in_array($key, ['test', 'items', 'whoKnows'], true) && $value === null),
+            static fn (mixed $value, string $key): bool => !(in_array($key, [
+                'test',
+                'items',
+                'whoKnows',
+            ], true) && $value === null),
             ARRAY_FILTER_USE_BOTH
         );
     }

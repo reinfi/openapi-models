@@ -18,6 +18,9 @@ readonly class Test3 implements JsonSerializable
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return array_filter(
@@ -28,7 +31,7 @@ readonly class Test3 implements JsonSerializable
                 'inline' => $this->inline,
                 'name' => $this->name,
             ],
-            static fn (mixed $value, string $key): bool => !(in_array($key, ['name'], true) && $value === null),
+            static fn (mixed $value, string $key): bool => !($key === 'name' && $value === null),
             ARRAY_FILTER_USE_BOTH
         );
     }

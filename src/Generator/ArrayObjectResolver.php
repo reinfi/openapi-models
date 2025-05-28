@@ -68,8 +68,8 @@ class ArrayObjectResolver
             );
         }
 
-        $class->addComment(sprintf('@implements %s<int, %s>', ArrayAccess::class, $type));
-        $class->addComment(sprintf('@implements %s<%s>', IteratorAggregate::class, $type));
+        $class->addComment(sprintf('@implements \%s<int, %s>', ArrayAccess::class, $type));
+        $class->addComment(sprintf('@implements \%s<%s>', IteratorAggregate::class, $type));
 
         return $this;
     }

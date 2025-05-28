@@ -16,6 +16,9 @@ readonly class Test16OneOfArray implements JsonSerializable
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return array_filter(
@@ -23,7 +26,7 @@ readonly class Test16OneOfArray implements JsonSerializable
                 'requiredValue' => $this->requiredValue,
                 'noneRequiredValue' => $this->noneRequiredValue,
             ],
-            static fn (mixed $value, string $key): bool => !(in_array($key, ['noneRequiredValue'], true) && $value === null),
+            static fn (mixed $value, string $key): bool => !($key === 'noneRequiredValue' && $value === null),
             ARRAY_FILTER_USE_BOTH
         );
     }

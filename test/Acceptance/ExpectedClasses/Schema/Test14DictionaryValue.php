@@ -15,6 +15,9 @@ readonly class Test14DictionaryValue implements JsonSerializable
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return [

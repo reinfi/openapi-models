@@ -62,6 +62,7 @@ readonly class SerializableResolver
         $class->setImplements([...$class->getImplements(), JsonSerializable::class]);
 
         $method = $class->addMethod('jsonSerialize')
+            ->addComment('@return array<string, mixed>')
             ->setReturnType('array');
 
         /** @var string[] $parameterSerializeCodeParts */
@@ -106,13 +107,29 @@ readonly class SerializableResolver
 
         $method->addBody($this->intend('],'));
 
-        $method->addBody(
-            $this->intend(
-                'static fn (mixed $value, string $key): bool => !(in_array($key, [...?], true) && $value === null),'
-            ),
-            [$notRequiredParameterNames]
-        )->addBody($this->intend('ARRAY_FILTER_USE_BOTH'))
-            ->addBody(');');
+        if (count($notRequiredParameterNames) === count($parameters)) {
+            $method->addBody($this->intend('static fn (mixed $value): bool => $value !== null'));
+        } elseif (count($notRequiredParameterNames) === 1) {
+            $method->addBody($this->intend(
+                sprintf(
+                    'static fn (mixed $value, string $key): bool => !($key === \'%1$s\' && $value === null),',
+                    reset($notRequiredParameterNames)
+                )
+            ));
+            $method->addBody($this->intend('ARRAY_FILTER_USE_BOTH'));
+        } else {
+            $method->addBody($this->intend('static fn (mixed $value, string $key): bool => !(in_array($key, ['));
+
+            array_map(
+                fn (string $name) => $method->addBody($this->intend(sprintf('\'%1$s\',', $name), 2)),
+                $notRequiredParameterNames
+            );
+
+            $method->addBody($this->intend('], true) && $value === null),'));
+            $method->addBody($this->intend('ARRAY_FILTER_USE_BOTH'));
+        }
+
+        $method->addBody(');');
     }
 
     private function intend(string $code, int $intends = 1): string
