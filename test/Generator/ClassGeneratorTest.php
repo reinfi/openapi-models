@@ -75,7 +75,10 @@ class ClassGeneratorTest extends TestCase
 
         $openApi = new OpenApi([
             'openapi' => '3.0.0',
-            'info' => ['title' => 'Test API', 'version' => '1.0.0'],
+            'info' => [
+                'title' => 'Test API',
+                'version' => '1.0.0',
+            ],
             'paths' => [],
             'components' => [
                 'requestBodies' => [
@@ -124,7 +127,10 @@ class ClassGeneratorTest extends TestCase
 
         $openApi = new OpenApi([
             'openapi' => '3.0.0',
-            'info' => ['title' => 'Test API', 'version' => '1.0.0'],
+            'info' => [
+                'title' => 'Test API',
+                'version' => '1.0.0',
+            ],
             'paths' => [],
             'components' => [
                 'responses' => [
@@ -173,7 +179,10 @@ class ClassGeneratorTest extends TestCase
 
         $openApi = new OpenApi([
             'openapi' => '3.0.0',
-            'info' => ['title' => 'Test API', 'version' => '1.0.0'],
+            'info' => [
+                'title' => 'Test API',
+                'version' => '1.0.0',
+            ],
             'paths' => [],
             'components' => [
                 'responses' => [
@@ -222,7 +231,10 @@ class ClassGeneratorTest extends TestCase
 
         $openApi = new OpenApi([
             'openapi' => '3.0.0',
-            'info' => ['title' => 'Test API', 'version' => '1.0.0'],
+            'info' => [
+                'title' => 'Test API',
+                'version' => '1.0.0',
+            ],
             'paths' => [],
             'components' => [
                 'responses' => [
@@ -280,7 +292,10 @@ class ClassGeneratorTest extends TestCase
 
         $openApi = new OpenApi([
             'openapi' => '3.0.0',
-            'info' => ['title' => 'Test API', 'version' => '1.0.0'],
+            'info' => [
+                'title' => 'Test API',
+                'version' => '1.0.0',
+            ],
             'paths' => [],
             'components' => [
                 'responses' => [
@@ -317,7 +332,10 @@ class ClassGeneratorTest extends TestCase
 
         $openApi = new OpenApi([
             'openapi' => '3.0.0',
-            'info' => ['title' => 'Test API', 'version' => '1.0.0'],
+            'info' => [
+                'title' => 'Test API',
+                'version' => '1.0.0',
+            ],
             'paths' => [],
             'components' => [
                 'responses' => [
