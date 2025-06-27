@@ -58,6 +58,10 @@ readonly class ClassGenerator
         $models = [];
 
         foreach ($schemas as $name => $schema) {
+            if ($schema instanceof Reference) {
+                $schema = $schema->resolve();
+            }
+
             if ($schema instanceof Schema) {
                 $classModel = $this->classTransformer->transform(
                     $configuration,

@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use openapiphp\openapi\spec\OpenApi;
 use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
+use Reinfi\OpenApiModels\Model\InlineSchemaReference;
 use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\ScalarType;
 
@@ -22,13 +23,13 @@ readonly class TypeResolver
 
     /**
      * @phpstan-assert Schema $schema when return type is string|Types|null
-     * @return ($schema is Reference ? ClassReference|OneOfReference|ScalarType : ($throwException is true ? string|Types : string|Types|null))
+     * @return ($schema is Reference ? ClassReference|InlineSchemaReference|OneOfReference|ScalarType : ($throwException is true ? string|Types : string|Types|null))
      */
     public function resolve(
         OpenApi $openApi,
         Schema|Reference $schema,
         bool $throwException = true
-    ): ScalarType|ClassReference|OneOfReference|string|Types|null {
+    ): ScalarType|ClassReference|InlineSchemaReference|OneOfReference|string|Types|null {
         if ($schema instanceof Reference) {
             $schemaWithName = $this->referenceResolver->resolve($openApi, $schema);
 
@@ -44,6 +45,10 @@ readonly class TypeResolver
 
             if (is_string($referenceType)) {
                 return new ScalarType($referenceType, $schemaWithName->schema);
+            }
+
+            if ($schemaWithName->name === '') {
+                return new InlineSchemaReference($schemaWithName->schema);
             }
 
             return new ClassReference(

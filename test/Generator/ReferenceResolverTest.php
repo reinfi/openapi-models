@@ -57,10 +57,18 @@ class ReferenceResolverTest extends TestCase
         self::expectException(InvalidArgumentException::class);
         self::expectExceptionMessage('Invalid reference "no-valid-reference" given, does not match pattern');
 
-        $openApi = new OpenApi([]);
-        $reference = new Reference([
-            '$ref' => 'no-valid-reference',
+        $openApi = new OpenApi([
+            'components' => [
+                'schemas' => [
+                    'InvalidReference' => [
+                        '$ref' => 'no-valid-reference',
+                    ],
+                ],
+            ],
         ]);
+
+        $reference = $openApi->components?->schemas['InvalidReference'];
+        self::assertInstanceOf(Reference::class, $reference);
 
         $resolver = new ReferenceResolver();
         $resolver->resolve($openApi, $reference);

@@ -10,6 +10,7 @@ use openapiphp\openapi\spec\Reference;
 use openapiphp\openapi\spec\Schema;
 use Reinfi\OpenApiModels\Exception\InvalidReferenceException;
 use Reinfi\OpenApiModels\Model\SchemaWithName;
+use Throwable;
 
 readonly class ReferenceResolver
 {
@@ -20,8 +21,21 @@ readonly class ReferenceResolver
             $reference->getReference(),
             $matches
         ) !== 1) {
+            try {
+                $resolvedSchema = $reference->resolve();
+
+                if ($resolvedSchema instanceof Schema) {
+                    return new SchemaWithName(OpenApiType::Schemas, '', $resolvedSchema);
+                }
+            } catch (Throwable $throwable) {
+                throw new InvalidArgumentException(
+                    sprintf('Invalid reference "%s" given, does not match pattern', $reference->getReference()),
+                    previous: $throwable,
+                );
+            }
+
             throw new InvalidArgumentException(
-                sprintf('Invalid reference "%s" given, does not match pattern', $reference->getReference())
+                sprintf('Invalid reference "%s" given, does not match pattern', $reference->getReference()),
             );
         }
 

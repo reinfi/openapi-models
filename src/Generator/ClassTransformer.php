@@ -23,6 +23,7 @@ use Reinfi\OpenApiModels\Exception\UnsupportedTypeForOneOfException;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\ClassModel;
 use Reinfi\OpenApiModels\Model\Imports;
+use Reinfi\OpenApiModels\Model\InlineSchemaReference;
 use Reinfi\OpenApiModels\Model\OneOfReference;
 use Reinfi\OpenApiModels\Model\OneOfType;
 use Reinfi\OpenApiModels\Model\ScalarType;
@@ -502,6 +503,11 @@ readonly class ClassTransformer
         if ($arrayType instanceof OneOfReference) {
             $itemsSchema = $arrayType->schema;
             $arrayType = Types::OneOf;
+        }
+
+        if ($arrayType instanceof InlineSchemaReference) {
+            $itemsSchema = $arrayType->schema;
+            $arrayType = Types::Object;
         }
 
         if ($arrayType === Types::Object) {
