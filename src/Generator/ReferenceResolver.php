@@ -53,6 +53,12 @@ readonly class ReferenceResolver
             ),
         };
 
+        if ($schema instanceof Reference) {
+            $resolvedSchema = $this->resolve($openApi, $schema);
+
+            return new SchemaWithName($openApiType, $matches['name'], $resolvedSchema->schema);
+        }
+
         if ($schema instanceof Schema) {
             return new SchemaWithName($openApiType, $matches['name'], $schema);
         }
