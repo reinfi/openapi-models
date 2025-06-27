@@ -448,6 +448,9 @@ components:
           type: string
           nullable: true
 
+    Test22:
+      $ref: './models/TestObject22.yaml'
+
   requestBodies:
     RequestBody1:
       content:
