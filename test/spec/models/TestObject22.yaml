@@ -1,0 +1,9 @@
+type: object
+properties:
+    group:
+        type: string
+    option:
+        type: string
+required:
+    - group
+    - option
