@@ -64,7 +64,7 @@ readonly class ClassWriter
                 continue;
             }
 
-            if ($fileInfo->isFile()) {
+            if ($fileInfo->isFile() && ! in_array($fileInfo->getFilename(), ['.gitkeep', '.gitignore'], true)) {
                 unlink($fileInfo->getRealPath());
             }
         }
