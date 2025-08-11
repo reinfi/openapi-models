@@ -11,7 +11,9 @@ readonly class ParserResult
 {
     public function __construct(
         public OpenApi $openApi,
-        /** @var File[] $parsedFiles */
+        /**
+         * @var File[]
+         */
         public array $parsedFiles,
     ) {
     }

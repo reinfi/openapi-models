@@ -7,7 +7,9 @@ namespace Reinfi\OpenApiModels\Model;
 readonly class OneOfType
 {
     public function __construct(
-        /** @var array<string | ArrayType> $types */
+        /**
+         * @var array<string | ArrayType>
+         */
         public array $types,
     ) {
     }

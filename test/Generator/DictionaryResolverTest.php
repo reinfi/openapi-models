@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Test\Generator;
 
-use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\Visibility;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Generator\DictionaryResolver;
 use Reinfi\OpenApiModels\Model\ArrayType;
@@ -53,7 +53,7 @@ class DictionaryResolverTest extends TestCase
 
         $property = $class->getProperty('dictionaries');
 
-        self::assertEquals(ClassLike::VisibilityPrivate, $property->getVisibility());
+        self::assertEquals(Visibility::Private->value, $property->getVisibility());
         self::assertEquals('array', $property->getType());
         self::assertNotNull($property->getComment());
         self::assertStringContainsString('@var Api\TestDictionary[]', $property->getComment());

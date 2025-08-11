@@ -12,7 +12,9 @@ readonly class ArrayType
         public ClassReference|string|OneOfType $type,
         public bool $nullable,
         public string $docType,
-        /** @var string[] $imports */
+        /**
+         * @var string[]
+         */
         public array $imports = [],
     ) {
     }
