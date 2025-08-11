@@ -40,19 +40,21 @@ class SingleNamespaceResolver
 
                 if (str_contains($method->getBody(), $use)) {
                     $classOnlyNamespace->addUse($use);
-                    $method->setBody(str_replace($use, $namespace->simplifyName($use), $method->getBody()));
+                    $method->setBody(str_replace($use, $classOnlyNamespace->simplifyName($use), $method->getBody()));
                 }
 
                 if ($method->getComment() !== null && str_contains($method->getComment(), $use)) {
                     $classOnlyNamespace->addUse($use);
-                    $method->setComment(str_replace($use, $namespace->simplifyName($use), $method->getComment()));
+                    $method->setComment(
+                        str_replace($use, $classOnlyNamespace->simplifyName($use), $method->getComment())
+                    );
                 }
 
                 if ($returnType !== null && $returnType->allows('array') && $method->getComment() !== null) {
                     if (str_contains($method->getComment(), $use)) {
                         $namespace->addUse($use);
                         $method->setComment(
-                            str_replace($use, $namespace->simplifyName($use), $method->getComment())
+                            str_replace($use, $classOnlyNamespace->simplifyName($use), $method->getComment())
                         );
                     }
                 }
@@ -78,7 +80,7 @@ class SingleNamespaceResolver
         }
 
         $type = $parameterOrProperty->getType(true);
-        if ($type !== null && $type->allows($use) || $parameterOrProperty->getType() === $use) {
+        if (($type !== null && $type->allows($use)) || $parameterOrProperty->getType() === $use) {
             $namespace->addUse($use);
         }
 

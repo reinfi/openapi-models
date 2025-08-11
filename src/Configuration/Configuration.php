@@ -9,7 +9,9 @@ use DateTimeInterface;
 readonly class Configuration
 {
     public function __construct(
-        /** @var string[] $paths */
+        /**
+         * @var string[]
+         */
         public array $paths,
         public string $outputPath,
         public string $namespace,

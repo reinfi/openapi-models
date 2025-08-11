@@ -9,10 +9,10 @@ use ArrayIterator;
 use BadMethodCallException;
 use Countable;
 use IteratorAggregate;
-use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\Visibility;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Reinfi\OpenApiModels\Generator\ArrayObjectResolver;
@@ -104,7 +104,7 @@ class ArrayObjectResolverTest extends TestCase
         $property = $class->getProperty('items');
         self::assertEquals('array', $property->getType());
         self::assertFalse($property->isNullable());
-        self::assertEquals(ClassLike::VisibilityPrivate, $property->getVisibility());
+        self::assertEquals(Visibility::Private->value, $property->getVisibility());
         self::assertStringContainsString('docType', $property->getComment() ?: '');
     }
 
@@ -166,7 +166,7 @@ class ArrayObjectResolverTest extends TestCase
         $property = $class->getProperty('items');
         self::assertEquals('array', $property->getType());
         self::assertFalse($property->isNullable());
-        self::assertEquals(ClassLike::VisibilityPrivate, $property->getVisibility());
+        self::assertEquals(Visibility::Private->value, $property->getVisibility());
         self::assertStringContainsString('docType', $property->getComment() ?: '');
 
         $imports->copyImports();
