@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
+use Nette\PhpGenerator\Helpers;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PromotedParameter;
 use openapiphp\openapi\spec\Reference;
