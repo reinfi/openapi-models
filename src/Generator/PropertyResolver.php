@@ -22,8 +22,8 @@ readonly class PropertyResolver
         bool $required,
         ScalarType|ClassReference|InlineSchemaReference|OneOfReference|Types|string $type,
     ): PromotedParameter {
-        if (!Helpers::isIdentifier($name)) {
-          $name = str_replace('-', '_', $name);
+        if (! Helpers::isIdentifier($name)) {
+            $name = str_replace('-', '_', $name);
         }
 
         $property = $constructor->addPromotedParameter($name);
