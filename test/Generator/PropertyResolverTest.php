@@ -150,4 +150,26 @@ class PropertyResolverTest extends TestCase
             self::assertTrue($parameter->isNullable());
         }
     }
+
+    public function testItConvertsKebabCaseNameToValidIdentifier(): void
+    {
+        $constructor = new Method('__construct');
+        $resolver = new PropertyResolver();
+
+        $originalName = 'my-prop';
+        $schema = new Schema([
+            'nullable' => false,
+        ]);
+
+        $parameter = $resolver->resolve($constructor, $originalName, $schema, true, 'string');
+
+        self::assertSame('my_prop', $parameter->getName(), 'Kebab-case name should be converted to underscore');
+        self::assertSame('string', $parameter->getType());
+        self::assertFalse($parameter->isNullable());
+
+        // Ensure the constructor now contains a promoted parameter with the converted name
+        $parameters = $constructor->getParameters();
+        self::assertArrayHasKey('my_prop', $parameters);
+        self::assertArrayNotHasKey('my-prop', $parameters);
+    }
 }
