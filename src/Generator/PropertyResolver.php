@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
+use Nette\PhpGenerator\Helpers;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PromotedParameter;
 use openapiphp\openapi\spec\Reference;
@@ -21,6 +22,10 @@ readonly class PropertyResolver
         bool $required,
         ScalarType|ClassReference|InlineSchemaReference|OneOfReference|Types|string $type,
     ): PromotedParameter {
+        if (! Helpers::isIdentifier($name)) {
+            $name = str_replace('-', '_', $name);
+        }
+
         $property = $constructor->addPromotedParameter($name);
 
         if (is_string($type)) {
