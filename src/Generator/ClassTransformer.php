@@ -795,10 +795,8 @@ readonly class ClassTransformer
         return $this->namespaceResolver->resolveNamespace($openApiType, $schema);
     }
 
-    private function applyNamespaceToSchema(
-        Schema $baseSchema,
-        Schema $schema,
-    ): Schema {
+    private function applyNamespaceToSchema(Schema $baseSchema, Schema $schema): Schema
+    {
         // @phpstan-ignore-next-line
         $xPhpNamespace = $baseSchema->{'x-php-namespace'} ?? null;
 
