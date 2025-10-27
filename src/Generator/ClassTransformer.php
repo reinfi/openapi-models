@@ -151,6 +151,8 @@ readonly class ClassTransformer
                 }
 
                 if ($type === Types::Object) {
+                    $property = $this->applyNamespaceToSchema($schema, $property);
+
                     $inlineObject = $this->transformInlineObject(
                         $configuration,
                         $openApi,
@@ -511,13 +513,7 @@ readonly class ClassTransformer
         }
 
         if ($arrayType === Types::Object) {
-            // @phpstan-ignore-next-line
-            $xPhpNamespace = $schema->{'x-php-namespace'} ?? null;
-
-            if (is_string($xPhpNamespace)) {
-                // @phpstan-ignore-next-line
-                $itemsSchema->{'x-php-namespace'} = $xPhpNamespace;
-            }
+            $itemsSchema = $this->applyNamespaceToSchema($schema, $itemsSchema);
 
             $inlineObject = $this->transformInlineObject(
                 $configuration,
@@ -797,5 +793,20 @@ readonly class ClassTransformer
         }
 
         return $this->namespaceResolver->resolveNamespace($openApiType, $schema);
+    }
+
+    private function applyNamespaceToSchema(
+        Schema $baseSchema,
+        Schema $schema,
+    ): Schema {
+        // @phpstan-ignore-next-line
+        $xPhpNamespace = $baseSchema->{'x-php-namespace'} ?? null;
+
+        if (is_string($xPhpNamespace)) {
+            // @phpstan-ignore-next-line
+            $schema->{'x-php-namespace'} = $xPhpNamespace;
+        }
+
+        return $schema;
     }
 }
