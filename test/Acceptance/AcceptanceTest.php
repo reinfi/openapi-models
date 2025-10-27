@@ -22,7 +22,8 @@ class AcceptanceTest extends TestCase
         self::assertNotNull($output);
         self::assertNotFalse($output);
 
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/ExpectedClasses'));
+        $baseDirectoryPath = __DIR__ . '/ExpectedClasses';
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($baseDirectoryPath));
         $expectedFiles = [];
         foreach ($iterator as $file) {
             if ($file instanceof SplFileInfo && $file->isFile() && $file->getExtension() === 'php') {
@@ -31,8 +32,9 @@ class AcceptanceTest extends TestCase
         }
 
         foreach ($expectedFiles as $file) {
-            $fileName = basename($file);
-            $fileDirectory = basename(dirname($file));
+            $fileWithoutBaseDirectory = str_replace($baseDirectoryPath, '', $file);
+            $fileName = basename($fileWithoutBaseDirectory);
+            $fileDirectory = ltrim(dirname($fileWithoutBaseDirectory));
 
             self::assertFileEquals($file, sprintf(__DIR__ . '/../output/%s/%s', $fileDirectory, $fileName));
         }

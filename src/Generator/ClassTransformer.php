@@ -511,6 +511,14 @@ readonly class ClassTransformer
         }
 
         if ($arrayType === Types::Object) {
+            // @phpstan-ignore-next-line
+            $xPhpNamespace = $schema->{'x-php-namespace'} ?? null;
+
+            if (is_string($xPhpNamespace)) {
+                // @phpstan-ignore-next-line
+                $itemsSchema->{'x-php-namespace'} = $xPhpNamespace;
+            }
+
             $inlineObject = $this->transformInlineObject(
                 $configuration,
                 $openApi,
