@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Reinfi\OpenApiModels\Test\Acceptance;
 
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 class AcceptanceTest extends TestCase
 {
@@ -19,8 +22,13 @@ class AcceptanceTest extends TestCase
         self::assertNotNull($output);
         self::assertNotFalse($output);
 
-        $expectedFiles = glob(__DIR__ . '/ExpectedClasses/**/*.php');
-        self::assertNotFalse($expectedFiles);
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/ExpectedClasses'));
+        $expectedFiles = [];
+        foreach ($iterator as $file) {
+            if ($file instanceof SplFileInfo && $file->isFile() && $file->getExtension() === 'php') {
+                $expectedFiles[] = $file->getPathname();
+            }
+        }
 
         foreach ($expectedFiles as $file) {
             $fileName = basename($file);

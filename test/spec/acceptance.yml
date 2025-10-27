@@ -4,7 +4,7 @@ info:
   title: Acceptance Test
   version: 0.0.1
 
-paths: {}
+paths: { }
 
 components:
   schemas:
@@ -450,6 +450,27 @@ components:
 
     Test22:
       $ref: './models/TestObject22.yaml'
+
+    Test23InlineObjectArray:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+        required:
+          - id
+
+    Test23InlineObjectArrayNamespace:
+      x-php-namespace: Test
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+        required:
+          - id
 
   requestBodies:
     RequestBody1:
