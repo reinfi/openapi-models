@@ -89,10 +89,12 @@ class SingleNamespaceResolver
             explode('|', $parameterOrProperty->getType()),
             true
         ) && $parameterOrProperty->getComment() !== null) {
-            if (str_contains($parameterOrProperty->getComment(), $use)) {
+            $useQuoted = preg_quote($use, '/');
+            $pattern = '/(?<![A-Za-z0-9_\\\\])' . $useQuoted . '(?=\\\\|[^A-Za-z0-9_\\\\]|$)/';
+            if (preg_match($pattern, $parameterOrProperty->getComment()) === 1) {
                 $namespace->addUse($use);
                 $parameterOrProperty->setComment(
-                    str_replace($use, $namespace->simplifyName($use), $parameterOrProperty->getComment())
+                    preg_replace($pattern, $namespace->simplifyName($use), $parameterOrProperty->getComment())
                 );
             }
         }
