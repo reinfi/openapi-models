@@ -23,7 +23,7 @@ readonly class Test14 implements JsonSerializable
     {
         return [
             ...array_map(
-                fn (int $index): Test14DictionaryValue => $this->dictionaries[$index]->value,
+                fn (int|string $index): Test14DictionaryValue => $this->dictionaries[$index]->value,
                 array_flip(
                     array_map(
                         static fn (Test14Dictionary $dictionary): string => $dictionary->key,

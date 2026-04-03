@@ -49,7 +49,7 @@ class DictionarySerializationResolver
             '...array_map(',
             $inlineArrayReturnType,
             $this->intend(
-                sprintf('fn (int $index): %s => $this->%s[$index]->value,', $namespace->simplifyName(
+                sprintf('fn (int|string $index): %s => $this->%s[$index]->value,', $namespace->simplifyName(
                     $valueType
                 ), $dictionaryProperty)
             ),
