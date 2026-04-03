@@ -24,7 +24,7 @@ readonly class Test15 implements JsonSerializable
         return [
             ...array_map(
                 /** @return array<string> */
-                fn (int $index): array => $this->dictionaries[$index]->value,
+                fn (int|string $index): array => $this->dictionaries[$index]->value,
                 array_flip(
                     array_map(
                         static fn (Test15Dictionary $dictionary): string => $dictionary->key,

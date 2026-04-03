@@ -26,7 +26,7 @@ readonly class Test11 implements JsonSerializable
         return [
             'name' => $this->name,
             ...array_map(
-                fn (int $index): float => $this->dictionaries[$index]->value,
+                fn (int|string $index): float => $this->dictionaries[$index]->value,
                 array_flip(
                     array_map(
                         static fn (Test11Dictionary $dictionary): string => $dictionary->key,
