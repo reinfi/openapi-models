@@ -23,7 +23,7 @@
         "php": "~8.3.0 || ~8.4.0",
         "ext-intl": "*",
         "nette/php-generator": "^4.1",
-        "symfony/console": "^6.0 | ^7.0",
+        "symfony/console": "^6.0 || ^7.0 || ^8.0",
         "php-di/php-di": "^7.0",
         "marcelthole/openapi-merge": "^2.0",
         "michaelpetri/typed-input": "^1.3",
