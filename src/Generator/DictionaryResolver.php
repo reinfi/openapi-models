@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Reinfi\OpenApiModels\Generator;
 
-use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\Visibility;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\ClassModel;
 use Reinfi\OpenApiModels\Model\Imports;
@@ -35,7 +35,7 @@ class DictionaryResolver
         $constructor->addBody('$this->dictionaries = $dictionaries;');
 
         $class->addProperty('dictionaries')
-            ->setVisibility(ClassLike::VisibilityPrivate)->setType('array')->setComment(
+            ->setVisibility(Visibility::Private)->setType('array')->setComment(
                 sprintf('@var %s[]', $namespace->resolveName($dictionaryClassName))
             );
     }

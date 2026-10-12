@@ -9,11 +9,11 @@ use ArrayIterator;
 use BadMethodCallException;
 use Countable;
 use IteratorAggregate;
-use Nette\PhpGenerator\ClassLike;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
+use Nette\PhpGenerator\Visibility;
 use Reinfi\OpenApiModels\Model\ArrayType;
 use Reinfi\OpenApiModels\Model\Imports;
 use Reinfi\OpenApiModels\Model\OneOfType;
@@ -80,7 +80,7 @@ class ArrayObjectResolver
             return $constructor->addPromotedParameter('items')
                 ->setType('array')
                 ->setNullable()
-                ->setVisibility(ClassLike::VisibilityPrivate)->addComment(
+                ->setVisibility(Visibility::Private)->addComment(
                     sprintf('@var %s|null $%s', $arrayType->docType, 'items')
                 );
         }
@@ -102,7 +102,7 @@ class ArrayObjectResolver
 
         $class->addProperty($parameter->getName())
             ->setType('array')
-            ->setVisibility(ClassLike::VisibilityPrivate)->addComment(
+            ->setVisibility(Visibility::Private)->addComment(
                 sprintf('@var %s $%s', $arrayType->docType, $parameter->getName())
             );
 
