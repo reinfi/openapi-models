@@ -31,6 +31,8 @@ if (! class_exists('Symfony\Component\Console\Application')) {
 $container = (new ContainerBuilder())->addDefinitions(__DIR__ . '/../config/container.php')->build();
 $app = new Application();
 
-$app->add($container->get(GenerateCommand::class));
-$app->add($container->get(ValidateCommand::class));
+$app->addCommands([
+    $container->get(GenerateCommand::class),
+    $container->get(ValidateCommand::class),
+]);
 $app->run();
